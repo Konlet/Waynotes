@@ -35,7 +35,8 @@ ns.defaults = {
     arrowAlpha = 1,
     activeItemAlpha = 1,
     targetAlpha = 1,
-    replaceGuide = false,
+    replaceGuide = true,
+    simpleMode = false,
     trackerScale = 1.2,
     trackerBackground = 0.4,
     theme = "rested",
@@ -276,6 +277,7 @@ function ns.ApplyTheme(id)
         return
     end
     ns.db.theme = id
+    ns.db.activeProfile = nil
     ns.db.colors = ns.CopyTheme(theme)
     if type(theme.backgroundAlpha) == "number" then
         ns.db.trackerBackground = theme.backgroundAlpha
@@ -284,6 +286,137 @@ function ns.ApplyTheme(id)
     if ns.RefreshOptions then
         ns.RefreshOptions()
     end
+end
+
+local PROFILE_LIMIT = 20
+
+local function cleanProfileName(name)
+    if type(name) ~= "string" then
+        return nil
+    end
+    name = strtrim(name)
+    if name == "" then
+        return nil
+    end
+    if #name > 24 then
+        name = name:sub(1, 24)
+    end
+    return name
+end
+
+local function profileColors(source)
+    local theme = ns.themesById.rested
+    local raw = source and (source.colors or source) or nil
+    local colors = { badges = {} }
+    for _, key in ipairs(colorKeys) do
+        colors[key] = clampColor(raw and raw[key], theme[key])
+    end
+    local badges = raw and raw.badges
+    for index = 1, #theme.badges do
+        colors.badges[index] = clampColor(badges and badges[index], theme.badges[index])
+    end
+    return colors
+end
+
+function ns.SanitizeProfiles(db)
+    local source = type(db.profiles) == "table" and db.profiles or {}
+    local clean = {}
+    local seen = {}
+    for _, profile in ipairs(source) do
+        local name = type(profile) == "table" and cleanProfileName(profile.name) or nil
+        if name and not seen[name] then
+            seen[name] = true
+            local background = profile.trackerBackground
+            if type(background) ~= "number" then
+                background = 0.4
+            end
+            clean[#clean + 1] = {
+                name = name,
+                trackerBackground = clamp01(background, 0.4),
+                colors = profileColors(profile),
+            }
+            if #clean >= PROFILE_LIMIT then
+                break
+            end
+        end
+    end
+    db.profiles = clean
+    if type(db.activeProfile) ~= "string" or not seen[db.activeProfile] then
+        db.activeProfile = nil
+    end
+end
+
+local function profileMessage(text)
+    if DEFAULT_CHAT_FRAME then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r " .. text)
+    end
+end
+
+function ns.SaveProfile(name)
+    ns.InitDB()
+    name = cleanProfileName(name)
+    if not name then
+        profileMessage("Enter a name, then save the theme.")
+        return false
+    end
+    local profile = {
+        name = name,
+        trackerBackground = clamp01(ns.db.trackerBackground, 0.4),
+        colors = profileColors(ns.db),
+    }
+    local replaced = false
+    for index, existing in ipairs(ns.db.profiles) do
+        if existing.name == name then
+            ns.db.profiles[index] = profile
+            replaced = true
+            break
+        end
+    end
+    if not replaced and #ns.db.profiles >= PROFILE_LIMIT then
+        profileMessage("You can save up to " .. PROFILE_LIMIT .. " themes. Delete one first.")
+        return false
+    end
+    if not replaced then
+        ns.db.profiles[#ns.db.profiles + 1] = profile
+    end
+    ns.db.activeProfile = name
+    ns.db.theme = "custom"
+    profileMessage((replaced and "Updated theme " or "Saved theme ") .. name .. ".")
+    return true
+end
+
+function ns.LoadProfile(name)
+    ns.InitDB()
+    for _, profile in ipairs(ns.db.profiles) do
+        if profile.name == name then
+            ns.db.theme = "custom"
+            ns.db.activeProfile = name
+            ns.db.colors = profileColors(profile)
+            ns.db.trackerBackground = profile.trackerBackground
+            ns.Apply()
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
+            end
+            profileMessage("Loaded theme " .. name .. ".")
+            return true
+        end
+    end
+    return false
+end
+
+function ns.DeleteProfile(name)
+    ns.InitDB()
+    local kept = {}
+    for _, profile in ipairs(ns.db.profiles) do
+        if profile.name ~= name then
+            kept[#kept + 1] = profile
+        end
+    end
+    ns.db.profiles = kept
+    if ns.db.activeProfile == name then
+        ns.db.activeProfile = nil
+    end
+    profileMessage("Deleted theme " .. name .. ".")
 end
 
 ns.visualKeys = {
@@ -301,6 +434,7 @@ ns.visualKeys = {
     "activeItemAlpha",
     "targetAlpha",
     "replaceGuide",
+    "simpleMode",
     "trackerScale",
     "trackerBackground",
 }
@@ -323,6 +457,7 @@ local boolKeys = {
     fadeUnlessHover = true,
     fadeInCombat = true,
     replaceGuide = true,
+    simpleMode = true,
 }
 
 function ns.Visuals()
@@ -362,6 +497,7 @@ function ns.InitDB()
     end
 
     ns.SanitizeColors(db)
+    ns.SanitizeProfiles(db)
     ns.db = db
     return db
 end
@@ -781,6 +917,7 @@ function ns.Reset()
         ns.db[key] = ns.defaults[key]
     end
     ns.db.theme = ns.defaults.theme
+    ns.db.activeProfile = nil
     ns.db.colors = ns.CopyTheme(ns.themesById.rested)
     ns.Apply()
     if ns.RefreshOptions then
