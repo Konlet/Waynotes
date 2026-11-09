@@ -1,0 +1,629 @@
+local _, ns = ...
+
+local refreshers = {}
+
+local function addRefresher(widget)
+    refreshers[#refreshers + 1] = widget
+end
+
+local sliderCount = 0
+
+local function createSlider(parent, text, tooltip, key, isEnabled, range)
+    local minValue = range and range.min or 0
+    local maxValue = range and range.max or 1
+    local step = range and range.step or 0.01
+    local asPercent = not range or range.percent ~= false
+    sliderCount = sliderCount + 1
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(46)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("TOPLEFT", 0, 0)
+    label:SetText(text)
+
+    local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    valueText:SetPoint("TOPRIGHT", 0, 0)
+
+    local slider = CreateFrame("Slider", "RestedXPBetterSlider" .. sliderCount, holder, "UISliderTemplate")
+    slider:SetPoint("TOPLEFT", 4, -20)
+    slider:SetPoint("TOPRIGHT", -4, -20)
+    slider:SetHeight(16)
+    slider:SetMinMaxValues(minValue, maxValue)
+    slider:SetValueStep(step)
+    if slider.SetObeyStepOnDrag then
+        slider:SetObeyStepOnDrag(true)
+    end
+
+    local sliderName = slider:GetName()
+    for _, suffix in ipairs({ "Low", "High", "Text" }) do
+        local fs = _G[sliderName .. suffix]
+        if fs then
+            fs:Hide()
+        end
+    end
+
+    local suppress = false
+
+    local function showValue(value)
+        if asPercent then
+            valueText:SetText(string.format("%d%%", math.floor(value * 100 + 0.5)))
+        else
+            valueText:SetText(string.format("%.2f", value))
+        end
+    end
+
+    local ready = false
+
+    slider:SetScript("OnValueChanged", function(self, value)
+        local snapped = math.floor(value / step + 0.5) * step
+        showValue(snapped)
+        if suppress or not ready or not ns.db then
+            return
+        end
+        ns.db[key] = snapped
+        if ns.ApplySoon then
+            ns.ApplySoon()
+        else
+            ns.Apply()
+        end
+    end)
+
+    if tooltip then
+        slider:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(text, 1, 1, 1)
+            GameTooltip:AddLine(tooltip, 0.9, 0.9, 0.9, true)
+            GameTooltip:Show()
+        end)
+        slider:SetScript("OnLeave", GameTooltip_Hide)
+    end
+
+    function holder:Refresh()
+        local enabled = not isEnabled or isEnabled()
+        ready = false
+        suppress = true
+        slider:SetValue(ns.db[key] or 1)
+        suppress = false
+        ready = true
+        showValue(ns.db[key] or 1)
+        if enabled then
+            slider:Enable()
+        else
+            slider:Disable()
+        end
+        local fade = enabled and 1 or 0.45
+        label:SetAlpha(fade)
+        valueText:SetAlpha(fade)
+    end
+
+    addRefresher(holder)
+    return holder
+end
+
+local checkCount = 0
+
+local function createCheck(parent, text, tooltip, key)
+    checkCount = checkCount + 1
+    local name = "RestedXPBetterCheck" .. checkCount
+    local box = CreateFrame("CheckButton", name, parent, "UICheckButtonTemplate")
+    local fs = _G[name .. "Text"]
+    if fs then
+        fs:SetFontObject(GameFontHighlight)
+        fs:SetText(text)
+    end
+
+    box:SetScript("OnClick", function(self)
+        if not ns.db then
+            return
+        end
+        ns.db[key] = self:GetChecked() and true or false
+        ns.Apply()
+        if ns.RefreshOptions then
+            ns.RefreshOptions()
+        end
+    end)
+
+    if tooltip then
+        box:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(text, 1, 1, 1)
+            GameTooltip:AddLine(tooltip, 0.9, 0.9, 0.9, true)
+            GameTooltip:Show()
+        end)
+        box:SetScript("OnLeave", GameTooltip_Hide)
+    end
+
+    function box:Refresh()
+        self:SetChecked(ns.db[key] and true or false)
+    end
+
+    addRefresher(box)
+    return box
+end
+
+local function createHeader(parent, text)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(22)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    label:SetPoint("LEFT", 0, 2)
+    label:SetText(text)
+    label:SetTextColor(0.86, 0.7, 1)
+
+    local line = holder:CreateTexture(nil, "ARTWORK")
+    line:SetHeight(1)
+    line:SetPoint("LEFT", label, "RIGHT", 8, 0)
+    line:SetPoint("RIGHT", holder, "RIGHT", 0, 0)
+    line:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    line:SetVertexColor(0.55, 0.38, 0.75, 0.9)
+
+    return holder
+end
+
+local function createLayers(parent)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(44)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("TOPLEFT", 0, 0)
+    label:SetText("Frame layer")
+
+    local buttons = {}
+    local positions = { 0, 130, 200, 290 }
+    for index, info in ipairs(ns.layers) do
+        local name = "RestedXPBetterLayer" .. index
+        local radio = CreateFrame("CheckButton", name, holder, "UIRadioButtonTemplate")
+        radio:SetPoint("TOPLEFT", positions[index] or 0, -16)
+        local fs = _G[name .. "Text"]
+        if fs then
+            fs:SetFontObject(GameFontHighlightSmall)
+            fs:SetText(info.label)
+        end
+
+        radio:SetScript("OnClick", function()
+            ns.db.strata = info.id
+            ns.Apply()
+            holder:Refresh()
+        end)
+        radio:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Frame layer", 1, 1, 1)
+            GameTooltip:AddLine("Background sits behind most UI, the way RestedXP starts. High draws the guide, arrow, active items, and target frame above most frames.", 0.9, 0.9, 0.9, true)
+            GameTooltip:Show()
+        end)
+        radio:SetScript("OnLeave", GameTooltip_Hide)
+        buttons[#buttons + 1] = radio
+        buttons[radio] = info.id
+    end
+
+    function holder:Refresh()
+        for _, radio in ipairs(buttons) do
+            radio:SetChecked(buttons[radio] == ns.db.strata)
+        end
+    end
+
+    addRefresher(holder)
+    return holder
+end
+
+local function openPicker(r, g, b, onChange, onCancel)
+    if ColorPickerFrame.SetupColorPickerAndShow then
+        ColorPickerFrame:SetupColorPickerAndShow({
+            r = r,
+            g = g,
+            b = b,
+            hasOpacity = false,
+            swatchFunc = function()
+                local nr, ng, nb = ColorPickerFrame:GetColorRGB()
+                onChange(nr, ng, nb)
+            end,
+            cancelFunc = function(previous)
+                if previous then
+                    onCancel(previous.r, previous.g, previous.b)
+                else
+                    onCancel(r, g, b)
+                end
+            end,
+        })
+        return
+    end
+
+    ColorPickerFrame.func = function()
+        local nr, ng, nb = ColorPickerFrame:GetColorRGB()
+        onChange(nr, ng, nb)
+    end
+    ColorPickerFrame.opacityFunc = nil
+    ColorPickerFrame.hasOpacity = false
+    ColorPickerFrame.previousValues = { r = r, g = g, b = b }
+    ColorPickerFrame.cancelFunc = function(previous)
+        local saved = previous or ColorPickerFrame.previousValues
+        onCancel(saved.r, saved.g, saved.b)
+    end
+    ColorPickerFrame:SetColorRGB(r, g, b)
+    ColorPickerFrame:Hide()
+    ColorPickerFrame:Show()
+end
+
+local function createSwatch(parent, text, tooltip, getter, setter)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(24)
+
+    local border = holder:CreateTexture(nil, "BACKGROUND")
+    border:SetSize(20, 20)
+    border:SetPoint("LEFT", 0, 0)
+    border:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    border:SetVertexColor(0, 0, 0, 1)
+
+    local swatch = CreateFrame("Button", nil, holder)
+    swatch:SetSize(16, 16)
+    swatch:SetPoint("LEFT", 2, 0)
+    local fill = swatch:CreateTexture(nil, "ARTWORK")
+    fill:SetAllPoints()
+    fill:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    label:SetPoint("LEFT", swatch, "RIGHT", 8, 0)
+    label:SetText(text)
+
+    swatch:SetScript("OnClick", function()
+        local previousTheme = ns.db.theme
+        local r, g, b = getter()
+        openPicker(r, g, b, function(nr, ng, nb)
+            setter(nr, ng, nb)
+            ns.db.theme = "custom"
+            ns.Apply()
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
+            end
+        end, function(nr, ng, nb)
+            setter(nr, ng, nb)
+            ns.db.theme = previousTheme
+            ns.Apply()
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
+            end
+        end)
+    end)
+
+    if tooltip then
+        swatch:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(text, 1, 1, 1)
+            GameTooltip:AddLine(tooltip, 0.9, 0.9, 0.9, true)
+            GameTooltip:Show()
+        end)
+        swatch:SetScript("OnLeave", GameTooltip_Hide)
+    end
+
+    function holder:Refresh()
+        local r, g, b = getter()
+        fill:SetVertexColor(r, g, b)
+    end
+
+    addRefresher(holder)
+    return holder
+end
+
+local function createThemes(parent)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(78)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("TOPLEFT", 0, 0)
+    label:SetText("Theme")
+
+    local buttons = {}
+    for index, theme in ipairs(ns.themeList) do
+        local col = (index - 1) % 4
+        local row = math.floor((index - 1) / 4)
+        local button = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
+        button:SetSize(112, 22)
+        button:SetPoint("TOPLEFT", col * 118, -20 - row * 26)
+        button:SetText(theme.name)
+        button:SetScript("OnClick", function()
+            ns.ApplyTheme(theme.id)
+        end)
+        button:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(theme.name, 1, 1, 1)
+            GameTooltip:AddLine("Applies this palette to the tracker. Individual colors can be changed afterward.", 0.9, 0.9, 0.9, true)
+            GameTooltip:Show()
+        end)
+        button:SetScript("OnLeave", GameTooltip_Hide)
+        buttons[#buttons + 1] = button
+        buttons[button] = theme.id
+    end
+
+    function holder:Refresh()
+        for _, button in ipairs(buttons) do
+            if buttons[button] == ns.db.theme then
+                button:LockHighlight()
+            else
+                button:UnlockHighlight()
+            end
+        end
+    end
+
+    addRefresher(holder)
+    return holder
+end
+
+local function createColors(parent)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(168)
+
+    local fields = {
+        { key = "accent", label = "Accent", tip = "Header, border, and guide name." },
+        { key = "background", label = "Background", tip = "Panel color. The background slider controls how solid it is." },
+        { key = "text", label = "Current objective", tip = "Color of the main objective." },
+        { key = "secondary", label = "Other objectives", tip = "Color of the objectives listed under the current one." },
+        { key = "detail", label = "Details", tip = "Progress lines and extra notes." },
+    }
+
+    for index, field in ipairs(fields) do
+        local swatch = createSwatch(holder, field.label, field.tip, function()
+            return ns.Color(field.key)
+        end, function(r, g, b)
+            ns.db.colors[field.key] = { r, g, b }
+        end)
+        swatch:SetPoint("TOPLEFT", 0, -(index - 1) * 28)
+        swatch:SetPoint("TOPRIGHT", holder, "TOP", -8, -(index - 1) * 28)
+    end
+
+    for index = 1, 6 do
+        local swatch = createSwatch(holder, "Badge " .. index, "Color of step badge " .. index .. ". Later objectives repeat these colors.", function()
+            return ns.BadgeColor(index)
+        end, function(r, g, b)
+            ns.db.colors.badges[index] = { r, g, b }
+        end)
+        swatch:SetPoint("TOPLEFT", holder, "TOP", 8, -(index - 1) * 28)
+        swatch:SetPoint("TOPRIGHT", 0, -(index - 1) * 28)
+    end
+
+    return holder
+end
+
+function ns.RefreshOptions()
+    if not ns.db then
+        return
+    end
+    for _, widget in ipairs(refreshers) do
+        if widget.Refresh then
+            widget:Refresh()
+        end
+    end
+end
+
+local applyQueued = false
+
+function ns.ApplySoon()
+    if applyQueued then
+        return
+    end
+    applyQueued = true
+    C_Timer.After(0, function()
+        applyQueued = false
+        ns.Apply()
+    end)
+end
+
+local function place(widget, parent, y)
+    widget:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, y)
+    widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, y)
+end
+
+local function build(parent)
+    local y = -4
+
+    local desc = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    desc:SetPoint("TOPLEFT", 16, y)
+    desc:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
+    desc:SetJustifyH("LEFT")
+    desc:SetJustifyV("TOP")
+    desc:SetText("Tracker, colors, and the opacity controls for the RestedXP window.")
+    y = y - 36
+
+    local replaceHeader = createHeader(parent, "Tracker")
+    place(replaceHeader, parent, y)
+    y = y - 28
+
+    local replace = createCheck(parent, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list.", "replaceGuide")
+    replace:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 36
+
+    local themes = createThemes(parent)
+    place(themes, parent, y)
+    y = y - 86
+
+    local colors = createColors(parent)
+    place(colors, parent, y)
+    y = y - 176
+
+    local trackerScale = createSlider(parent, "Tracker scale", "Size of the tracker. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
+        return ns.db.replaceGuide
+    end, { min = 0.8, max = 2, step = 0.05, percent = true })
+    place(trackerScale, parent, y)
+    y = y - 52
+
+    local trackerBackground = createSlider(parent, "Tracker background", "Darkness of the panel behind the objectives. The text stays solid.", "trackerBackground", function()
+        return ns.db.replaceGuide
+    end)
+    place(trackerBackground, parent, y)
+    y = y - 58
+
+    local guideHeader = createHeader(parent, "Guide window")
+    place(guideHeader, parent, y)
+    y = y - 30
+
+    local background = createSlider(parent, "Background", "Fades the dark fill behind the guide. Text, icons, and the logo stay solid.", "backgroundAlpha")
+    place(background, parent, y)
+    y = y - 52
+
+    local banner = createSlider(parent, "Banner", "Fades the header and footer artwork. The logo and buttons stay solid.", "bannerAlpha")
+    place(banner, parent, y)
+    y = y - 52
+
+    local border = createSlider(parent, "Border", "Fades the frame edges and the step list scrollbar.", "borderAlpha")
+    place(border, parent, y)
+    y = y - 52
+
+    local steps = createSlider(parent, "Faded steps", "How visible completed, skipped, and past steps are in the step list. Current and upcoming steps stay solid.", "stepListAlpha")
+    place(steps, parent, y)
+    y = y - 50
+
+    local outline = createCheck(parent, "Outline guide text", "Draws a dark outline on guide text so it stays readable when the background is faint.", "textOutline")
+    outline:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 32
+
+    local layers = createLayers(parent)
+    place(layers, parent, y)
+    y = y - 52
+
+    local fadeHeader = createHeader(parent, "Fade")
+    place(fadeHeader, parent, y)
+    y = y - 30
+
+    local hover = createCheck(parent, "Fade unless the cursor is over the guide", "Dims the whole guide, including text, until you mouse over it.", "fadeUnlessHover")
+    hover:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local idle = createSlider(parent, "Idle visibility", "How visible the guide is while the cursor is somewhere else.", "idleAlpha", function()
+        return ns.db.fadeUnlessHover
+    end)
+    place(idle, parent, y)
+    y = y - 52
+
+    local combat = createCheck(parent, "Fade while in combat", "Caps the guide, arrow, active items, and target frame while you are in combat.", "fadeInCombat")
+    combat:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local combatAlpha = createSlider(parent, "Combat visibility", "Visibility used during combat. The guide fades to this, and the arrow, active items, and target frame are capped at it.", "combatAlpha", function()
+        return ns.db.fadeInCombat
+    end)
+    place(combatAlpha, parent, y)
+    y = y - 56
+
+    local otherHeader = createHeader(parent, "Other frames")
+    place(otherHeader, parent, y)
+    y = y - 30
+
+    local arrow = createSlider(parent, "Waypoint arrow", "Opacity of the arrow and its distance text. RestedXP still hides the arrow when it has no destination.", "arrowAlpha")
+    place(arrow, parent, y)
+    y = y - 52
+
+    local items = createSlider(parent, "Active items", "Opacity of the active item button.", "activeItemAlpha")
+    place(items, parent, y)
+    y = y - 52
+
+    local target = createSlider(parent, "Target frame", "Opacity of the RestedXP target frame.", "targetAlpha")
+    place(target, parent, y)
+    y = y - 58
+
+    local reset = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    reset:SetSize(150, 24)
+    reset:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, y)
+    reset:SetText("Reset defaults")
+    reset:SetScript("OnClick", function()
+        ns.Reset()
+    end)
+
+    parent:SetHeight(math.abs(y) + 48)
+end
+
+local canvas = CreateFrame("Frame", "RestedXPBetterOptions")
+canvas.name = "RestedXP Better"
+canvas:SetSize(520, 400)
+if canvas.SetClipsChildren then
+    canvas:SetClipsChildren(true)
+end
+
+local scroll = CreateFrame("ScrollFrame", "RestedXPBetterOptionsScroll", canvas, "UIPanelScrollFrameTemplate")
+scroll:SetPoint("TOPLEFT", 0, -4)
+scroll:SetPoint("BOTTOMRIGHT", -28, 4)
+
+local child = CreateFrame("Frame", nil, scroll)
+child:SetSize(480, 800)
+scroll:SetScrollChild(child)
+build(child)
+
+local function fitScroll()
+    local width = canvas:GetWidth() or 520
+    if width < 200 then
+        width = 520
+    end
+    child:SetWidth(width - 36)
+end
+
+local function refreshCanvas()
+    ns.InitDB()
+    fitScroll()
+    ns.RefreshOptions()
+end
+
+canvas.refresh = refreshCanvas
+canvas:SetScript("OnSizeChanged", fitScroll)
+canvas:SetScript("OnShow", refreshCanvas)
+
+scroll:EnableMouseWheel(true)
+scroll:SetScript("OnMouseWheel", function(self, delta)
+    local current = self:GetVerticalScroll()
+    local maxScroll = self:GetVerticalScrollRange()
+    local nextScroll = current - delta * 48
+    if nextScroll < 0 then
+        nextScroll = 0
+    elseif nextScroll > maxScroll then
+        nextScroll = maxScroll
+    end
+    self:SetVerticalScroll(nextScroll)
+end)
+
+local optionsCategory
+
+local function registerSettings()
+    if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
+        optionsCategory = Settings.RegisterCanvasLayoutCategory(canvas, canvas.name)
+        Settings.RegisterAddOnCategory(optionsCategory)
+        return
+    end
+    if InterfaceOptions_AddCategory then
+        InterfaceOptions_AddCategory(canvas)
+    end
+end
+
+function ns.OpenOptions()
+    ns.InitDB()
+    ns.db.acknowledged = true
+    if optionsCategory and Settings and Settings.OpenToCategory and optionsCategory.GetID then
+        Settings.OpenToCategory(optionsCategory:GetID())
+        return
+    end
+    if Settings and Settings.OpenToCategory then
+        Settings.OpenToCategory(canvas.name)
+        return
+    end
+    if InterfaceOptionsFrame_OpenToCategory then
+        InterfaceOptionsFrame_OpenToCategory(canvas)
+        InterfaceOptionsFrame_OpenToCategory(canvas)
+    end
+end
+
+local registrar = CreateFrame("Frame")
+registrar:RegisterEvent("PLAYER_LOGIN")
+registrar:SetScript("OnEvent", function()
+    pcall(registerSettings)
+    registrar:UnregisterAllEvents()
+end)
+
+SLASH_RESTEDXPBETTER1 = "/rxpb"
+SLASH_RESTEDXPBETTER2 = "/rxpbetter"
+SLASH_RESTEDXPBETTER3 = "/restedxpb"
+SlashCmdList.RESTEDXPBETTER = function(message)
+    ns.InitDB()
+    local command = string.lower(strtrim(message or ""))
+    if command == "reset" then
+        ns.Reset()
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r options reset.")
+        return
+    end
+    ns.OpenOptions()
+end

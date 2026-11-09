@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: RestedXP Better
+## Notes: A WoW-style tracker and options menu for RestedXP Guides.
+## Author: RestedXP Better
+## Version: 1.2.0
+## Category: Quests
+## AllowLoadGameType: forever, camelot
+## Dependencies: RXPGuides
+## RequiredDeps: RXPGuides
+## SavedVariables: RestedXPBetterDB
+
+Core.lua
+Replace.lua
+Options.lua
