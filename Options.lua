@@ -267,10 +267,12 @@ local function createSwatch(parent, text, tooltip, getter, setter)
 
     swatch:SetScript("OnClick", function()
         local previousTheme = ns.db.theme
+        local previousProfile = ns.db.activeProfile
         local r, g, b = getter()
         openPicker(r, g, b, function(nr, ng, nb)
             setter(nr, ng, nb)
             ns.db.theme = "custom"
+            ns.db.activeProfile = nil
             ns.Apply()
             if ns.RefreshOptions then
                 ns.RefreshOptions()
@@ -278,6 +280,7 @@ local function createSwatch(parent, text, tooltip, getter, setter)
         end, function(nr, ng, nb)
             setter(nr, ng, nb)
             ns.db.theme = previousTheme
+            ns.db.activeProfile = previousProfile
             ns.Apply()
             if ns.RefreshOptions then
                 ns.RefreshOptions()
@@ -383,6 +386,163 @@ local function createColors(parent)
     return holder
 end
 
+local profileRows = {}
+
+local function createProfiles(parent)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(188)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("TOPLEFT", 0, 0)
+    label:SetText("Saved themes")
+
+    local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    hint:SetPoint("TOPLEFT", 0, -18)
+    hint:SetPoint("RIGHT", holder, "RIGHT", 0, 0)
+    hint:SetJustifyH("LEFT")
+    hint:SetText("Save the current colors and tracker background, then load them later. Saving an existing name updates it.")
+
+    local edit = CreateFrame("EditBox", "RestedXPBetterProfileName", holder, "InputBoxTemplate")
+    edit:SetSize(240, 20)
+    edit:SetPoint("TOPLEFT", 8, -40)
+    edit:SetAutoFocus(false)
+    edit:SetMaxLetters(24)
+    edit:SetFontObject(GameFontHighlightSmall)
+    edit:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+
+    local save = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
+    save:SetSize(80, 22)
+    save:SetPoint("LEFT", edit, "RIGHT", 10, 0)
+    save:SetText("Save")
+    save:SetScript("OnClick", function()
+        if ns.SaveProfile(edit:GetText()) then
+            edit:SetText("")
+            edit:ClearFocus()
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
+            end
+        end
+    end)
+    edit:SetScript("OnEnterPressed", function(self)
+        save:Click()
+    end)
+
+    local scroll = CreateFrame("ScrollFrame", "RestedXPBetterProfileScroll", holder, "UIPanelScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", 0, -68)
+    scroll:SetPoint("BOTTOMRIGHT", -28, 0)
+    local content = CreateFrame("Frame", nil, scroll)
+    content:SetSize(420, 24)
+    scroll:SetScrollChild(content)
+
+    local empty = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    empty:SetPoint("TOPLEFT", 4, -4)
+    empty:SetText("No saved themes yet.")
+
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local current = self:GetVerticalScroll()
+        local maxScroll = self:GetVerticalScrollRange()
+        local nextScroll = current - delta * 24
+        if nextScroll < 0 then
+            nextScroll = 0
+        elseif nextScroll > maxScroll then
+            nextScroll = maxScroll
+        end
+        self:SetVerticalScroll(nextScroll)
+    end)
+
+    local function acquireRow(index)
+        local row = profileRows[index]
+        if row then
+            return row
+        end
+        row = CreateFrame("Frame", nil, content)
+        row:SetHeight(22)
+        row.load = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.load:SetPoint("TOPLEFT", 0, 0)
+        row.load:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -72, 0)
+        row.load:SetScript("OnClick", function(self)
+            ns.LoadProfile(self.profileName)
+        end)
+        row.delete = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.delete:SetSize(64, 22)
+        row.delete:SetPoint("TOPRIGHT", 0, 0)
+        row.delete:SetText("Delete")
+        row.delete:SetScript("OnClick", function(self)
+            local name = self.profileName
+            if name and StaticPopup_Show then
+                StaticPopup_Show("RestedXPBetterDeleteProfile", name, nil, name)
+            elseif name then
+                ns.DeleteProfile(name)
+                if ns.RefreshOptions then
+                    ns.RefreshOptions()
+                end
+            end
+        end)
+        profileRows[index] = row
+        return row
+    end
+
+    function holder:Refresh()
+        local profiles = ns.db.profiles or {}
+        local width = holder:GetWidth()
+        if not width or width < 120 then
+            width = 480
+        end
+        content:SetWidth(math.max(120, width - 36))
+        if #profiles == 0 then
+            empty:Show()
+        else
+            empty:Hide()
+        end
+        for index, profile in ipairs(profiles) do
+            local row = acquireRow(index)
+            row:Show()
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(index - 1) * 24)
+            row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -(index - 1) * 24)
+            row.load.profileName = profile.name
+            row.delete.profileName = profile.name
+            row.load:SetText(profile.name)
+            if ns.db.activeProfile == profile.name then
+                row.load:LockHighlight()
+            else
+                row.load:UnlockHighlight()
+            end
+        end
+        for index = #profiles + 1, #profileRows do
+            profileRows[index]:Hide()
+        end
+        content:SetHeight(math.max(22, #profiles * 24))
+    end
+
+    addRefresher(holder)
+    return holder
+end
+
+if not StaticPopupDialogs["RestedXPBetterDeleteProfile"] then
+    StaticPopupDialogs["RestedXPBetterDeleteProfile"] = {
+        text = "Delete the saved theme \"%s\"?",
+        button1 = "Delete",
+        button2 = "Cancel",
+        OnAccept = function(self, data)
+            local name = data or (self and self.data)
+            if name then
+                ns.DeleteProfile(name)
+                if ns.RefreshOptions then
+                    ns.RefreshOptions()
+                end
+            end
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
+end
+
 function ns.RefreshOptions()
     if not ns.db then
         return
@@ -429,6 +589,10 @@ local function build(parent)
 
     local replace = createCheck(parent, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list.", "replaceGuide")
     replace:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local simple = createCheck(parent, "Simple mode", "Shows only the current step. Sticky and extra steps stay hidden.", "simpleMode")
+    simple:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 36
 
     local themes = createThemes(parent)
@@ -438,6 +602,10 @@ local function build(parent)
     local colors = createColors(parent)
     place(colors, parent, y)
     y = y - 176
+
+    local profiles = createProfiles(parent)
+    place(profiles, parent, y)
+    y = y - 196
 
     local trackerScale = createSlider(parent, "Tracker scale", "Size of the tracker. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
         return ns.db.replaceGuide

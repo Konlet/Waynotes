@@ -21,8 +21,15 @@ local function uiFont()
     return "Fonts\\FRIZQT__.TTF"
 end
 
+local function applyFont(fs, size, flags)
+    local font = uiFont()
+    if not fs:SetFont(font, size, flags) then
+        fs:SetFont(font, size)
+    end
+end
+
 local function paint(fs, size, r, g, b)
-    fs:SetFont(uiFont(), size, "")
+    applyFont(fs, size, "")
     fs:SetShadowOffset(1, -1)
     fs:SetShadowColor(0, 0, 0, 1)
     fs:SetTextColor(r, g, b)
@@ -245,6 +252,28 @@ local function namesFromValue(value, into, seen)
     end
 end
 
+local function collectTaggedNames(raw, into, seen)
+    if type(raw) ~= "string" then
+        return
+    end
+    for _, tag in ipairs({ "RXP_ENEMY_", "RXP_FRIENDLY_" }) do
+        local startAt = 1
+        local marker = "|c" .. tag
+        while true do
+            local found, finish = raw:find(marker, startAt, true)
+            if not found then
+                break
+            end
+            local close = raw:find("|r", finish + 1, true)
+            if not close then
+                break
+            end
+            rememberName(into, seen, raw:sub(finish + 1, close - 1))
+            startAt = close + 2
+        end
+    end
+end
+
 local function itemName(id)
     if type(id) ~= "number" then
         return nil
@@ -432,6 +461,7 @@ local function visibleLines(step, activeIndex)
                 namesFromValue(element.targets, targetNames, targetSeen)
                 namesFromValue(element.unitscan, targetNames, targetSeen)
             end
+            collectTaggedNames(element.text, targetNames, targetSeen)
 
             local elementFrame = frame and frame.elements and frame.elements[elementIndex]
             local hidden = elementFrame and elementFrame.GetAlpha and elementFrame:GetAlpha() <= 0
@@ -444,6 +474,7 @@ local function visibleLines(step, activeIndex)
                 if not raw or raw == "" or raw == " " then
                     raw = element.text
                 end
+                collectTaggedNames(raw, targetNames, targetSeen)
                 local text = objectiveText(raw)
                 if text then
                     lines[#lines + 1] = text
@@ -552,12 +583,22 @@ local function collectObjectives()
             primaryIndex = index
         end
     end
+    if not primaryIndex and ns.db and ns.db.simpleMode then
+        for index, step in ipairs(steps) do
+            if step and not step.tip then
+                primaryIndex = index
+                break
+            end
+        end
+    end
     if primaryIndex then
         order[#order + 1] = primaryIndex
     end
-    for index, step in ipairs(steps) do
-        if index ~= primaryIndex and step and not step.tip then
-            order[#order + 1] = index
+    if not (ns.db and ns.db.simpleMode) then
+        for index, step in ipairs(steps) do
+            if index ~= primaryIndex and step and not step.tip then
+                order[#order + 1] = index
+            end
         end
     end
 
@@ -630,6 +671,7 @@ local function collectObjectives()
             local objective = buildObjective(step, lines, {})
             if objective then
                 objective._step = step
+                objective.names = targetNames
                 local seen = {}
                 seen[(plainText(objective.headline) or ""):lower()] = true
 
@@ -1049,6 +1091,7 @@ local function acquireRow(index)
     })
     row.badge.text = row.badge:CreateFontString(nil, "OVERLAY")
     row.badge.text:SetPoint("CENTER", 0, 0)
+    applyFont(row.badge.text, 12, "OUTLINE")
 
     row.arrowShadow = row:CreateTexture(nil, "ARTWORK")
     row.arrowShadow:SetDrawLayer("ARTWORK", 1)
@@ -1063,13 +1106,15 @@ local function acquireRow(index)
     row.arrow:Hide()
 
     row.distance = row:CreateFontString(nil, "OVERLAY")
-    row.distance:SetFont(uiFont(), 10, "OUTLINE")
+    applyFont(row.distance, 10, "OUTLINE")
     row.distance:SetJustifyH("CENTER")
     row.distance:SetJustifyV("TOP")
     row.distance:Hide()
 
     row.text = row:CreateFontString(nil, "OVERLAY")
+    paint(row.text, 13, 1, 1, 1)
     row.details = row:CreateFontString(nil, "OVERLAY")
+    paint(row.details, 12, 0.82, 0.82, 0.82)
     rows[index] = row
     return row
 end
@@ -1180,6 +1225,132 @@ local function reassertActions()
     end
 end
 
+local function colorChannel(value)
+    value = math.floor((value or 0) * 255 + 0.5)
+    if value < 0 then
+        value = 0
+    elseif value > 255 then
+        value = 255
+    end
+    return string.format("%02x", value)
+end
+
+local function colorCode(r, g, b)
+    return "|cff" .. colorChannel(r) .. colorChannel(g) .. colorChannel(b)
+end
+
+local function spansOverlap(spans, first, last)
+    for _, span in ipairs(spans) do
+        if first <= span.finish and last >= span.start then
+            return true
+        end
+    end
+end
+
+local function wordByte(text, index)
+    if index < 1 or index > #text then
+        return false
+    end
+    return text:sub(index, index):match("[%w]") and true or false
+end
+
+local function findNameSpans(plain, names)
+    local spans = {}
+    local lower = plain:lower()
+    local sorted = {}
+    for _, name in ipairs(names or {}) do
+        if type(name) == "string" and #name >= 3 then
+            sorted[#sorted + 1] = name
+        end
+    end
+    table.sort(sorted, function(a, b)
+        return #a > #b
+    end)
+
+    for _, name in ipairs(sorted) do
+        local needle = name:lower()
+        local startAt = 1
+        while true do
+            local first, last = lower:find(needle, startAt, true)
+            if not first then
+                break
+            end
+            local plural = lower:sub(last + 1, last + 1)
+            if plural == "s" and not wordByte(lower, last + 2) then
+                last = last + 1
+            end
+            if not wordByte(lower, first - 1) and not spansOverlap(spans, first, last) then
+                spans[#spans + 1] = { start = first, finish = last }
+            end
+            startAt = last + 1
+        end
+    end
+
+    table.sort(spans, function(a, b)
+        return a.start < b.start
+    end)
+    return spans
+end
+
+local function highlightMobNames(plain, names)
+    local spans = findNameSpans(plain, names)
+    if #spans == 0 then
+        return plain
+    end
+    local code = colorCode(ns.Color("accent"))
+    local out = {}
+    local cursor = 1
+    for _, span in ipairs(spans) do
+        if span.start > cursor then
+            out[#out + 1] = plain:sub(cursor, span.start - 1)
+        end
+        out[#out + 1] = code .. plain:sub(span.start, span.finish) .. "|r"
+        cursor = span.finish + 1
+    end
+    if cursor <= #plain then
+        out[#out + 1] = plain:sub(cursor)
+    end
+    return table.concat(out)
+end
+
+local function presentHeadline(item)
+    return plainText(item.headline) or ""
+end
+
+local function presentDetails(item)
+    local accentR, accentG, accentB = ns.Color("accent")
+    local bullet = colorCode(accentR, accentG, accentB) .. "\226\128\162|r "
+    local lines = {}
+    for _, line in ipairs(item.details or {}) do
+        local plain = plainText(line)
+        if plain then
+            local shown = plain
+            if isProgress(plain) then
+                shown = highlightMobNames(plain, item.names)
+            end
+            lines[#lines + 1] = bullet .. shown
+        end
+    end
+    return table.concat(lines, "\n")
+end
+
+local function applyRowText(row, item, index)
+    row.__rxpbItem = item
+    local main = index == 1
+    local textR, textG, textB = ns.Color(main and "text" or "secondary")
+    paint(row.text, main and 16 or 13, textR, textG, textB)
+    row.text:SetText(presentHeadline(item))
+    if item.details and #item.details > 0 then
+        local detailR, detailG, detailB = ns.Color("detail")
+        paint(row.details, main and 13 or 12, detailR, detailG, detailB)
+        row.details:SetText(presentDetails(item))
+        row.details:Show()
+    elseif row.details then
+        row.details:SetText("")
+        row.details:Hide()
+    end
+end
+
 local function badgeLabel(item, index)
     local number = item.number > 0 and item.number or index
     return number, tostring(number)
@@ -1231,7 +1402,7 @@ local function layout(items)
         row.badge:SetBackdropColor(br, bg, bb, 1)
         row.badge:SetBackdropBorderColor(0, 0, 0, 0.45)
         local badgeNumber, badgeText = badgeLabel(item, index)
-        row.badge.text:SetFont(uiFont(), badgeFontSize(main, badgeNumber), "OUTLINE")
+        applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
         row.badge.text:ClearAllPoints()
         row.badge.text:SetAllPoints(row.badge)
         row.badge.text:SetJustifyH("CENTER")
@@ -1270,7 +1441,7 @@ local function layout(items)
                 row.distance:ClearAllPoints()
                 row.distance:SetPoint("TOPRIGHT", -2, -(arrowSize + 5))
                 row.distance:SetWidth(ARROW_COLUMN)
-                row.distance:SetFont(uiFont(), main and 10 or 9, "OUTLINE")
+                applyFont(row.distance, main and 10 or 9, "OUTLINE")
                 row.distance:SetJustifyH("CENTER")
                 row.distance:SetTextColor(tintR, tintG, tintB)
             end
@@ -1290,9 +1461,7 @@ local function layout(items)
         row.text:ClearAllPoints()
         row.text:SetPoint("TOPLEFT", textLeft, 0)
         row.text:SetPoint("TOPRIGHT", -rightInset, 0)
-        local tr, tg, tb = ns.Color(main and "text" or "secondary")
-        paint(row.text, main and 16 or 13, tr, tg, tb)
-        row.text:SetText(item.headline)
+        applyRowText(row, item, index)
 
         local textHeight = row.text:GetStringHeight() or 0
         if textHeight < 1 then
@@ -1306,9 +1475,6 @@ local function layout(items)
             row.details:ClearAllPoints()
             row.details:SetPoint("TOPLEFT", textLeft, -(textHeight + 2))
             row.details:SetPoint("TOPRIGHT", -rightInset, -(textHeight + 2))
-            local dr, dg, db = ns.Color("detail")
-            paint(row.details, main and 13 or 12, dr, dg, db)
-            row.details:SetText(table.concat(item.details, "\n"))
             detailHeight = row.details:GetStringHeight() or 0
             if detailHeight < 1 then
                 measured = false
@@ -1375,11 +1541,10 @@ local function paintRowColors()
         if row:IsShown() and row.badge then
             local r, g, b = ns.BadgeColor(index)
             row.badge:SetBackdropColor(r, g, b, 1)
-            local main = index == 1
-            local tr, tg, tb = ns.Color(main and "text" or "secondary")
-            row.text:SetTextColor(tr, tg, tb)
-            local dr, dg, db = ns.Color("detail")
-            row.details:SetTextColor(dr, dg, db)
+            local item = row.__rxpbItem
+            if item then
+                applyRowText(row, item, index)
+            end
             if row.arrow and row.arrow:IsShown() then
                 local tintR, tintG, tintB = arrowTint()
                 tintArrow(row.arrow, tintR, tintG, tintB, 1)
@@ -1406,7 +1571,7 @@ function ns.RefreshTracker(force)
         end
         local wp = item.waypoint
         local wpText = wp and string.format("%.0f,%.0f", wp.wx, wp.wy) or "-"
-        parts[index] = tostring(item.number) .. "\t" .. item.headline .. "\t" .. table.concat(item.details or {}, "|") .. "\t" .. table.concat(actionNames, ",") .. "\t" .. wpText
+        parts[index] = tostring(item.number) .. "\t" .. item.headline .. "\t" .. table.concat(item.details or {}, "|") .. "\t" .. table.concat(item.names or {}, ",") .. "\t" .. table.concat(actionNames, ",") .. "\t" .. wpText
     end
     local signature = guideTitle() .. "\n" .. table.concat(parts, "\n")
 
@@ -1416,21 +1581,16 @@ function ns.RefreshTracker(force)
         for index, item in ipairs(items) do
             local row = rows[index]
             if row and row.text then
+                local main = index == 1
                 if row.badge and row.badge.text then
                     local badgeNumber, badgeText = badgeLabel(item, index)
-                    row.badge.text:SetFont(uiFont(), badgeFontSize(index == 1, badgeNumber), "OUTLINE")
+                    applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
                     row.badge.text:SetText(badgeText)
                 end
                 if row.arrow then
                     row.arrow.__rxpbWp = item.waypoint
                 end
-                row.text:SetText(item.headline)
-                if item.details and #item.details > 0 then
-                    row.details:SetText(table.concat(item.details, "\n"))
-                    row.details:Show()
-                elseif row.details then
-                    row.details:Hide()
-                end
+                applyRowText(row, item, index)
             end
         end
         paintRowColors()
