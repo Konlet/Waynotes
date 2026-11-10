@@ -38,7 +38,20 @@ ns.defaults = {
     replaceGuide = true,
     simpleMode = false,
     trackerScale = 1.2,
+    trackerWidth = 300,
+    trackerFitHeight = true,
+    trackerHeight = 360,
     trackerBackground = 0.4,
+    darkHeader = true,
+    headerShade = 0.55,
+    roundedEdges = true,
+    cornerRadius = 8,
+    roundBadges = false,
+    trackerBorder = false,
+    trackerShadow = false,
+    showGuidePercent = true,
+    showFlightTimer = true,
+    standaloneGuide = false,
     theme = "rested",
 }
 
@@ -264,6 +277,39 @@ function ns.Color(name)
     return color[1], color[2], color[3]
 end
 
+ns.TOOLTIP_MAX_WIDTH = 280
+
+function ns.FinishTooltip(maxWidth)
+    maxWidth = maxWidth or ns.TOOLTIP_MAX_WIDTH
+    if type(maxWidth) ~= "number" or maxWidth < 120 then
+        maxWidth = 120
+    end
+    local tip = GameTooltip
+    tip:Show()
+    local textWidth = maxWidth - 24
+    if textWidth < 80 then
+        textWidth = 80
+    end
+    local count = tip.NumLines and tip:NumLines() or 0
+    local changed = tip:GetWidth() > maxWidth + 2
+    for i = 1, count do
+        local left = _G["GameTooltipTextLeft" .. i]
+        if left and left:IsShown() then
+            local stringWidth = left:GetStringWidth() or 0
+            if changed or stringWidth > textWidth + 1 then
+                left:SetWidth(textWidth)
+                if left.SetWordWrap then
+                    left:SetWordWrap(true)
+                end
+                changed = true
+            end
+        end
+    end
+    if changed then
+        tip:Show()
+    end
+end
+
 function ns.BadgeColor(index)
     local badges = ns.db and ns.db.colors and ns.db.colors.badges
     local palette = type(badges) == "table" and #badges > 0 and badges or ns.themesById.rested.badges
@@ -436,7 +482,18 @@ ns.visualKeys = {
     "replaceGuide",
     "simpleMode",
     "trackerScale",
+    "trackerWidth",
+    "trackerFitHeight",
+    "trackerHeight",
     "trackerBackground",
+    "darkHeader",
+    "headerShade",
+    "roundedEdges",
+    "cornerRadius",
+    "roundBadges",
+    "trackerBorder",
+    "trackerShadow",
+    "standaloneGuide",
 }
 
 local percentKeys = {
@@ -450,6 +507,7 @@ local percentKeys = {
     activeItemAlpha = true,
     targetAlpha = true,
     trackerBackground = true,
+    headerShade = true,
 }
 
 local boolKeys = {
@@ -458,10 +516,27 @@ local boolKeys = {
     fadeInCombat = true,
     replaceGuide = true,
     simpleMode = true,
+    trackerFitHeight = true,
+    darkHeader = true,
+    roundedEdges = true,
+    roundBadges = true,
+    trackerBorder = true,
+    trackerShadow = true,
+    showGuidePercent = true,
+    showFlightTimer = true,
+    standaloneGuide = true,
 }
 
 function ns.Visuals()
     return ns.db or ns.defaults
+end
+
+function ns.UsingStandalone()
+    return ns.db and ns.db.standaloneGuide and true or false
+end
+
+function ns.ReplacingGuide()
+    return ns.db and ns.db.replaceGuide and not ns.db.standaloneGuide and true or false
 end
 
 function ns.InitDB()
@@ -490,6 +565,39 @@ function ns.InitDB()
                 db[key] = 0.8
             elseif db[key] > 2 then
                 db[key] = 2
+            end
+        elseif key == "trackerWidth" then
+            if type(db[key]) ~= "number" then
+                db[key] = value
+            else
+                db[key] = math.floor(db[key] + 0.5)
+                if db[key] < 220 then
+                    db[key] = 220
+                elseif db[key] > 640 then
+                    db[key] = 640
+                end
+            end
+        elseif key == "trackerHeight" then
+            if type(db[key]) ~= "number" then
+                db[key] = value
+            else
+                db[key] = math.floor(db[key] + 0.5)
+                if db[key] < 120 then
+                    db[key] = 120
+                elseif db[key] > 800 then
+                    db[key] = 800
+                end
+            end
+        elseif key == "cornerRadius" then
+            if type(db[key]) ~= "number" then
+                db[key] = value
+            else
+                db[key] = math.floor(db[key] + 0.5)
+                if db[key] < 4 then
+                    db[key] = 4
+                elseif db[key] > 16 then
+                    db[key] = 16
+                end
             end
         elseif key == "theme" and db[key] ~= "custom" and not ns.themesById[db[key]] then
             db[key] = value
@@ -650,7 +758,7 @@ local function hookSatellite(frame, key)
             return
         end
         local key = hookedSatellite[self]
-        if ns.db and ns.db.replaceGuide and (key == "activeItemAlpha" or key == "targetAlpha") then
+        if ns.ReplacingGuide() and (key == "activeItemAlpha" or key == "targetAlpha") then
             return
         end
         local want = satelliteAlpha(key)
@@ -674,7 +782,7 @@ local function setSatellite(frame, key)
     if not frame or not frame.SetAlpha then
         return
     end
-    if ns.db and ns.db.replaceGuide and (key == "activeItemAlpha" or key == "targetAlpha") then
+    if ns.ReplacingGuide() and (key == "activeItemAlpha" or key == "targetAlpha") then
         return
     end
     hookSatellite(frame, key)
@@ -940,7 +1048,7 @@ local function safe(fn)
 end
 
 local function updateFade(dt)
-    if ns.db and ns.db.replaceGuide then
+    if ns.ReplacingGuide() then
         return
     end
 
