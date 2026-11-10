@@ -13,6 +13,8 @@ local function createSlider(parent, text, tooltip, key, isEnabled, range)
     local maxValue = range and range.max or 1
     local step = range and range.step or 0.01
     local asPercent = not range or range.percent ~= false
+    local decimals = range and range.decimals
+    local suffix = range and range.suffix or ""
     sliderCount = sliderCount + 1
     local holder = CreateFrame("Frame", nil, parent)
     holder:SetHeight(46)
@@ -35,8 +37,8 @@ local function createSlider(parent, text, tooltip, key, isEnabled, range)
     end
 
     local sliderName = slider:GetName()
-    for _, suffix in ipairs({ "Low", "High", "Text" }) do
-        local fs = _G[sliderName .. suffix]
+    for _, piece in ipairs({ "Low", "High", "Text" }) do
+        local fs = _G[sliderName .. piece]
         if fs then
             fs:Hide()
         end
@@ -47,9 +49,22 @@ local function createSlider(parent, text, tooltip, key, isEnabled, range)
     local function showValue(value)
         if asPercent then
             valueText:SetText(string.format("%d%%", math.floor(value * 100 + 0.5)))
+        elseif decimals == 0 then
+            valueText:SetText(string.format("%d%s", math.floor(value + 0.5), suffix))
         else
             valueText:SetText(string.format("%.2f", value))
         end
+    end
+
+    local function storedValue()
+        local value = ns.db and ns.db[key]
+        if type(value) ~= "number" then
+            if asPercent then
+                return 1
+            end
+            return minValue
+        end
+        return value
     end
 
     local ready = false
@@ -73,19 +88,20 @@ local function createSlider(parent, text, tooltip, key, isEnabled, range)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(text, 1, 1, 1)
             GameTooltip:AddLine(tooltip, 0.9, 0.9, 0.9, true)
-            GameTooltip:Show()
+            ns.FinishTooltip()
         end)
         slider:SetScript("OnLeave", GameTooltip_Hide)
     end
 
     function holder:Refresh()
         local enabled = not isEnabled or isEnabled()
+        local value = storedValue()
         ready = false
         suppress = true
-        slider:SetValue(ns.db[key] or 1)
+        slider:SetValue(value)
         suppress = false
         ready = true
-        showValue(ns.db[key] or 1)
+        showValue(value)
         if enabled then
             slider:Enable()
         else
@@ -128,7 +144,7 @@ local function createCheck(parent, text, tooltip, key)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(text, 1, 1, 1)
             GameTooltip:AddLine(tooltip, 0.9, 0.9, 0.9, true)
-            GameTooltip:Show()
+            ns.FinishTooltip()
         end)
         box:SetScript("OnLeave", GameTooltip_Hide)
     end
@@ -189,7 +205,7 @@ local function createLayers(parent)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText("Frame layer", 1, 1, 1)
             GameTooltip:AddLine("Background sits behind most UI, the way RestedXP starts. High draws the guide, arrow, active items, and target frame above most frames.", 0.9, 0.9, 0.9, true)
-            GameTooltip:Show()
+            ns.FinishTooltip()
         end)
         radio:SetScript("OnLeave", GameTooltip_Hide)
         buttons[#buttons + 1] = radio
@@ -293,7 +309,7 @@ local function createSwatch(parent, text, tooltip, getter, setter)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(text, 1, 1, 1)
             GameTooltip:AddLine(tooltip, 0.9, 0.9, 0.9, true)
-            GameTooltip:Show()
+            ns.FinishTooltip()
         end)
         swatch:SetScript("OnLeave", GameTooltip_Hide)
     end
@@ -330,7 +346,7 @@ local function createThemes(parent)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(theme.name, 1, 1, 1)
             GameTooltip:AddLine("Applies this palette to the tracker. Individual colors can be changed afterward.", 0.9, 0.9, 0.9, true)
-            GameTooltip:Show()
+            ns.FinishTooltip()
         end)
         button:SetScript("OnLeave", GameTooltip_Hide)
         buttons[#buttons + 1] = button
@@ -386,25 +402,23 @@ local function createColors(parent)
     return holder
 end
 
-local profileRows = {}
-
 local function createProfiles(parent)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(188)
+    holder:SetHeight(96)
 
     local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     label:SetPoint("TOPLEFT", 0, 0)
     label:SetText("Saved themes")
 
     local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    hint:SetPoint("TOPLEFT", 0, -18)
+    hint:SetPoint("TOPLEFT", 0, -16)
     hint:SetPoint("RIGHT", holder, "RIGHT", 0, 0)
     hint:SetJustifyH("LEFT")
-    hint:SetText("Save the current colors and tracker background, then load them later. Saving an existing name updates it.")
+    hint:SetText("Save the current colors and tracker background. Choose a saved theme from the menu.")
 
     local edit = CreateFrame("EditBox", "RestedXPBetterProfileName", holder, "InputBoxTemplate")
-    edit:SetSize(240, 20)
-    edit:SetPoint("TOPLEFT", 8, -40)
+    edit:SetSize(200, 20)
+    edit:SetPoint("TOPLEFT", 8, -36)
     edit:SetAutoFocus(false)
     edit:SetMaxLetters(24)
     edit:SetFontObject(GameFontHighlightSmall)
@@ -414,7 +428,7 @@ local function createProfiles(parent)
 
     local save = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
     save:SetSize(80, 22)
-    save:SetPoint("LEFT", edit, "RIGHT", 10, 0)
+    save:SetPoint("LEFT", edit, "RIGHT", 8, 0)
     save:SetText("Save")
     save:SetScript("OnClick", function()
         if ns.SaveProfile(edit:GetText()) then
@@ -425,97 +439,65 @@ local function createProfiles(parent)
             end
         end
     end)
-    edit:SetScript("OnEnterPressed", function(self)
+    edit:SetScript("OnEnterPressed", function()
         save:Click()
     end)
 
-    local scroll = CreateFrame("ScrollFrame", "RestedXPBetterProfileScroll", holder, "UIPanelScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", 0, -68)
-    scroll:SetPoint("BOTTOMRIGHT", -28, 0)
-    local content = CreateFrame("Frame", nil, scroll)
-    content:SetSize(420, 24)
-    scroll:SetScrollChild(content)
-
-    local empty = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    empty:SetPoint("TOPLEFT", 4, -4)
-    empty:SetText("No saved themes yet.")
-
-    scroll:EnableMouseWheel(true)
-    scroll:SetScript("OnMouseWheel", function(self, delta)
-        local current = self:GetVerticalScroll()
-        local maxScroll = self:GetVerticalScrollRange()
-        local nextScroll = current - delta * 24
-        if nextScroll < 0 then
-            nextScroll = 0
-        elseif nextScroll > maxScroll then
-            nextScroll = maxScroll
+    local dropdown = CreateFrame("Frame", "RestedXPBetterProfileMenu", holder, "UIDropDownMenuTemplate")
+    dropdown:SetPoint("TOPLEFT", -14, -60)
+    UIDropDownMenu_SetWidth(dropdown, 184)
+    UIDropDownMenu_JustifyText(dropdown, "LEFT")
+    UIDropDownMenu_Initialize(dropdown, function()
+        local profiles = ns.db and ns.db.profiles or {}
+        if #profiles == 0 then
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = "No saved themes"
+            info.notCheckable = true
+            info.disabled = true
+            UIDropDownMenu_AddButton(info)
+            return
         end
-        self:SetVerticalScroll(nextScroll)
+        for _, profile in ipairs(profiles) do
+            local name = profile.name
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = name
+            info.value = name
+            info.checked = ns.db.activeProfile == name
+            info.func = function(button)
+                local picked = button and button.value or name
+                ns.LoadProfile(picked)
+            end
+            UIDropDownMenu_AddButton(info)
+        end
     end)
 
-    local function acquireRow(index)
-        local row = profileRows[index]
-        if row then
-            return row
+    local delete = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
+    delete:SetSize(80, 22)
+    delete:SetPoint("TOPLEFT", 230, -64)
+    delete:SetText("Delete")
+    delete:SetScript("OnClick", function()
+        local name = ns.db and ns.db.activeProfile
+        if not name then
+            return
         end
-        row = CreateFrame("Frame", nil, content)
-        row:SetHeight(22)
-        row.load = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-        row.load:SetPoint("TOPLEFT", 0, 0)
-        row.load:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -72, 0)
-        row.load:SetScript("OnClick", function(self)
-            ns.LoadProfile(self.profileName)
-        end)
-        row.delete = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-        row.delete:SetSize(64, 22)
-        row.delete:SetPoint("TOPRIGHT", 0, 0)
-        row.delete:SetText("Delete")
-        row.delete:SetScript("OnClick", function(self)
-            local name = self.profileName
-            if name and StaticPopup_Show then
-                StaticPopup_Show("RestedXPBetterDeleteProfile", name, nil, name)
-            elseif name then
-                ns.DeleteProfile(name)
-                if ns.RefreshOptions then
-                    ns.RefreshOptions()
-                end
+        if StaticPopup_Show then
+            StaticPopup_Show("RestedXPBetterDeleteProfile", name, nil, name)
+        else
+            ns.DeleteProfile(name)
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
             end
-        end)
-        profileRows[index] = row
-        return row
-    end
+        end
+    end)
 
     function holder:Refresh()
-        local profiles = ns.db.profiles or {}
-        local width = holder:GetWidth()
-        if not width or width < 120 then
-            width = 480
-        end
-        content:SetWidth(math.max(120, width - 36))
-        if #profiles == 0 then
-            empty:Show()
+        local name = ns.db and ns.db.activeProfile
+        UIDropDownMenu_SetText(dropdown, name or "Select a theme")
+        if name then
+            delete:Enable()
         else
-            empty:Hide()
+            delete:Disable()
         end
-        for index, profile in ipairs(profiles) do
-            local row = acquireRow(index)
-            row:Show()
-            row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(index - 1) * 24)
-            row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -(index - 1) * 24)
-            row.load.profileName = profile.name
-            row.delete.profileName = profile.name
-            row.load:SetText(profile.name)
-            if ns.db.activeProfile == profile.name then
-                row.load:LockHighlight()
-            else
-                row.load:UnlockHighlight()
-            end
-        end
-        for index = #profiles + 1, #profileRows do
-            profileRows[index]:Hide()
-        end
-        content:SetHeight(math.max(22, #profiles * 24))
     end
 
     addRefresher(holder)
@@ -572,6 +554,10 @@ local function place(widget, parent, y)
     widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, y)
 end
 
+local function trackerOn()
+    return ns.db and (ns.db.standaloneGuide or ns.db.replaceGuide) and true or false
+end
+
 local function build(parent)
     local y = -4
 
@@ -580,19 +566,62 @@ local function build(parent)
     desc:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
     desc:SetJustifyH("LEFT")
     desc:SetJustifyV("TOP")
-    desc:SetText("Tracker, colors, and the opacity controls for the RestedXP window.")
+    desc:SetText("Tracker style and colors. Use our guide for steps you write, or replace the RestedXP window.")
     y = y - 36
+
+    local ourHeader = createHeader(parent, "Our guide")
+    place(ourHeader, parent, y)
+    y = y - 28
+
+    local standalone = createCheck(parent, "Use our guide", "Shows a guide from the Guides folder in this tracker. Quest names, givers, and pins come from QuestieDB when it is installed. RestedXP stays on screen.", "standaloneGuide")
+    standalone:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 28
+
+    local guideStatus = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    guideStatus:SetJustifyH("LEFT")
+    guideStatus:SetJustifyV("TOP")
+    if guideStatus.SetWordWrap then
+        guideStatus:SetWordWrap(true)
+    end
+    guideStatus:SetHeight(32)
+    place(guideStatus, parent, y)
+    function guideStatus:Refresh()
+        if not ns.db or not ns.db.standaloneGuide then
+            self:SetText("Our guide is off. The tracker follows RestedXP while Replace the guide window is on.")
+            self:SetTextColor(0.7, 0.7, 0.7)
+            return
+        end
+        local title = ns.GuideTitle and ns.GuideTitle() or "Guide"
+        local source
+        if ns.QuestieReady and ns.QuestieReady() then
+            source = "QuestieDB is installed."
+        else
+            source = "QuestieDB is not installed, so steps use the text you wrote."
+        end
+        self:SetText(title .. ". " .. source .. " Right-click the tracker to choose a guide.")
+        self:SetTextColor(0.9, 0.9, 0.9)
+    end
+    addRefresher(guideStatus)
+    y = y - 40
 
     local replaceHeader = createHeader(parent, "Tracker")
     place(replaceHeader, parent, y)
     y = y - 28
 
-    local replace = createCheck(parent, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list.", "replaceGuide")
+    local replace = createCheck(parent, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Use our guide is on, this stays paused and RestedXP stays visible.", "replaceGuide")
     replace:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 
     local simple = createCheck(parent, "Simple mode", "Shows only the current step. Sticky and extra steps stay hidden.", "simpleMode")
     simple:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local guidePercent = createCheck(parent, "Show guide progress", "Shows how far you are through the current guide as a percentage in the tracker header.", "showGuidePercent")
+    guidePercent:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local flightTimer = createCheck(parent, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. First runs of a route are timed and remembered.", "showFlightTimer")
+    flightTimer:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 36
 
     local themes = createThemes(parent)
@@ -605,19 +634,71 @@ local function build(parent)
 
     local profiles = createProfiles(parent)
     place(profiles, parent, y)
-    y = y - 196
+    y = y - 104
 
-    local trackerScale = createSlider(parent, "Tracker scale", "Size of the tracker. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
-        return ns.db.replaceGuide
+    local trackerScale = createSlider(parent, "Tracker scale", "Zooms the whole tracker, including the text. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
+        return trackerOn()
     end, { min = 0.8, max = 2, step = 0.05, percent = true })
     place(trackerScale, parent, y)
     y = y - 52
 
+    local trackerWidth = createSlider(parent, "Tracker width", "Width of the panel. The steps wrap to fit. This does not change the font size.", "trackerWidth", function()
+        return trackerOn()
+    end, { min = 220, max = 640, step = 10, percent = false, decimals = 0, suffix = " px" })
+    place(trackerWidth, parent, y)
+    y = y - 52
+
+    local fitHeight = createCheck(parent, "Fit height to steps", "The panel grows with the steps. Turn this off to set a height and scroll the rest.", "trackerFitHeight")
+    fitHeight:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local trackerHeight = createSlider(parent, "Tracker height", "Height of the panel. Extra steps scroll inside it.", "trackerHeight", function()
+        return trackerOn() and not ns.db.trackerFitHeight
+    end, { min = 120, max = 800, step = 10, percent = false, decimals = 0, suffix = " px" })
+    place(trackerHeight, parent, y)
+    y = y - 52
+
     local trackerBackground = createSlider(parent, "Tracker background", "Darkness of the panel behind the objectives. The text stays solid.", "trackerBackground", function()
-        return ns.db.replaceGuide
+        return trackerOn()
     end)
     place(trackerBackground, parent, y)
     y = y - 58
+
+    local styleHeader = createHeader(parent, "Style")
+    place(styleHeader, parent, y)
+    y = y - 28
+
+    local darkHeader = createCheck(parent, "Darkened header", "Draws a darker bar behind the guide name and the step buttons.", "darkHeader")
+    darkHeader:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local headerShade = createSlider(parent, "Header shade", "How much darker that bar is than the tracker background.", "headerShade", function()
+        return trackerOn() and ns.db.darkHeader
+    end)
+    place(headerShade, parent, y)
+    y = y - 52
+
+    local rounded = createCheck(parent, "Rounded edges", "Rounds the tracker corners and the header buttons.", "roundedEdges")
+    rounded:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local cornerSize = createSlider(parent, "Corner size", "Radius of the tracker corners.", "cornerRadius", function()
+        return trackerOn() and ns.db.roundedEdges
+    end, { min = 4, max = 16, step = 1, percent = false, decimals = 0, suffix = " px" })
+    place(cornerSize, parent, y)
+    y = y - 52
+
+    local roundBadges = createCheck(parent, "Round step numbers", "Draws each step number as a circle.", "roundBadges")
+    roundBadges:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local trackerBorder = createCheck(parent, "Tracker border", "Draws an accent line around the tracker.", "trackerBorder")
+    trackerBorder:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local trackerShadow = createCheck(parent, "Drop shadow", "Draws a shadow behind the tracker so it stands out from the world.", "trackerShadow")
+    trackerShadow:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 36
 
     local guideHeader = createHeader(parent, "Guide window")
     place(guideHeader, parent, y)
@@ -787,10 +868,45 @@ SLASH_RESTEDXPBETTER2 = "/rxpbetter"
 SLASH_RESTEDXPBETTER3 = "/restedxpb"
 SlashCmdList.RESTEDXPBETTER = function(message)
     ns.InitDB()
-    local command = string.lower(strtrim(message or ""))
+    local text = strtrim(message or "")
+    local command = string.lower(text)
     if command == "reset" then
         ns.Reset()
         DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r options reset.")
+        return
+    end
+    if command == "guides" or command == "guide" then
+        if ns.PrintGuides then
+            ns.PrintGuides()
+        end
+        return
+    end
+    if command:sub(1, 6) == "guide " then
+        if ns.GuideSelect then
+            ns.GuideSelect(strtrim(text:sub(7)))
+        end
+        return
+    end
+    if command:sub(1, 5) == "step " then
+        if ns.GuideJump then
+            ns.GuideJump(tonumber(text:match("%d+")))
+        end
+        return
+    end
+    if command == "next" then
+        if ns.GuideStep then
+            ns.GuideStep(1)
+        end
+        return
+    end
+    if command == "back" or command == "prev" then
+        if ns.GuideStep then
+            ns.GuideStep(-1)
+        end
+        return
+    end
+    if command == "help" then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r /rxpb guides, /rxpb guide <id>, /rxpb step <n>, /rxpb next, /rxpb back")
         return
     end
     ns.OpenOptions()
