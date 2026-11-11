@@ -1161,6 +1161,8 @@ local rows = {}
 local sizeKey = ""
 local remeasure = false
 local pointRestored = false
+local expandedTips = {}
+local MORE_TIP_THRESHOLD = 2
 
 local tracker = CreateFrame("Frame", "RestedXPBetterTracker", UIParent, "BackdropTemplate")
 tracker:SetSize(TRACKER_WIDTH, 72)
@@ -3032,6 +3034,42 @@ local function acquireRow(index)
     paint(row.text, 13, 1, 1, 1)
     row.details = row:CreateFontString(nil, "OVERLAY")
     paint(row.details, 12, 0.82, 0.82, 0.82)
+    row.more = CreateFrame("Button", nil, row)
+    row.more:SetHeight(14)
+    row.more:EnableMouse(true)
+    row.more:RegisterForClicks("LeftButtonUp")
+    row.more:Hide()
+    row.more.text = row.more:CreateFontString(nil, "OVERLAY")
+    row.more.text:SetAllPoints()
+    row.more.text:SetJustifyH("LEFT")
+    row.more.text:SetJustifyV("MIDDLE")
+    paint(row.more.text, 12, ns.Color("accent"))
+    row.more:SetScript("OnEnter", function(self)
+        local parent = self:GetParent()
+        setRowHover(parent, true)
+        pauseRowStepTip(parent)
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetText("Step notes", r, g, b)
+        GameTooltip:AddLine("Show or hide the tip notes for this step. Progress and objectives stay visible.", 1, 1, 1, true)
+        ns.FinishTooltip()
+        placeCursorTooltip(self)
+    end)
+    row.more:SetScript("OnLeave", function(self)
+        resumeRowStepTip(self:GetParent())
+    end)
+    row.more:SetScript("OnClick", function(self)
+        local parent = self:GetParent()
+        local item = parent and parent.__rxpbItem
+        if not item then
+            return
+        end
+        local key = item.stepIndex or item.number or 1
+        expandedTips[key] = not expandedTips[key]
+        if ns.RefreshTracker then
+            ns.RefreshTracker(true)
+        end
+    end)
     rows[index] = row
     return row
 end
@@ -3184,25 +3222,43 @@ local function wordByte(text, index)
     return text:sub(index, index):match("[%w]") and true or false
 end
 
+local function addNameNeedle(sorted, seenNeedle, name)
+    if type(name) ~= "string" or #name < 3 then
+        return
+    end
+    local key = name:lower()
+    if seenNeedle[key] then
+        return
+    end
+    seenNeedle[key] = true
+    sorted[#sorted + 1] = name
+end
+
+local function nameMatchForms(name, allowPlural)
+    local forms = { name }
+    if allowPlural == false then
+        return forms
+    end
+    if name:match("[^aeiouAEIOU]y$") then
+        forms[#forms + 1] = name:sub(1, -2) .. "ies"
+    elseif name:match("[^aeiouAEIOU]ies$") then
+        forms[#forms + 1] = name:sub(1, -4) .. "y"
+    elseif name:match("s$") and not name:match("ss$") then
+        forms[#forms + 1] = name:sub(1, -2)
+    else
+        forms[#forms + 1] = name .. "s"
+    end
+    return forms
+end
+
 local function findNameSpans(plain, names, allowPlural)
     local spans = {}
     local lower = plain:lower()
     local sorted = {}
     local seenNeedle = {}
     for _, name in ipairs(names or {}) do
-        if type(name) == "string" and #name >= 3 then
-            local key = name:lower()
-            if not seenNeedle[key] then
-                seenNeedle[key] = true
-                sorted[#sorted + 1] = name
-            end
-            if allowPlural ~= false then
-                local singular = name:match("^(.-)s$")
-                if singular and #singular >= 3 and not name:match("ss$") and not seenNeedle[singular:lower()] then
-                    seenNeedle[singular:lower()] = true
-                    sorted[#sorted + 1] = singular
-                end
-            end
+        for _, form in ipairs(nameMatchForms(name, allowPlural)) do
+            addNameNeedle(sorted, seenNeedle, form)
         end
     end
     table.sort(sorted, function(a, b)
@@ -3216,12 +3272,6 @@ local function findNameSpans(plain, names, allowPlural)
             local first, last = lower:find(needle, startAt, true)
             if not first then
                 break
-            end
-            if allowPlural ~= false then
-                local plural = lower:sub(last + 1, last + 1)
-                if plural == "s" and not wordByte(lower, last + 2) then
-                    last = last + 1
-                end
             end
             if not wordByte(lower, first - 1) and not wordByte(lower, last + 1) and not spansOverlap(spans, first, last) then
                 spans[#spans + 1] = { start = first, finish = last }
@@ -3316,17 +3366,109 @@ local function presentHeadline(item)
     return presentPlain(plain, item.names, item.quests, true)
 end
 
-local function presentDetails(item)
-    local accentR, accentG, accentB = ns.Color("accent")
-    local bullet = colorCode(accentR, accentG, accentB) .. "\226\128\162|r "
-    local lines = {}
-    for _, line in ipairs(item.details or {}) do
-        local plain = plainText(line)
-        if plain then
-            lines[#lines + 1] = bullet .. presentPlain(plain, item.names, item.quests, true)
+local function isObjectiveDetail(text)
+    if isProgress(text) then
+        return true
+    end
+    local plain = plainText(text)
+    if not plain then
+        return false
+    end
+    local lower = plain:lower()
+    if lower:match("^accept%s") or lower:match("^turn%s+in%s") or lower:match("^complete%s") then
+        return true
+    end
+    if lower:match("^use:") or lower:match("^target:") then
+        return true
+    end
+    if lower:match("^collect%s") or lower:match("^loot%s:") or lower:match("^gather%s") then
+        return true
+    end
+    return false
+end
+
+local function objectiveRank(text)
+    if isProgress(text) then
+        return 1
+    end
+    local plain = plainText(text)
+    local lower = plain and plain:lower() or ""
+    if lower:match("^accept%s") or lower:match("^turn%s+in%s") or lower:match("^complete%s") then
+        return 2
+    end
+    if lower:match("^use:") or lower:match("^target:") then
+        return 3
+    end
+    return 4
+end
+
+local function tipKey(item, index)
+    return item and (item.stepIndex or item.number or index) or index
+end
+
+local function splitDetails(details)
+    local objectives = {}
+    local tips = {}
+    for _, line in ipairs(details or {}) do
+        if isObjectiveDetail(line) then
+            objectives[#objectives + 1] = line
+        else
+            tips[#tips + 1] = line
         end
     end
-    return table.concat(lines, "\n")
+    table.sort(objectives, function(a, b)
+        local rankA = objectiveRank(a)
+        local rankB = objectiveRank(b)
+        if rankA == rankB then
+            return false
+        end
+        return rankA < rankB
+    end)
+    return objectives, tips
+end
+
+local function joinDetails(objectives, tips)
+    local lines = {}
+    for _, line in ipairs(objectives or {}) do
+        lines[#lines + 1] = line
+    end
+    for _, line in ipairs(tips or {}) do
+        lines[#lines + 1] = line
+    end
+    return lines
+end
+
+local function presentDetailLines(lines, item)
+    local accentR, accentG, accentB = ns.Color("accent")
+    local bullet = colorCode(accentR, accentG, accentB) .. "\226\128\162|r "
+    local out = {}
+    for _, line in ipairs(lines or {}) do
+        local plain = plainText(line)
+        if plain then
+            out[#out + 1] = bullet .. presentPlain(plain, item.names, item.quests, true)
+        end
+    end
+    return table.concat(out, "\n")
+end
+
+local function presentDetails(item)
+    local objectives, tips = splitDetails(item.details)
+    return presentDetailLines(joinDetails(objectives, tips), item)
+end
+
+local function visibleDetailLines(item, index)
+    local details = item and item.details or {}
+    local objectives, tips = splitDetails(details)
+    -- Nest notes whenever objective lines are present, or when there are several notes alone.
+    local shouldNest = #tips >= 1 and (#objectives >= 1 or #tips >= MORE_TIP_THRESHOLD)
+    if not shouldNest then
+        return joinDetails(objectives, tips), false, false, #tips
+    end
+    local expanded = expandedTips[tipKey(item, index)] and true or false
+    if expanded then
+        return joinDetails(objectives, tips), true, true, #tips
+    end
+    return objectives, true, false, #tips
 end
 
 local function applyRowText(row, item, index)
@@ -3335,14 +3477,25 @@ local function applyRowText(row, item, index)
     local textR, textG, textB = ns.Color(main and "text" or "secondary")
     paint(row.text, main and 16 or 13, textR, textG, textB)
     row.text:SetText(presentHeadline(item))
-    if item.details and #item.details > 0 then
+    local shown, canToggle, expanded = visibleDetailLines(item, index)
+    if shown and #shown > 0 then
         local detailR, detailG, detailB = ns.Color("detail")
         paint(row.details, main and 13 or 12, detailR, detailG, detailB)
-        row.details:SetText(presentDetails(item))
+        row.details:SetText(presentDetailLines(shown, item))
         row.details:Show()
     elseif row.details then
         row.details:SetText("")
         row.details:Hide()
+    end
+    if row.more then
+        if canToggle then
+            local accentR, accentG, accentB = ns.Color("accent")
+            paint(row.more.text, main and 12 or 11, accentR, accentG, accentB)
+            row.more.text:SetText(expanded and "- fewer notes" or "+ more notes")
+            row.more:Show()
+        else
+            row.more:Hide()
+        end
     end
 end
 
@@ -3707,8 +3860,9 @@ local function layout(items, resetScroll)
             textHeight = main and 18 or 14
         end
 
+        local shownDetails = visibleDetailLines(item, index)
         local detailHeight = 0
-        if item.details and #item.details > 0 then
+        if shownDetails and #shownDetails > 0 then
             row.details:Show()
             row.details:ClearAllPoints()
             row.details:SetPoint("TOPLEFT", textLeft, -(textHeight + 2))
@@ -3716,11 +3870,22 @@ local function layout(items, resetScroll)
             detailHeight = row.details:GetStringHeight() or 0
             if detailHeight < 1 then
                 measured = false
-                detailHeight = (main and 14 or 12) * #item.details
+                detailHeight = (main and 14 or 12) * #shownDetails
             end
             detailHeight = detailHeight + 2
         else
             row.details:Hide()
+        end
+
+        local moreHeight = 0
+        if row.more and row.more:IsShown() then
+            row.more:ClearAllPoints()
+            row.more:SetPoint("TOPLEFT", textLeft, -(textHeight + detailHeight + 2))
+            row.more:SetPoint("TOPRIGHT", -rightInset, -(textHeight + detailHeight + 2))
+            row.more:SetHeight(14)
+            moreHeight = 16
+        elseif row.more then
+            row.more:Hide()
         end
 
         local actionHeight = 0
@@ -3729,7 +3894,7 @@ local function layout(items, resetScroll)
             local stride = 26
             local avail = width - 24 - textLeft - rightInset
             local perRow = math.max(1, math.floor(avail / stride))
-            local yBase = textHeight + detailHeight + 4
+            local yBase = textHeight + detailHeight + moreHeight + 4
             for actionIndex, button in ipairs(actions) do
                 local col = (actionIndex - 1) % perRow
                 local line = math.floor((actionIndex - 1) / perRow)
@@ -3741,7 +3906,7 @@ local function layout(items, resetScroll)
 
         local navHeight = item.waypoint and (arrowSize + 17) or 0
         local barHeight = syncProgressBars(row, item, textLeft, rightInset)
-        local blockHeight = math.max(badgeSize, textHeight + detailHeight + actionHeight, navHeight) + barHeight
+        local blockHeight = math.max(badgeSize, textHeight + detailHeight + moreHeight + actionHeight, navHeight) + barHeight
         row:SetHeight(blockHeight)
         y = y + blockHeight + (main and 10 or 6)
     end
