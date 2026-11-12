@@ -14,6 +14,7 @@ Database.lua
 Data/Innkeepers.lua
 Data/FlightMasters.lua
 Nav.lua
+Travel.lua
 Guides.lua
 Guides/Example.lua
 Guides/Forever/Horde_01-12_Durotar.lua
