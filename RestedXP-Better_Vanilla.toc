@@ -12,6 +12,9 @@
 
 Core.lua
 Database.lua
+Data/Innkeepers.lua
+Data/FlightMasters.lua
+Nav.lua
 Guides.lua
 Guides/Example.lua
 Replace.lua

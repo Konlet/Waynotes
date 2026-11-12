@@ -52,6 +52,7 @@ ns.defaults = {
     showGuidePercent = true,
     showFlightTimer = true,
     standaloneGuide = false,
+    hardcoreGuide = false,
     theme = "rested",
 }
 
@@ -494,6 +495,7 @@ ns.visualKeys = {
     "trackerBorder",
     "trackerShadow",
     "standaloneGuide",
+    "hardcoreGuide",
 }
 
 local percentKeys = {
@@ -525,6 +527,7 @@ local boolKeys = {
     showGuidePercent = true,
     showFlightTimer = true,
     standaloneGuide = true,
+    hardcoreGuide = true,
 }
 
 function ns.Visuals()

@@ -6,7 +6,12 @@ local _, ns = ...
 -- when = "accepted" advances once every listed quest is in your log
 --        (or already turned in).
 -- when = "complete" advances once every listed quest is turned in.
--- Leave when out and the step waits for the next button.
+-- when = "objectives" advances once objectives are finished (also the
+--        default when a quest is set and when is left out).
+-- Leave when out with no quest and the step waits for the next button.
+--
+-- Optional guide fields for recommendations:
+--   faction, minLevel, maxLevel, races = { "Orc" }, classes = { "Warrior" }
 --
 -- map, x, y are an optional pin. map is a UiMap ID. Elwynn Forest is 1429.
 -- Write Era coordinates. On Forever, QuestieDB converts the zones it knows
