@@ -577,6 +577,10 @@ local function build(parent)
     standalone:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 28
 
+    local hardcore = createCheck(parent, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
+    hardcore:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 28
+
     local guideStatus = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     guideStatus:SetJustifyH("LEFT")
     guideStatus:SetJustifyV("TOP")
@@ -592,13 +596,23 @@ local function build(parent)
             return
         end
         local title = ns.GuideTitle and ns.GuideTitle() or "Guide"
+        if ns.PlayerRace and ns.PlayerClass and ns.PlayerRace() and ns.PlayerClass() then
+            title = ns.PlayerRace() .. " " .. ns.PlayerClass() .. ", " .. title
+        end
         local source
         if ns.QuestieReady and ns.QuestieReady() then
             source = "QuestieDB is installed."
         else
             source = "QuestieDB is not installed, so steps use the text you wrote."
         end
-        self:SetText(title .. ". " .. source .. " Right-click the tracker to choose a guide.")
+        local tip = "Right-click the tracker to choose a guide."
+        if ns.RecommendedGuide then
+            local recommended = ns.RecommendedGuide()
+            if recommended then
+                tip = "Recommended: " .. recommended.name .. ". " .. tip
+            end
+        end
+        self:SetText(title .. ". " .. source .. " " .. tip)
         self:SetTextColor(0.9, 0.9, 0.9)
     end
     addRefresher(guideStatus)
@@ -881,6 +895,20 @@ SlashCmdList.RESTEDXPBETTER = function(message)
         end
         return
     end
+    if command == "recommend" or command == "recommended" then
+        if not ns.RecommendedGuide then
+            return
+        end
+        local guide = ns.RecommendedGuide()
+        if not guide then
+            DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r No recommended guide for this character.")
+            return
+        end
+        if ns.GuideSelect then
+            ns.GuideSelect(guide.id)
+        end
+        return
+    end
     if command:sub(1, 6) == "guide " then
         if ns.GuideSelect then
             ns.GuideSelect(strtrim(text:sub(7)))
@@ -906,7 +934,7 @@ SlashCmdList.RESTEDXPBETTER = function(message)
         return
     end
     if command == "help" then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r /rxpb guides, /rxpb guide <id>, /rxpb step <n>, /rxpb next, /rxpb back")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r /rxpb guides, /rxpb recommend, /rxpb guide <id>, /rxpb step <n>, /rxpb next, /rxpb back")
         return
     end
     ns.OpenOptions()

@@ -1,0 +1,515 @@
+[
+  {
+    "name": "Amisi Azuregaze",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "x": 18.25,
+      "y": 66.48
+    }
+  },
+  {
+    "name": "Isirami Fairwind",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "x": 12.14,
+      "y": 66.4
+    }
+  },
+  {
+    "name": "Innkeeper Adegwa",
+    "faction": "Horde",
+    "position": {
+      "zone": "Arathi Highlands",
+      "x": 73.84,
+      "y": 32.46
+    }
+  },
+  {
+    "name": "Innkeeper Kaylisk",
+    "faction": "Horde",
+    "position": {
+      "zone": "Ashenvale",
+      "x": 73.99,
+      "y": 60.65
+    }
+  },
+  {
+    "name": "Innkeeper Kimlya",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "x": 36.99,
+      "y": 49.22
+    }
+  },
+  {
+    "name": "Berdun Cliffbrew",
+    "faction": null,
+    "position": {
+      "zone": "Azshara",
+      "x": 11.77,
+      "y": 76.54
+    }
+  },
+  {
+    "name": "Innkeeper Shul'kar",
+    "faction": "Horde",
+    "position": {
+      "zone": "Badlands",
+      "x": 2.82,
+      "y": 45.86
+    }
+  },
+  {
+    "name": "Innkeeper Shaussiy",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darkshore",
+      "x": 37.04,
+      "y": 44.13
+    }
+  },
+  {
+    "name": "Innkeeper Saelienne",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "x": 67.42,
+      "y": 15.65
+    }
+  },
+  {
+    "name": "Innkeeper Lyshaerya",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Desolace",
+      "x": 66.27,
+      "y": 6.55
+    }
+  },
+  {
+    "name": "Innkeeper Sikewa",
+    "faction": "Horde",
+    "position": {
+      "zone": "Desolace",
+      "x": 24.09,
+      "y": 68.21
+    }
+  },
+  {
+    "name": "Innkeeper Belm",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "x": 47.38,
+      "y": 52.52
+    }
+  },
+  {
+    "name": "Innkeeper Grosk",
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "x": 51.51,
+      "y": 41.64
+    }
+  },
+  {
+    "name": "Innkeeper Trelayne",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Duskwood",
+      "x": 73.87,
+      "y": 44.41
+    }
+  },
+  {
+    "name": "Innkeeper Janene",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "x": 66.59,
+      "y": 45.22
+    }
+  },
+  {
+    "name": "Jessica Chambers",
+    "faction": "Both",
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "x": 71.8,
+      "y": 48.52
+    }
+  },
+  {
+    "name": "Innkeeper Farley",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "x": 43.77,
+      "y": 65.8
+    }
+  },
+  {
+    "name": "Innkeeper Greul",
+    "faction": "Horde",
+    "position": {
+      "zone": "Feralas",
+      "x": 74.8,
+      "y": 45.18
+    }
+  },
+  {
+    "name": "Innkeeper Shyria",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Feralas",
+      "x": 30.97,
+      "y": 43.49
+    }
+  },
+  {
+    "name": "Innkeeper Anderson",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "x": 51.17,
+      "y": 58.93
+    }
+  },
+  {
+    "name": "Innkeeper Shay",
+    "faction": "Horde",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "x": 62.78,
+      "y": 19.03
+    }
+  },
+  {
+    "name": "Innkeeper Firebrew",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "x": 18.15,
+      "y": 51.45
+    }
+  },
+  {
+    "name": "Innkeeper Hearthstove",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "x": 35.53,
+      "y": 48.4
+    }
+  },
+  {
+    "name": "Caitir Flinthew",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Mount Hyjal",
+      "x": 15.6,
+      "y": 50.4
+    }
+  },
+  {
+    "name": "Ortak Lomgok",
+    "faction": null,
+    "position": {
+      "zone": "Mount Hyjal",
+      "x": 12.8,
+      "y": 52.4
+    }
+  },
+  {
+    "name": "Sebelia",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Mount Hyjal",
+      "x": 70.83,
+      "y": 51.5
+    }
+  },
+  {
+    "name": "Innkeeper Kauth",
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "x": 45.93,
+      "y": 64.16
+    }
+  },
+  {
+    "name": "Innkeeper Gryshka",
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "x": 54.1,
+      "y": 68.41
+    }
+  },
+  {
+    "name": "Innkeeper Brianna",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "x": 21.92,
+      "y": 44.82
+    }
+  },
+  {
+    "name": "Barracks Master Harlan",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Riverglades",
+      "x": 64.64,
+      "y": 84.2
+    }
+  },
+  {
+    "name": "Innkeeper Toka",
+    "faction": "Horde",
+    "position": {
+      "zone": "Riverglades",
+      "x": 58.01,
+      "y": 45.12
+    }
+  },
+  {
+    "name": "Innkeeper Zizplink",
+    "faction": "Both",
+    "position": {
+      "zone": "Riverglades",
+      "x": 78.75,
+      "y": 54.03
+    }
+  },
+  {
+    "name": "Adarien",
+    "faction": null,
+    "position": {
+      "zone": "Shen'dralas",
+      "x": 42.79,
+      "y": 70.48
+    }
+  },
+  {
+    "name": "Calandrath",
+    "faction": "Both",
+    "position": {
+      "zone": "Silithus",
+      "x": 51.89,
+      "y": 39.16
+    }
+  },
+  {
+    "name": "Innkeeper Bates",
+    "faction": "Horde",
+    "position": {
+      "zone": "Silverpine Forest",
+      "x": 43.18,
+      "y": 41.28
+    }
+  },
+  {
+    "name": "Innkeeper Faralia",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "x": 35.79,
+      "y": 5.74
+    }
+  },
+  {
+    "name": "Innkeeper Jayka",
+    "faction": "Horde",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "x": 47.47,
+      "y": 62.13
+    }
+  },
+  {
+    "name": "Innkeeper Allison",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "x": 60.39,
+      "y": 75.27
+    }
+  },
+  {
+    "name": "Innkeeper Skindle",
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "x": 27.04,
+      "y": 77.31
+    }
+  },
+  {
+    "name": "Innkeeper Thulbek",
+    "faction": "Horde",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "x": 31.49,
+      "y": 29.75
+    }
+  },
+  {
+    "name": "Innkeeper Karakul",
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "x": 45.16,
+      "y": 56.66
+    }
+  },
+  {
+    "name": "Innkeeper Fizzgrimble",
+    "faction": "Both",
+    "position": {
+      "zone": "Tanaris",
+      "x": 52.51,
+      "y": 27.91
+    }
+  },
+  {
+    "name": "Innkeeper Keldamyr",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "x": 55.62,
+      "y": 59.79
+    }
+  },
+  {
+    "name": "Innkeeper Boorand Plainswind",
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "x": 51.99,
+      "y": 29.89
+    }
+  },
+  {
+    "name": "Innkeeper Byula",
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "x": 45.58,
+      "y": 59.04
+    }
+  },
+  {
+    "name": "Innkeeper Wiley",
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "x": 62.05,
+      "y": 39.41
+    }
+  },
+  {
+    "name": "Innkeeper Thulfram",
+    "faction": "Alliance",
+    "position": {
+      "zone": "The Hinterlands",
+      "x": 14.15,
+      "y": 41.57
+    }
+  },
+  {
+    "name": "Lard",
+    "faction": "Horde",
+    "position": {
+      "zone": "The Hinterlands",
+      "x": 78.14,
+      "y": 81.38
+    }
+  },
+  {
+    "name": "Innkeeper Abeqwa",
+    "faction": "Horde",
+    "position": {
+      "zone": "Thousand Needles",
+      "x": 46.07,
+      "y": 51.52
+    }
+  },
+  {
+    "name": "Innkeeper Pala",
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "x": 45.81,
+      "y": 64.71
+    }
+  },
+  {
+    "name": "Innkeeper Renee",
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "x": 61.72,
+      "y": 52.05
+    }
+  },
+  {
+    "name": "Innkeeper Norman",
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "x": 67.74,
+      "y": 37.89
+    }
+  },
+  {
+    "name": "Innkeeper Heather",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Westfall",
+      "x": 52.86,
+      "y": 53.71
+    }
+  },
+  {
+    "name": "Innkeeper Helbrek",
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "x": 10.7,
+      "y": 60.95
+    }
+  },
+  {
+    "name": "Innkeeper Vizzie",
+    "faction": "Both",
+    "position": {
+      "zone": "Winterspring",
+      "x": 61.36,
+      "y": 38.83
+    }
+  },
+  {
+    "name": "Coriella Calmbreeze",
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "x": 43.01,
+      "y": 43.23
+    }
+  },
+  {
+    "name": "Donaal Downbreeze",
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "x": 62.19,
+      "y": 72.61
+    }
+  }
+]

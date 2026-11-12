@@ -9,6 +9,12 @@ local scroll
 local content
 local rows = {}
 
+local stepApplies
+local progressCounts
+local neighbor
+local inferLevels
+local inferRaces
+
 local function say(text)
     if DEFAULT_CHAT_FRAME then
         DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r " .. text)
@@ -72,6 +78,131 @@ local function refresh()
     end
 end
 
+local CLASS_CANON = {
+    warrior = "Warrior",
+    paladin = "Paladin",
+    hunter = "Hunter",
+    rogue = "Rogue",
+    priest = "Priest",
+    shaman = "Shaman",
+    mage = "Mage",
+    warlock = "Warlock",
+    druid = "Druid",
+    monk = "Monk",
+    deathknight = "Death Knight",
+    demonhunter = "Demon Hunter",
+}
+
+local RACE_CANON = {
+    orc = "Orc",
+    troll = "Troll",
+    tauren = "Tauren",
+    undead = "Undead",
+    scourge = "Undead",
+    bloodelf = "Blood Elf",
+    goblin = "Goblin",
+    human = "Human",
+    dwarf = "Dwarf",
+    nightelf = "Night Elf",
+    gnome = "Gnome",
+    draenei = "Draenei",
+    skyborne = "Skyborne",
+    aeolid = "Skyborne",
+    highborne = "Skyborne",
+    windborne = "Skyborne",
+}
+
+local CLASS_MASK = {
+    Warrior = 1,
+    Paladin = 2,
+    Hunter = 4,
+    Rogue = 8,
+    Priest = 16,
+    ["Death Knight"] = 32,
+    Shaman = 64,
+    Mage = 128,
+    Warlock = 256,
+    Monk = 512,
+    Druid = 1024,
+    ["Demon Hunter"] = 2048,
+}
+
+local RACE_MASK = {
+    Human = 1,
+    Orc = 2,
+    Dwarf = 4,
+    ["Night Elf"] = 8,
+    Undead = 16,
+    Tauren = 32,
+    Gnome = 64,
+    Troll = 128,
+    Goblin = 256,
+    ["Blood Elf"] = 512,
+    Draenei = 1024,
+    -- Forever race ids 95 and 96. Both are "Skyborne" in these guides.
+    Skyborne = 4294967296,
+}
+
+local function copyNames(value)
+    if type(value) ~= "table" then
+        return nil
+    end
+    local list = {}
+    local seen = {}
+    for _, name in ipairs(value) do
+        if type(name) == "string" and name ~= "" and not seen[name] then
+            seen[name] = true
+            list[#list + 1] = name
+        end
+    end
+    if #list > 0 then
+        return list
+    end
+end
+
+local FILTER_SKIP = {
+    ["or"] = true,
+    ["and"] = true,
+    ["/"] = true,
+    [","] = true,
+    ["&"] = true,
+}
+
+local function parseLeadingFilter(text)
+    local inside, rest = text:match("^%[([^%]]+)%]%s*(.*)$")
+    if not inside then
+        return nil
+    end
+    local classes, excludeClasses, races, excludeRaces = {}, {}, {}, {}
+    for token in inside:gmatch("[%w'!]+") do
+        local key = token:lower():gsub("%s+", "")
+        if not FILTER_SKIP[key] then
+            local neg = token:sub(1, 1) == "!"
+            local name = neg and token:sub(2) or token
+            key = name:lower():gsub("%s+", "")
+            local className = CLASS_CANON[key]
+            local raceName = RACE_CANON[key]
+            if className then
+                local dest = neg and excludeClasses or classes
+                dest[#dest + 1] = className
+            elseif raceName then
+                local dest = neg and excludeRaces or races
+                dest[#dest + 1] = raceName
+            else
+                return nil
+            end
+        end
+    end
+    if #classes + #excludeClasses + #races + #excludeRaces == 0 then
+        return nil
+    end
+    rest = strtrim(rest or "")
+    if rest == "" or rest == "." then
+        rest = nil
+    end
+    return rest, classes, excludeClasses, races, excludeRaces
+end
+
 local function cleanStep(step)
     if type(step) ~= "table" then
         return nil
@@ -80,11 +211,29 @@ local function cleanStep(step)
     if type(step.text) == "string" and step.text ~= "" then
         copy.text = step.text
     end
-    if type(step.note) == "string" and step.note ~= "" then
-        copy.note = step.note
+    if copy.text then
+        local rest, classes, excludeClasses, races, excludeRaces = parseLeadingFilter(copy.text)
+        if classes then
+            copy.text = rest
+            copy.classes = copyNames(step.classes) or classes
+            copy.excludeClasses = copyNames(step.excludeClasses) or excludeClasses
+            copy.races = copyNames(step.races) or races
+            copy.excludeRaces = copyNames(step.excludeRaces) or excludeRaces
+        end
     end
-    if step.when == "accepted" or step.when == "complete" then
-        copy.when = step.when
+    if not copy.classes then
+        copy.classes = copyNames(step.classes)
+        copy.excludeClasses = copyNames(step.excludeClasses)
+        copy.races = copyNames(step.races)
+        copy.excludeRaces = copyNames(step.excludeRaces)
+    end
+    if step.mode == "softcore" or step.mode == "hardcore" then
+        copy.mode = step.mode
+    elseif step.note == "softcore" or step.note == "hardcore" then
+        copy.mode = step.note
+    end
+    if type(step.note) == "string" and step.note ~= "" and step.note ~= "softcore" and step.note ~= "hardcore" then
+        copy.note = step.note
     end
     copy.map = tonumber(step.map)
     copy.x = tonumber(step.x)
@@ -106,6 +255,11 @@ local function cleanStep(step)
         end
     end
     copy.quests = quests
+    if step.when == "accepted" or step.when == "complete" or step.when == "objectives" then
+        copy.when = step.when
+    elseif #quests > 0 then
+        copy.when = "objectives"
+    end
     if type(step.details) == "table" then
         local details = {}
         for _, line in ipairs(step.details) do
@@ -115,6 +269,13 @@ local function cleanStep(step)
         end
         if #details > 0 then
             copy.details = details
+        end
+    end
+    if not copy.text and copy.details and copy.details[1] then
+        copy.text = copy.details[1]
+        table.remove(copy.details, 1)
+        if #copy.details == 0 then
+            copy.details = nil
         end
     end
     if not copy.text and #copy.quests == 0 and not copy.note and not copy.details then
@@ -155,6 +316,17 @@ function ns.RegisterGuide(guide)
     if guide.faction == "Alliance" or guide.faction == "Horde" then
         faction = guide.faction
     end
+    local minLevel = tonumber(guide.minLevel)
+    local maxLevel = tonumber(guide.maxLevel)
+    if not minLevel or not maxLevel then
+        local inferredMin, inferredMax = inferLevels(name, id)
+        minLevel = minLevel or inferredMin
+        maxLevel = maxLevel or inferredMax
+    end
+    local races = copyNames(guide.races) or inferRaces(name, id)
+    local classes = copyNames(guide.classes)
+    local excludeRaces = copyNames(guide.excludeRaces)
+    local excludeClasses = copyNames(guide.excludeClasses)
     if not byId[id] then
         order[#order + 1] = id
     end
@@ -163,6 +335,12 @@ function ns.RegisterGuide(guide)
         name = name,
         group = group,
         faction = faction,
+        minLevel = minLevel,
+        maxLevel = maxLevel,
+        races = races,
+        classes = classes,
+        excludeRaces = excludeRaces,
+        excludeClasses = excludeClasses,
         steps = steps,
     }
 end
@@ -208,11 +386,11 @@ function ns.GuidePercentLabel()
         return nil
     end
     local current = progress(guide.id).step
-    local total = #guide.steps
-    if current > total then
-        current = total
+    local pos, total = progressCounts(guide, current)
+    if not total or total < 1 then
+        return nil
     end
-    return string.format("%d%%", math.floor(current / total * 100 + 0.5))
+    return string.format("%d%%", math.floor(pos / total * 100 + 0.5))
 end
 
 function ns.PrintGuides()
@@ -334,20 +512,269 @@ local function questName(id)
     return "Quest " .. id
 end
 
-local function stepDone(step)
-    if not step or (step.when ~= "accepted" and step.when ~= "complete") or #step.quests == 0 then
+local function listed(list, name)
+    if type(list) ~= "table" or not name then
         return false
     end
-    for _, id in ipairs(step.quests) do
-        if step.when == "accepted" then
-            if not questOn(id) and not questCompleted(id) then
-                return false
-            end
-        elseif not questCompleted(id) then
+    for _, entry in ipairs(list) do
+        if entry == name then
+            return true
+        end
+    end
+    return false
+end
+
+local function hasBit(mask, flag)
+    if type(mask) ~= "number" or type(flag) ~= "number" or flag == 0 or flag < 0 then
+        return false
+    end
+    -- Arithmetic, so Forever's Skyborne bits past 2^31 still match.
+    return math.floor(mask / flag) % 2 == 1
+end
+
+local function raceMatches(required, race)
+    if race == "Skyborne" then
+        return hasBit(required, 4294967296) or hasBit(required, 8589934592)
+    end
+    local flag = RACE_MASK[race or ""]
+    if not flag then
+        return true
+    end
+    return hasBit(required, flag)
+end
+
+function ns.PlayerClass()
+    if not UnitClass then
+        return nil
+    end
+    local _, token = UnitClass("player")
+    if type(token) ~= "string" then
+        return nil
+    end
+    return CLASS_CANON[token:lower()] or token
+end
+
+function ns.PlayerRace()
+    if not UnitRace then
+        return nil
+    end
+    local _, token = UnitRace("player")
+    if type(token) ~= "string" then
+        return nil
+    end
+    return RACE_CANON[token:lower()] or token
+end
+
+local function guideMode()
+    if ns.db and ns.db.hardcoreGuide then
+        return "hardcore"
+    end
+    return "softcore"
+end
+
+stepApplies = function(step)
+    if not step then
+        return false
+    end
+    local class = ns.PlayerClass()
+    if class then
+        if step.classes and #step.classes > 0 and not listed(step.classes, class) then
+            return false
+        end
+        if listed(step.excludeClasses, class) then
+            return false
+        end
+    end
+    local race = ns.PlayerRace()
+    if race then
+        if step.races and #step.races > 0 and not listed(step.races, race) then
+            return false
+        end
+        if listed(step.excludeRaces, race) then
+            return false
+        end
+    end
+    if step.mode == "softcore" or step.mode == "hardcore" then
+        if step.mode ~= guideMode() then
             return false
         end
     end
     return true
+end
+
+local function questApplies(id)
+    if not ns.QuestieReady or not ns.QuestieReady() then
+        return true
+    end
+    local facts = ns.QuestFacts and ns.QuestFacts(id)
+    if not facts then
+        return true
+    end
+    local classMask = CLASS_MASK[ns.PlayerClass() or ""]
+    local race = ns.PlayerRace()
+    if type(facts.requiredClasses) == "number" and facts.requiredClasses ~= 0 and classMask then
+        if not hasBit(facts.requiredClasses, classMask) then
+            return false
+        end
+    end
+    if type(facts.requiredRaces) == "number" and facts.requiredRaces ~= 0 and race then
+        if not raceMatches(facts.requiredRaces, race) then
+            return false
+        end
+    end
+    return true
+end
+
+local function questObjectivesDone(id)
+    if questCompleted(id) then
+        return true
+    end
+    if not questOn(id) then
+        return false
+    end
+    if C_QuestLog and C_QuestLog.IsComplete then
+        local ok, done = pcall(C_QuestLog.IsComplete, id)
+        if ok and done then
+            return true
+        end
+    end
+    if C_QuestLog and C_QuestLog.GetQuestObjectives then
+        local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
+        if ok and type(list) == "table" and #list > 0 then
+            for _, info in ipairs(list) do
+                if type(info) ~= "table" or not info.finished then
+                    return false
+                end
+            end
+            return true
+        end
+    end
+    if not GetNumQuestLogEntries or not GetQuestLogTitle or not GetNumQuestLeaderBoards or not GetQuestLogLeaderBoard then
+        return false
+    end
+    local count = GetNumQuestLogEntries()
+    for index = 1, count do
+        local _, _, _, isHeader, _, isComplete, _, questID = GetQuestLogTitle(index)
+        local qid = questID
+        if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+            local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+            if ok and type(value) == "number" then
+                qid = value
+            end
+        end
+        if not isHeader and qid == id then
+            if isComplete == 1 or isComplete == -1 or isComplete == true then
+                return true
+            end
+            local boards = GetNumQuestLeaderBoards(index) or 0
+            if boards < 1 then
+                return false
+            end
+            for board = 1, boards do
+                local _, _, finished = GetQuestLogLeaderBoard(board, index)
+                if not finished then
+                    return false
+                end
+            end
+            return true
+        end
+    end
+    return false
+end
+
+local function questSatisfied(id, when)
+    if when == "complete" then
+        return questCompleted(id)
+    end
+    if when == "accepted" then
+        return questOn(id) or questCompleted(id)
+    end
+    return questObjectivesDone(id)
+end
+
+local function relevantQuests(step)
+    local ids = {}
+    for _, id in ipairs(step.quests or {}) do
+        if questApplies(id) then
+            ids[#ids + 1] = id
+        end
+    end
+    return ids
+end
+
+local function stepDone(step)
+    if not step or not stepApplies(step) then
+        return true
+    end
+    local when = step.when
+    if when ~= "accepted" and when ~= "complete" and when ~= "objectives" then
+        return false
+    end
+    local listedQuests = step.quests or {}
+    local ids = relevantQuests(step)
+    if #ids == 0 then
+        -- Manual step with no quests waits for Next.
+        -- Quests listed but none apply to this character: skip.
+        return #listedQuests > 0
+    end
+    local useAny = not (ns.QuestieReady and ns.QuestieReady()) and #listedQuests > 1
+    if useAny then
+        for _, id in ipairs(ids) do
+            if questSatisfied(id, when) then
+                return true
+            end
+        end
+        return false
+    end
+    for _, id in ipairs(ids) do
+        if not questSatisfied(id, when) then
+            return false
+        end
+    end
+    return true
+end
+
+progressCounts = function(guide, current)
+    local total, pos = 0, 0
+    for index, step in ipairs(guide.steps) do
+        if stepApplies(step) then
+            total = total + 1
+            if index <= current then
+                pos = total
+            end
+        end
+    end
+    if total > 0 and pos < 1 then
+        pos = 1
+    end
+    return pos, total
+end
+
+neighbor = function(guide, index, direction)
+    local count = #guide.steps
+    local step = index
+    local guard = 0
+    while guard < count do
+        step = step + direction
+        if step < 1 or step > count then
+            return nil
+        end
+        if stepApplies(guide.steps[step]) then
+            return step
+        end
+        guard = guard + 1
+    end
+end
+
+local reviewKey
+
+local function rememberReview(guide, step)
+    local entry = guide.steps[step]
+    if entry and stepApplies(entry) and stepDone(entry) then
+        reviewKey = guide.id .. ":" .. step
+    else
+        reviewKey = nil
+    end
 end
 
 function ns.GuideCatchUp()
@@ -356,33 +783,183 @@ function ns.GuideCatchUp()
         return false
     end
     local entry = progress(guide.id)
-    local moved = false
+    local before = entry.step
+    local count = #guide.steps
     local guard = 0
-    while entry.step < #guide.steps and guard < 40 do
-        if not stepDone(guide.steps[entry.step]) then
+    while entry.step <= count and guard < count do
+        local step = guide.steps[entry.step]
+        if not stepApplies(step) then
+            local hopped = neighbor(guide, entry.step, 1)
+            if not hopped then
+                break
+            end
+            entry.step = hopped
+            guard = guard + 1
+        elseif reviewKey == guide.id .. ":" .. entry.step then
             break
+        elseif not stepDone(step) then
+            break
+        else
+            local hopped = neighbor(guide, entry.step, 1)
+            if not hopped then
+                break
+            end
+            entry.step = hopped
+            guard = guard + 1
         end
-        entry.step = entry.step + 1
-        moved = true
-        guard = guard + 1
     end
-    return moved
+    return entry.step ~= before
+end
+
+inferLevels = function(name, id)
+    local text = (name or "") .. " " .. (id or "")
+    local a, b = text:match("(%d+)%s*%-%s*(%d+)")
+    if a and b then
+        return tonumber(a), tonumber(b)
+    end
+    local one = text:match("%((%d+)%)")
+    if one then
+        local level = tonumber(one)
+        return level, level
+    end
+end
+
+inferRaces = function(name, id)
+    local text = ((name or "") .. " " .. (id or "")):lower()
+    if text:find("undead", 1, true) or text:find("scourge", 1, true) or text:find("tirisfal", 1, true) then
+        return { "Undead" }
+    end
+    if text:find("tauren", 1, true) or text:find("mulgore", 1, true) then
+        return { "Tauren" }
+    end
+    if text:find("orc", 1, true) or text:find("troll", 1, true) or text:find("durotar", 1, true) then
+        return { "Orc", "Troll" }
+    end
+end
+
+local function playerFaction()
+    if not UnitFactionGroup then
+        return nil
+    end
+    local faction = UnitFactionGroup("player")
+    if faction == "Alliance" or faction == "Horde" then
+        return faction
+    end
+end
+
+local function playerLevel()
+    if UnitLevel then
+        local level = UnitLevel("player")
+        if type(level) == "number" and level > 0 then
+            return level
+        end
+    end
+    return 1
+end
+
+function ns.GuideScore(guide)
+    if type(guide) ~= "table" then
+        return -1000
+    end
+    local score = 0
+    local faction = playerFaction()
+    if guide.faction and faction then
+        if guide.faction ~= faction then
+            return -1000
+        end
+        score = score + 40
+    end
+    local race = ns.PlayerRace()
+    if guide.races and #guide.races > 0 then
+        if race and listed(guide.races, race) then
+            score = score + 50
+        else
+            return -1000
+        end
+    end
+    if guide.excludeRaces and race and listed(guide.excludeRaces, race) then
+        return -1000
+    end
+    local class = ns.PlayerClass()
+    if guide.classes and #guide.classes > 0 then
+        if class and listed(guide.classes, class) then
+            score = score + 35
+        else
+            return -1000
+        end
+    end
+    if guide.excludeClasses and class and listed(guide.excludeClasses, class) then
+        return -1000
+    end
+    local level = playerLevel()
+    local minLevel = guide.minLevel
+    local maxLevel = guide.maxLevel
+    if type(minLevel) == "number" or type(maxLevel) == "number" then
+        minLevel = type(minLevel) == "number" and minLevel or 1
+        maxLevel = type(maxLevel) == "number" and maxLevel or 60
+        if level < minLevel then
+            score = score - (minLevel - level) * 8
+        elseif level > maxLevel then
+            score = score - (level - maxLevel) * 12
+        else
+            score = score + 60
+            -- Prefer the tightest band that still fits.
+            local span = math.max(1, maxLevel - minLevel)
+            score = score + math.max(0, 20 - span)
+            score = score + math.max(0, 10 - math.abs(level - minLevel))
+        end
+    else
+        score = score + 5
+    end
+    return score
+end
+
+function ns.RecommendGuides()
+    local list = ns.GuideList()
+    local ranked = {}
+    for _, guide in ipairs(list) do
+        local score = ns.GuideScore(guide)
+        if score > -500 then
+            ranked[#ranked + 1] = { guide = guide, score = score }
+        end
+    end
+    table.sort(ranked, function(a, b)
+        if a.score ~= b.score then
+            return a.score > b.score
+        end
+        return a.guide.name < b.guide.name
+    end)
+    return ranked
+end
+
+function ns.RecommendedGuide()
+    local ranked = ns.RecommendGuides()
+    local best = ranked[1]
+    if not best or best.score < 20 then
+        return nil
+    end
+    return best.guide, best.score
 end
 
 function ns.GuideEnsure()
     if activeGuide() then
         return false
     end
-    local list = ns.GuideList()
-    local guide = list[1]
+    local guide = ns.RecommendedGuide()
+    if not guide then
+        local list = ns.GuideList()
+        guide = list[1]
+    end
     if not guide then
         return false
     end
+    reviewKey = nil
     charDB().guide = guide.id
     local entry = progress(guide.id)
     if entry.step > #guide.steps then
         entry.step = #guide.steps
     end
+    ns.GuideCatchUp()
     return true
 end
 
@@ -392,6 +969,7 @@ function ns.GuideSelect(id)
         say("No guide with id \"" .. tostring(id) .. "\". /rxpb guides lists them.")
         return
     end
+    reviewKey = nil
     local db = charDB()
     db.guide = guide.id
     local entry = progress(guide.id)
@@ -412,11 +990,7 @@ function ns.GuideCanStep(direction)
     if not guide then
         return false
     end
-    local step = progress(guide.id).step
-    if direction < 0 then
-        return step > 1
-    end
-    return step < #guide.steps
+    return neighbor(guide, progress(guide.id).step, direction < 0 and -1 or 1) ~= nil
 end
 
 function ns.GuideStep(direction)
@@ -425,17 +999,17 @@ function ns.GuideStep(direction)
         return
     end
     local entry = progress(guide.id)
-    local count = #guide.steps
-    local nextStep = entry.step + (direction < 0 and -1 or 1)
-    if nextStep < 1 then
-        nextStep = 1
-    elseif nextStep > count then
-        nextStep = count
-    end
-    if nextStep == entry.step then
+    local nextStep = neighbor(guide, entry.step, direction < 0 and -1 or 1)
+    if not nextStep or nextStep == entry.step then
         return
     end
     entry.step = nextStep
+    if direction < 0 then
+        rememberReview(guide, entry.step)
+    else
+        reviewKey = nil
+        ns.GuideCatchUp()
+    end
     refresh()
 end
 
@@ -459,7 +1033,14 @@ function ns.GuideJump(index)
     elseif index > count then
         index = count
     end
+    if guide.steps[index] and not stepApplies(guide.steps[index]) then
+        local hopped = neighbor(guide, index, 1) or neighbor(guide, index, -1)
+        if hopped then
+            index = hopped
+        end
+    end
     progress(guide.id).step = index
+    rememberReview(guide, index)
     refresh()
 end
 
@@ -678,15 +1259,45 @@ function ns.GuideObjectives()
     local count = #guide.steps
     if entry.step > count then
         entry.step = count
+    elseif entry.step < 1 then
+        entry.step = 1
+    end
+    if guide.steps[entry.step] and not stepApplies(guide.steps[entry.step]) then
+        local hopped = neighbor(guide, entry.step, 1)
+        if hopped then
+            entry.step = hopped
+        end
     end
     local ahead = 0
     if not (ns.db and ns.db.simpleMode) then
         ahead = 3
     end
     local items = {}
-    local last = math.min(count, entry.step + ahead)
-    for index = entry.step, last do
-        items[#items + 1] = buildItem(guide.steps[index], index == entry.step)
+    local index = entry.step
+    local guard = 0
+    while index <= count and guard < count do
+        local step = guide.steps[index]
+        if stepApplies(step) then
+            items[#items + 1] = buildItem(step, #items == 0)
+            if #items > ahead then
+                break
+            end
+        end
+        index = index + 1
+        guard = guard + 1
+    end
+    if #items == 0 then
+        return {
+            {
+                number = entry.step,
+                headline = "End of this guide",
+                details = { "Right-click the tracker to choose another guide." },
+                actions = {},
+                names = {},
+                quests = {},
+                stepQuests = {},
+            },
+        }
     end
     return items
 end
@@ -737,6 +1348,32 @@ local function presentMenu()
         row.label:SetTextColor(0.8, 0.8, 0.8)
         place(row, 32)
     end
+    local recommended = ns.RecommendedGuide and ns.RecommendedGuide() or nil
+    if recommended then
+        index = index + 1
+        local row = acquireRow(index)
+        row.guideId = nil
+        row:EnableMouse(false)
+        row.label:SetText("Recommended")
+        row.label:SetTextColor(0.45, 0.9, 0.45)
+        place(row, 18)
+        index = index + 1
+        row = acquireRow(index)
+        row.guideId = recommended.id
+        row:EnableMouse(true)
+        local band = ""
+        if recommended.minLevel and recommended.maxLevel then
+            band = string.format("  %d-%d", recommended.minLevel, recommended.maxLevel)
+        end
+        row.label:SetText(recommended.name .. band)
+        if ns.GuideId() == recommended.id and ns.Color then
+            local r, g, b = ns.Color("accent")
+            row.label:SetTextColor(r, g, b)
+        else
+            row.label:SetTextColor(0.7, 1, 0.7)
+        end
+        place(row, 20)
+    end
     for _, guide in ipairs(list) do
         if guide.group ~= lastGroup then
             lastGroup = guide.group
@@ -752,8 +1389,9 @@ local function presentMenu()
         local row = acquireRow(index)
         row.guideId = guide.id
         row:EnableMouse(true)
+        local mark = (recommended and recommended.id == guide.id) and "* " or ""
         local suffix = guide.faction and (" (" .. guide.faction .. ")") or ""
-        row.label:SetText(guide.name .. suffix)
+        row.label:SetText(mark .. guide.name .. suffix)
         if ns.GuideId() == guide.id and ns.Color then
             local r, g, b = ns.Color("accent")
             row.label:SetTextColor(r, g, b)
@@ -847,6 +1485,9 @@ function ns.ToggleGuideMenu()
         menu:Hide()
         return
     end
+    if ns.HideNavMenu then
+        ns.HideNavMenu()
+    end
     presentMenu()
     local scale = UIParent:GetEffectiveScale()
     if not scale or scale == 0 then
@@ -864,6 +1505,7 @@ watcher:RegisterEvent("PLAYER_LOGIN")
 watcher:RegisterEvent("QUEST_ACCEPTED")
 watcher:RegisterEvent("QUEST_TURNED_IN")
 watcher:RegisterEvent("QUEST_REMOVED")
+watcher:RegisterEvent("QUEST_LOG_UPDATE")
 watcher:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" then
         if name ~= addonName then
@@ -885,6 +1527,8 @@ watcher:SetScript("OnEvent", function(_, event, name)
     if not ns.UsingStandalone or not ns.UsingStandalone() then
         return
     end
+    -- Quest progress always wins over a manual review pause.
+    reviewKey = nil
     local guide = activeGuide()
     local before = guide and progress(guide.id).step
     if ns.GuideCatchUp() and guide and progress(guide.id).step ~= before and ns.RefreshTracker then
