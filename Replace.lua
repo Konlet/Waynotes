@@ -1182,9 +1182,11 @@ tracker:SetBackdropColor(0, 0, 0, 0.4)
 tracker:SetBackdropBorderColor(1, 0.82, 0, 0.45)
 tracker:Hide()
 
+local HEADER_RIGHT = -144
+
 local header = tracker:CreateFontString(nil, "OVERLAY")
 header:SetPoint("TOPLEFT", 10, -7)
-header:SetPoint("TOPRIGHT", -110, -7)
+header:SetPoint("TOPRIGHT", HEADER_RIGHT, -7)
 header:SetHeight(16)
 paint(header, 13, ns.Color("accent"))
 if header.SetMaxLines then
@@ -1196,6 +1198,7 @@ end
 
 local guidePercent
 local jumpButton
+local navButton
 local function guidePercentLabel()
     if ns.db and ns.db.standaloneGuide and ns.GuidePercentLabel then
         return ns.GuidePercentLabel()
@@ -1231,7 +1234,7 @@ local function placeGuidePercent()
         guidePercent:Hide()
         header:ClearAllPoints()
         header:SetPoint("TOPLEFT", 10, -7)
-        header:SetPoint("TOPRIGHT", -110, -7)
+        header:SetPoint("TOPRIGHT", HEADER_RIGHT, -7)
         return
     end
     local r, g, b = ns.Color("accent")
@@ -1239,10 +1242,11 @@ local function placeGuidePercent()
     guidePercent:SetText(label)
     guidePercent:Show()
     guidePercent:ClearAllPoints()
-    if jumpButton then
-        guidePercent:SetPoint("TOPRIGHT", jumpButton, "TOPLEFT", -6, 1)
+    local rightOf = navButton or jumpButton
+    if rightOf then
+        guidePercent:SetPoint("TOPRIGHT", rightOf, "TOPLEFT", -6, 1)
     else
-        guidePercent:SetPoint("TOPRIGHT", -110, -7)
+        guidePercent:SetPoint("TOPRIGHT", HEADER_RIGHT, -7)
     end
     header:ClearAllPoints()
     header:SetPoint("TOPLEFT", 10, -7)
@@ -1782,6 +1786,14 @@ styleStepButtons = function()
             styleChromeButton(jumpButton, 0, 0, 0, 0.55, r, g, b, 0.75)
         end
     end
+    if navButton then
+        navButton.text:SetTextColor(r, g, b)
+        if navButton.hovered then
+            styleChromeButton(navButton, r, g, b, 0.22, r, g, b, 1)
+        else
+            styleChromeButton(navButton, 0, 0, 0, 0.55, r, g, b, 0.75)
+        end
+    end
     stylingButtons = false
 end
 
@@ -1831,6 +1843,52 @@ jumpButton:SetScript("OnMouseDown", function(self)
     self.text:SetPoint("CENTER", 1, -1)
 end)
 jumpButton:SetScript("OnMouseUp", function(self)
+    self.text:SetPoint("CENTER", 0, 0)
+end)
+
+navButton = CreateFrame("Button", nil, tracker, "BackdropTemplate")
+navButton:SetSize(28, 16)
+navButton:SetPoint("TOPRIGHT", -110, -6)
+navButton:SetFrameLevel(tracker:GetFrameLevel() + 25)
+navButton:SetBackdrop({
+    bgFile = "Interface\\BUTTONS\\WHITE8X8",
+    edgeFile = "Interface\\BUTTONS\\WHITE8X8",
+    edgeSize = 1,
+    insets = { left = 1, right = 1, top = 1, bottom = 1 },
+})
+local navGlow = navButton:CreateTexture(nil, "HIGHLIGHT")
+navGlow:SetAllPoints()
+useSolid(navGlow)
+paintTexture(navGlow, 1, 1, 1, 0.14)
+navButton.glow = navGlow
+navButton:RegisterForClicks("LeftButtonUp")
+navButton.text = navButton:CreateFontString(nil, "OVERLAY")
+navButton.text:SetPoint("CENTER", 0, 0)
+applyFont(navButton.text, 10, "OUTLINE")
+navButton.text:SetText("Go")
+navButton:SetScript("OnClick", function(self)
+    if ns.ToggleNavMenu then
+        ns.ToggleNavMenu(self)
+    end
+end)
+navButton:SetScript("OnEnter", function(self)
+    self.hovered = true
+    styleStepButtons()
+    local r, g, b = ns.Color("accent")
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Navigate", r, g, b)
+    GameTooltip:AddLine("Find the nearest inn, bank, trainer, and more.", 1, 1, 1, true)
+    ns.FinishTooltip()
+end)
+navButton:SetScript("OnLeave", function(self)
+    self.hovered = false
+    styleStepButtons()
+    GameTooltip:Hide()
+end)
+navButton:SetScript("OnMouseDown", function(self)
+    self.text:SetPoint("CENTER", 1, -1)
+end)
+navButton:SetScript("OnMouseUp", function(self)
     self.text:SetPoint("CENTER", 0, 0)
 end)
 
@@ -1887,8 +1945,12 @@ paintTexture(divider, 1, 1, 1, 0.16)
 divider:Hide()
 
 local FLIGHT_STRIP = 26
+local NAV_STRIP = 28
 local flight = { chrome = 0 }
+local nav = { chrome = 0 }
 local updateFlightStrip
+local updateNavStrip
+local placeBottomChrome
 
 do
     local strip = CreateFrame("Frame", nil, tracker)
@@ -1963,6 +2025,14 @@ do
         scrollBar:ClearAllPoints()
         scrollBar:SetPoint("TOPRIGHT", -4, -36)
         scrollBar:SetPoint("BOTTOMRIGHT", -4, bottom + 2)
+    end
+
+    placeBottomChrome = function()
+        local bottom = 10 + (flight.chrome or 0) + (nav.chrome or 0)
+        placeScroller(bottom)
+        if nav.layout then
+            nav.layout()
+        end
     end
 
     local function shortTaxiName(name)
@@ -2089,7 +2159,7 @@ do
             return
         end
         flight.chrome = want
-        placeScroller(10 + want)
+        placeBottomChrome()
         remeasure = true
         lastSignature = nil
         if tracker:IsShown() and ns.RefreshTracker then
@@ -2233,6 +2303,256 @@ do
     end
 end
 
+do
+    local strip = CreateFrame("Frame", nil, tracker)
+    strip:SetHeight(NAV_STRIP)
+    strip:SetPoint("BOTTOMLEFT", 1, 1)
+    strip:SetPoint("BOTTOMRIGHT", -1, 1)
+    strip:Hide()
+
+    local navRule = strip:CreateTexture(nil, "ARTWORK")
+    navRule:SetPoint("TOPLEFT", 8, 0)
+    navRule:SetPoint("TOPRIGHT", -8, 0)
+    navRule:SetHeight(1)
+    useSolid(navRule)
+    paintTexture(navRule, 1, 0.82, 0, 0.45)
+
+    local arrow = strip:CreateTexture(nil, "OVERLAY")
+    arrow:SetSize(14, 14)
+    arrow:SetPoint("LEFT", 8, -1)
+    arrow:SetTexture(media("arrow.tga"))
+    arrow:SetDrawLayer("OVERLAY", 2)
+
+    local title = strip:CreateFontString(nil, "OVERLAY")
+    title:SetPoint("TOPLEFT", 26, -3)
+    title:SetPoint("RIGHT", strip, "RIGHT", -78, 0)
+    title:SetHeight(12)
+    title:SetJustifyH("LEFT")
+    title:SetJustifyV("MIDDLE")
+    if title.SetWordWrap then
+        title:SetWordWrap(false)
+    end
+    applyFont(title, 11, "")
+    title:SetTextColor(0.9, 0.9, 0.86)
+
+    local detail = strip:CreateFontString(nil, "OVERLAY")
+    detail:SetPoint("TOPLEFT", 26, -14)
+    detail:SetPoint("RIGHT", strip, "RIGHT", -78, 0)
+    detail:SetHeight(11)
+    detail:SetJustifyH("LEFT")
+    detail:SetJustifyV("MIDDLE")
+    if detail.SetWordWrap then
+        detail:SetWordWrap(false)
+    end
+    applyFont(detail, 10, "")
+    detail:SetTextColor(0.82, 0.82, 0.82)
+
+    local distText = strip:CreateFontString(nil, "OVERLAY")
+    distText:SetPoint("TOPRIGHT", -28, -4)
+    distText:SetHeight(12)
+    distText:SetJustifyH("RIGHT")
+    distText:SetJustifyV("MIDDLE")
+    applyFont(distText, 11, "OUTLINE")
+    distText:SetTextColor(1, 0.82, 0)
+
+    local clear = CreateFrame("Button", nil, strip)
+    clear:SetSize(16, 16)
+    clear:SetPoint("TOPRIGHT", -8, -5)
+    clear:SetFrameLevel(strip:GetFrameLevel() + 5)
+    clear:RegisterForClicks("LeftButtonUp")
+    clear.text = clear:CreateFontString(nil, "OVERLAY")
+    clear.text:SetPoint("CENTER", 0, 0)
+    applyFont(clear.text, 12, "OUTLINE")
+    clear.text:SetText("x")
+    clear:SetScript("OnClick", function()
+        if ns.NavClearTarget then
+            ns.NavClearTarget()
+        end
+    end)
+    clear:SetScript("OnEnter", function(self)
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Clear destination", r, g, b)
+        ns.FinishTooltip()
+    end)
+    clear:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+
+    nav.strip = strip
+    nav.rule = navRule
+    nav.arrow = arrow
+    nav.title = title
+    nav.detail = detail
+    nav.dist = distText
+    nav.clear = clear
+
+    nav.layout = function()
+        local lift = flight.chrome or 0
+        strip:ClearAllPoints()
+        strip:SetPoint("BOTTOMLEFT", 1, 1 + lift)
+        strip:SetPoint("BOTTOMRIGHT", -1, 1 + lift)
+    end
+
+    local function setNavChrome(want)
+        want = want or 0
+        if nav.chrome == want then
+            return
+        end
+        nav.chrome = want
+        if placeBottomChrome then
+            placeBottomChrome()
+        end
+        remeasure = true
+        lastSignature = nil
+        if tracker:IsShown() and ns.RefreshTracker then
+            ns.RefreshTracker(true)
+        end
+    end
+
+    local function showNav(on)
+        if on then
+            strip:Show()
+            setNavChrome(NAV_STRIP)
+        else
+            strip:Hide()
+            setNavChrome(0)
+        end
+    end
+
+    local painted = false
+    local lastTitle, lastDetail, lastDist
+
+    local function paintNav(force)
+        if not ns.db then
+            return
+        end
+        if painted and not force then
+            return
+        end
+        painted = true
+        local edgeR, edgeG, edgeB = ns.Color("accent")
+        local textR, textG, textB = ns.Color("secondary")
+        local detailR, detailG, detailB = ns.Color("detail")
+        paintTexture(navRule, edgeR, edgeG, edgeB, 0.45)
+        title:SetTextColor(textR, textG, textB)
+        detail:SetTextColor(detailR, detailG, detailB)
+        distText:SetTextColor(edgeR, edgeG, edgeB)
+        clear.text:SetTextColor(edgeR, edgeG, edgeB)
+        if arrow.SetDesaturated then
+            arrow:SetDesaturated(true)
+        end
+        arrow:SetVertexColor(edgeR, edgeG, edgeB, 0)
+        arrow:SetVertexColor(edgeR, edgeG, edgeB, 1)
+    end
+
+    nav.paint = function()
+        painted = false
+        paintNav(true)
+    end
+
+    local function kindLabel(dest)
+        if not dest then
+            return "Destination"
+        end
+        if dest.kind == "trainer" and dest.class then
+            return dest.class .. " Trainer"
+        end
+        if ns.NavKindLabel and dest.kind and ns.NavKindLabel[dest.kind] then
+            return ns.NavKindLabel[dest.kind]
+        end
+        return "Destination"
+    end
+
+    local function ensureWaypoint(dest)
+        if type(dest) ~= "table" then
+            return nil
+        end
+        local wp = dest.waypoint
+        if type(wp) == "table" and type(wp.wx) == "number" and type(wp.wy) == "number" then
+            return wp
+        end
+        -- Zone pin -> HBD world (same space as tracker step arrows).
+        local hbd = hereBeDragons()
+        if hbd and hbd.GetWorldCoordinatesFromZone and type(dest.map) == "number" and type(dest.x) == "number" and type(dest.y) == "number" then
+            local wx, wy, instance = hbd:GetWorldCoordinatesFromZone(dest.x / 100, dest.y / 100, dest.map)
+            if type(wx) == "number" and type(wy) == "number" then
+                dest.waypoint = { wx = wx, wy = wy, instance = instance }
+                return dest.waypoint
+            end
+        end
+        -- Flight-master fallback: authored continent world coords.
+        if type(dest.wx) == "number" and type(dest.wy) == "number" then
+            dest.waypoint = { wx = dest.wx, wy = dest.wy, instance = dest.instance }
+            return dest.waypoint
+        end
+        return nil
+    end
+
+    function updateNavStrip()
+        local dest = ns.NavTarget and ns.NavTarget()
+        local showUI = tracker:IsShown() and dest ~= nil
+        if not showUI then
+            arrow.__rxpbWp = nil
+            if nav.chrome > 0 then
+                showNav(false)
+            end
+            lastTitle, lastDetail, lastDist = nil, nil, nil
+            return
+        end
+
+        if nav.chrome == 0 then
+            showNav(true)
+            paintNav(true)
+        elseif not strip:IsShown() then
+            strip:Show()
+        end
+
+        local where = dest.zone or (dest.map and ns.MapName and ns.MapName(dest.map)) or ""
+        local name = dest.name or kindLabel(dest)
+        local titleText = kindLabel(dest) .. " · " .. name
+        if titleText ~= lastTitle then
+            lastTitle = titleText
+            title:SetText(titleText)
+        end
+
+        local coords = ns.NavFormatCoords and ns.NavFormatCoords(dest) or ""
+        local detailText
+        if where ~= "" and coords ~= "" then
+            detailText = where .. "  " .. coords
+        elseif coords ~= "" then
+            detailText = coords
+        else
+            detailText = where
+        end
+        if detailText ~= lastDetail then
+            lastDetail = detailText
+            detail:SetText(detailText)
+        end
+
+        -- Aiming + distance are handled in updateArrows via __rxpbWp.
+        arrow.__rxpbWp = ensureWaypoint(dest)
+    end
+
+    -- Filled after formatYards/tintArrow exist (same file, later locals).
+    nav._arrow = arrow
+    nav._distText = distText
+    nav._getLastDist = function()
+        return lastDist
+    end
+    nav._setLastDist = function(value)
+        lastDist = value
+    end
+
+    ns.NavOnTargetChanged = function()
+        painted = false
+        lastTitle, lastDetail, lastDist = nil, nil, nil
+        if tracker:IsShown() then
+            updateNavStrip()
+        end
+    end
+end
+
 local function lowerStrata(strata)
     if strata == "HIGH" then
         return "MEDIUM"
@@ -2318,6 +2638,9 @@ local function styleTracker()
     paintTexture(rule, edgeR, edgeG, edgeB, 0.55)
     if flight.paint then
         flight.paint()
+    end
+    if nav.paint then
+        nav.paint()
     end
 
     if rounded then
@@ -2410,6 +2733,9 @@ local function restorePoint()
 end
 
 local function openGuideMenu()
+    if ns.HideNavMenu then
+        ns.HideNavMenu()
+    end
     if ns.db and ns.db.standaloneGuide and ns.ToggleGuideMenu then
         ns.ToggleGuideMenu()
         return
@@ -2594,6 +2920,61 @@ local function formatYards(dist)
         return string.format("%dk", math.floor(yards / 1000 + 0.5))
     end
     return yards .. " yd"
+end
+
+-- Nav strip arrow shares the step-arrow aiming path (defined after tint helpers).
+nav.syncArrow = function(facing, hbd, px, py, instance, canAim)
+    local arrow = nav._arrow
+    local distText = nav._distText
+    if not arrow then
+        return
+    end
+    local wp = arrow.__rxpbWp
+    local lastDist = nav._getLastDist and nav._getLastDist() or nil
+    if not wp or not wp.wx or not wp.wy then
+        if lastDist ~= "" then
+            if nav._setLastDist then
+                nav._setLastDist("")
+            end
+            if distText then
+                distText:SetText("")
+            end
+        end
+        arrow:SetAlpha(0.35)
+        return
+    end
+
+    local tintR, tintG, tintB = arrowTint()
+    tintArrow(arrow, tintR, tintG, tintB, 1)
+
+    local angle, dist
+    if canAim and hbd and px and arrow.SetRotation then
+        angle, dist = hbd:GetWorldVector(instance, px, py, wp.wx, wp.wy)
+    elseif hbd and px and hbd.GetWorldVector then
+        -- Still resolve distance when facing is unavailable.
+        local ok
+        ok, angle, dist = pcall(hbd.GetWorldVector, hbd, instance, px, py, wp.wx, wp.wy)
+        if not ok then
+            angle, dist = nil, nil
+        end
+    end
+
+    local distLabel = type(dist) == "number" and formatYards(dist) or ""
+    if distLabel ~= lastDist then
+        if nav._setLastDist then
+            nav._setLastDist(distLabel)
+        end
+        if distText then
+            distText:SetText(distLabel)
+        end
+    end
+
+    if angle and facing and arrow.SetRotation then
+        arrow:SetAlpha(1)
+        arrow:SetRotation(angle - facing)
+    else
+        arrow:SetAlpha(0.35)
+    end
 end
 
 local function waypointDistance(wp)
@@ -2798,6 +3179,9 @@ local function updateArrows()
                 end
             end
         end
+    end
+    if nav.syncArrow then
+        nav.syncArrow(facing, hbd, x, y, instance, canAim)
     end
 end
 
@@ -3051,7 +3435,26 @@ local function acquireRow(index)
         local r, g, b = ns.Color("accent")
         GameTooltip:SetOwner(self, "ANCHOR_NONE")
         GameTooltip:SetText("Step notes", r, g, b)
-        GameTooltip:AddLine("Show or hide the tip notes for this step. Progress and objectives stay visible.", 1, 1, 1, true)
+        local tips = parent and parent.__rxpbTips
+        local shown = 0
+        for _, line in ipairs(tips or {}) do
+            local plain = plainText(line)
+            if plain then
+                shown = shown + 1
+                if shown > 8 then
+                    GameTooltip:AddLine("...", 0.7, 0.7, 0.7)
+                    break
+                end
+                GameTooltip:AddLine("\226\128\162 " .. plain, 1, 1, 1, true)
+            end
+        end
+        if shown == 0 then
+            GameTooltip:AddLine("Show or hide the tip notes for this step. Progress and objectives stay visible.", 1, 1, 1, true)
+        elseif parent and parent.__rxpbTipsExpanded then
+            GameTooltip:AddLine("Click to hide these notes in the tracker.", 0.9, 0.82, 0.45, true)
+        else
+            GameTooltip:AddLine("Click to show these notes in the tracker.", 0.9, 0.82, 0.45, true)
+        end
         ns.FinishTooltip()
         placeCursorTooltip(self)
     end)
@@ -3378,6 +3781,9 @@ local function isObjectiveDetail(text)
     if lower:match("^accept%s") or lower:match("^turn%s+in%s") or lower:match("^complete%s") then
         return true
     end
+    if lower:match("^train%s") or lower:match("^trainer%s") or lower:match("^learn%s") then
+        return true
+    end
     if lower:match("^use:") or lower:match("^target:") then
         return true
     end
@@ -3396,10 +3802,13 @@ local function objectiveRank(text)
     if lower:match("^accept%s") or lower:match("^turn%s+in%s") or lower:match("^complete%s") then
         return 2
     end
-    if lower:match("^use:") or lower:match("^target:") then
+    if lower:match("^train%s") or lower:match("^trainer%s") or lower:match("^learn%s") then
         return 3
     end
-    return 4
+    if lower:match("^use:") or lower:match("^target:") then
+        return 4
+    end
+    return 5
 end
 
 local function tipKey(item, index)
@@ -3477,7 +3886,10 @@ local function applyRowText(row, item, index)
     local textR, textG, textB = ns.Color(main and "text" or "secondary")
     paint(row.text, main and 16 or 13, textR, textG, textB)
     row.text:SetText(presentHeadline(item))
+    local _, tipLines = splitDetails(item and item.details)
+    row.__rxpbTips = tipLines
     local shown, canToggle, expanded = visibleDetailLines(item, index)
+    row.__rxpbTipsExpanded = expanded and true or false
     if shown and #shown > 0 then
         local detailR, detailG, detailB = ns.Color("detail")
         paint(row.details, main and 13 or 12, detailR, detailG, detailB)
@@ -3568,7 +3980,7 @@ local function updateScrollThumb(view, content, offset, maxScroll)
 end
 
 local function scrollRange()
-    local chrome = TRACKER_CHROME + (flight.chrome or 0)
+    local chrome = TRACKER_CHROME + (flight.chrome or 0) + (nav.chrome or 0)
     local view = (tracker:GetHeight() or 0) - chrome
     local content = body:GetHeight() or 0
     if view < 1 then
@@ -3612,7 +4024,7 @@ local function applyTrackerBox(contentHeight, resetScroll)
     end
     body:SetWidth(inner)
     body:SetHeight(contentHeight)
-    local chrome = TRACKER_CHROME + (flight.chrome or 0)
+    local chrome = TRACKER_CHROME + (flight.chrome or 0) + (nav.chrome or 0)
     local limit = readTrackerHeight()
     local height = chrome + contentHeight
     if limit then
@@ -4334,6 +4746,7 @@ local function hookStepText()
 end
 
 local standaloneWas = false
+local hardcoreWas = false
 
 function ns.OnGuideScan()
     local rxp = _G.RXPFrame
@@ -4361,6 +4774,7 @@ function ns.SyncReplacement()
     if not ns.db.standaloneGuide and ns.HideGuideMenu then
         ns.HideGuideMenu()
     end
+    local hardcore = ns.db.hardcoreGuide and true or false
     if ns.db.standaloneGuide and not standaloneWas then
         if ns.GuideEnsure then
             ns.GuideEnsure()
@@ -4368,8 +4782,11 @@ function ns.SyncReplacement()
         if ns.GuideCatchUp then
             ns.GuideCatchUp()
         end
+    elseif ns.db.standaloneGuide and hardcore ~= hardcoreWas and ns.GuideCatchUp then
+        ns.GuideCatchUp()
     end
     standaloneWas = ns.db.standaloneGuide and true or false
+    hardcoreWas = hardcore
 
     local rxp = _G.RXPFrame
     local showTracker = ns.db.standaloneGuide or (ns.db.replaceGuide and rxp)
@@ -4406,6 +4823,7 @@ tracker:SetScript("OnUpdate", function(self, delta)
     end
     pcall(updateArrows)
     pcall(updateFlightStrip)
+    pcall(updateNavStrip)
     if not (ns.db and ns.db.standaloneGuide) then
         pcall(maintainReview)
     end
@@ -4421,6 +4839,7 @@ tracker:SetScript("OnShow", function()
     lastSignature = nil
     ns.RefreshTracker(true)
     pcall(updateFlightStrip)
+    pcall(updateNavStrip)
 end)
 
 tracker:SetScript("OnHide", function()
@@ -4428,5 +4847,11 @@ tracker:SetScript("OnHide", function()
     shadowHost:Hide()
     if flight.strip then
         flight.strip:Hide()
+    end
+    if nav.strip then
+        nav.strip:Hide()
+    end
+    if ns.HideNavMenu then
+        ns.HideNavMenu()
     end
 end)

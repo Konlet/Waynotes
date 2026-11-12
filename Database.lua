@@ -290,6 +290,8 @@ local function readFacts(id)
         name = name,
         level = numberOrNil(call(QuestDB.questLevel, id)),
         requiredLevel = numberOrNil(call(QuestDB.requiredLevel, id)),
+        requiredClasses = call(QuestDB.requiredClasses, id) or 0,
+        requiredRaces = call(QuestDB.requiredRaces, id) or 0,
         giver = giver,
         turnIn = turnIn,
         pin = pin,
@@ -315,4 +317,20 @@ end
 
 function ns.MapName(uiMap)
     return mapName(uiMap)
+end
+
+function ns.NpcName(id)
+    id = tonumber(id)
+    if not id or id <= 0 then
+        return nil
+    end
+    return entityName(NpcDB, id)
+end
+
+function ns.NpcPin(id)
+    id = tonumber(id)
+    if not id or id <= 0 then
+        return nil
+    end
+    return pinFor("npc", id)
 end
