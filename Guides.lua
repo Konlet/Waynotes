@@ -8,6 +8,7 @@ local catcher
 local scroll
 local content
 local rows = {}
+local declinedOffStep = {}
 
 local stepApplies
 local progressCounts
@@ -17,18 +18,22 @@ local inferRaces
 
 local function say(text)
     if DEFAULT_CHAT_FRAME then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r " .. text)
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r " .. text)
     end
 end
 
 local function charDB()
-    if type(RestedXPBetterCharDB) ~= "table" then
-        RestedXPBetterCharDB = {}
+    if type(WaynotesCharDB) ~= "table" then
+        if type(RestedXPBetterCharDB) == "table" then
+            WaynotesCharDB = RestedXPBetterCharDB
+        else
+            WaynotesCharDB = {}
+        end
     end
-    if type(RestedXPBetterCharDB.progress) ~= "table" then
-        RestedXPBetterCharDB.progress = {}
+    if type(WaynotesCharDB.progress) ~= "table" then
+        WaynotesCharDB.progress = {}
     end
-    return RestedXPBetterCharDB
+    return WaynotesCharDB
 end
 
 local function findGuide(id)
@@ -238,8 +243,14 @@ local function cleanStep(step)
     copy.map = tonumber(step.map)
     copy.x = tonumber(step.x)
     copy.y = tonumber(step.y)
+    if step.forever then
+        copy.forever = true
+    end
     if type(step.travel) == "table" or type(step.travel) == "string" or step.travel == true then
         copy.travel = step.travel
+    end
+    if type(step.guide) == "string" and strtrim(step.guide) ~= "" then
+        copy.guide = strtrim(step.guide)
     end
     local quests = {}
     local seen = {}
@@ -303,6 +314,9 @@ function ns.RegisterGuide(guide)
             local clean = cleanStep(step)
             if clean then
                 clean.index = #steps + 1
+                if guide.forever then
+                    clean.forever = true
+                end
                 steps[#steps + 1] = clean
             end
         end
@@ -333,6 +347,10 @@ function ns.RegisterGuide(guide)
     if not byId[id] then
         order[#order + 1] = id
     end
+    local nextId = type(guide.next) == "string" and strtrim(guide.next) or nil
+    if nextId == "" then
+        nextId = nil
+    end
     byId[id] = {
         id = id,
         name = name,
@@ -344,15 +362,30 @@ function ns.RegisterGuide(guide)
         classes = classes,
         excludeRaces = excludeRaces,
         excludeClasses = excludeClasses,
+        listed = guide.listed and true or false,
+        next = nextId,
         steps = steps,
     }
 end
 
+function ns.GuideRelevant(guide)
+    if type(guide) ~= "table" then
+        return false
+    end
+    local active = activeGuide()
+    if active and guide.id == active.id then
+        return true
+    end
+    return ns.GuideScore(guide) > -500
+end
+
 function ns.GuideList()
     local list = {}
+    local showAll = ns.db and ns.db.showIrrelevantGuides and true or false
     for _, id in ipairs(order) do
-        if byId[id] then
-            list[#list + 1] = byId[id]
+        local guide = byId[id]
+        if guide and guide.listed and (showAll or ns.GuideRelevant(guide)) then
+            list[#list + 1] = guide
         end
     end
     table.sort(list, function(a, b)
@@ -409,24 +442,59 @@ function ns.PrintGuides()
 end
 
 local function questOn(id)
+    if type(id) ~= "number" or id <= 0 then
+        return false
+    end
+    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+        local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, id)
+        if ok and type(index) == "number" and index > 0 then
+            return true
+        end
+    end
     if C_QuestLog and C_QuestLog.IsOnQuest then
         local ok, on = pcall(C_QuestLog.IsOnQuest, id)
-        if ok then
-            return on and true or false
+        if ok and on then
+            return true
         end
     end
     if IsOnQuest then
         local ok, on = pcall(IsOnQuest, id)
-        if ok then
-            return on and true or false
+        if ok and on then
+            return true
+        end
+    end
+    if not GetNumQuestLogEntries or not GetQuestLogTitle then
+        return false
+    end
+    local count = GetNumQuestLogEntries()
+    for index = 1, count do
+        local _, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(index)
+        local qid = questID
+        if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+            local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+            if ok and type(value) == "number" then
+                qid = value
+            end
+        end
+        if not isHeader and qid == id then
+            return true
         end
     end
     return false
 end
 
 local function questCompleted(id)
+    if type(id) ~= "number" or id <= 0 then
+        return false
+    end
     if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then
         local ok, done = pcall(C_QuestLog.IsQuestFlaggedCompleted, id)
+        if ok then
+            return done and true or false
+        end
+    end
+    if IsQuestFlaggedCompleted then
+        local ok, done = pcall(IsQuestFlaggedCompleted, id)
         if ok then
             return done and true or false
         end
@@ -705,14 +773,70 @@ local function relevantQuests(step)
     return ids
 end
 
+local function isAutoStep(step)
+    if not step then
+        return false
+    end
+    local when = step.when
+    return when == "accepted" or when == "complete" or when == "objectives"
+end
+
+-- True when every applicable quest-gated step in a linked guide is finished.
+-- Manual handoff steps (including return / load-guide pointers) do not block.
+local function linkedGuideFinished(id)
+    local guide = findGuide(id)
+    if not guide then
+        return false
+    end
+    local sawAuto = false
+    for _, step in ipairs(guide.steps) do
+        if stepApplies(step) and isAutoStep(step) then
+            sawAuto = true
+            local when = step.when
+            local listedQuests = step.quests or {}
+            local ids = relevantQuests(step)
+            if #ids == 0 then
+                if #listedQuests == 0 then
+                    return false
+                end
+            else
+                local useAny = not (ns.QuestieReady and ns.QuestieReady()) and #listedQuests > 1
+                if useAny then
+                    local any = false
+                    for _, questId in ipairs(ids) do
+                        if questSatisfied(questId, when) then
+                            any = true
+                            break
+                        end
+                    end
+                    if not any then
+                        return false
+                    end
+                else
+                    for _, questId in ipairs(ids) do
+                        if not questSatisfied(questId, when) then
+                            return false
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return sawAuto
+end
+
 local function stepDone(step)
     if not step or not stepApplies(step) then
         return true
     end
-    local when = step.when
-    if when ~= "accepted" and when ~= "complete" and when ~= "objectives" then
+    if not isAutoStep(step) then
+        -- Side-guide / next-guide pointer: skip once that guide's content is done.
+        if type(step.guide) == "string" and step.guide ~= "" and linkedGuideFinished(step.guide) then
+            return true
+        end
         return false
     end
+    local when = step.when
     local listedQuests = step.quests or {}
     local ids = relevantQuests(step)
     if #ids == 0 then
@@ -735,6 +859,34 @@ local function stepDone(step)
         end
     end
     return true
+end
+
+-- Manual vendor/train/travel steps have no quest gate. During catch-up, skip them
+-- once a later quest step is already satisfied (you have progressed past them).
+local function laterAutoStepDone(guide, fromIndex)
+    if not guide then
+        return false
+    end
+    for index = fromIndex + 1, #guide.steps do
+        local step = guide.steps[index]
+        if stepApplies(step) and isAutoStep(step) then
+            local listedQuests = step.quests or {}
+            local ids = relevantQuests(step)
+            if #ids == 0 then
+                if #listedQuests > 0 then
+                    -- Filtered out for this character; keep looking ahead.
+                else
+                    -- Auto step with no quests should not happen; stop looking.
+                    return false
+                end
+            elseif stepDone(step) then
+                return true
+            else
+                return false
+            end
+        end
+    end
+    return false
 end
 
 progressCounts = function(guide, current)
@@ -780,12 +932,50 @@ local function rememberReview(guide, step)
     end
 end
 
+local function advanceToNextGuide(fromGuide)
+    if not fromGuide or type(fromGuide.next) ~= "string" or fromGuide.next == "" then
+        return false
+    end
+    local nxt = findGuide(fromGuide.next)
+    if not nxt or nxt.id == fromGuide.id then
+        return false
+    end
+    reviewKey = nil
+    charDB().guide = nxt.id
+    local entry = progress(nxt.id)
+    if entry.step < 1 then
+        entry.step = 1
+    end
+    say("Continuing with " .. nxt.name .. ".")
+    ns.GuideCatchUp()
+    return true
+end
+
+local function atGuideEnd(guide, stepIndex)
+    if not guide then
+        return false
+    end
+    if neighbor(guide, stepIndex, 1) then
+        return false
+    end
+    local step = guide.steps[stepIndex]
+    if not step or not stepApplies(step) then
+        return true
+    end
+    if stepDone(step) then
+        return true
+    end
+    -- Last applicable step with no quest gate: Next continues the chain.
+    return not isAutoStep(step)
+end
+
 function ns.GuideCatchUp()
     local guide = activeGuide()
     if not guide then
         return false
     end
     local entry = progress(guide.id)
+    local beforeGuide = guide.id
     local before = entry.step
     local count = #guide.steps
     local guard = 0
@@ -800,18 +990,25 @@ function ns.GuideCatchUp()
             guard = guard + 1
         elseif reviewKey == guide.id .. ":" .. entry.step then
             break
-        elseif not stepDone(step) then
-            break
-        else
+        elseif stepDone(step) or (not isAutoStep(step) and laterAutoStepDone(guide, entry.step)) then
             local hopped = neighbor(guide, entry.step, 1)
             if not hopped then
                 break
             end
             entry.step = hopped
             guard = guard + 1
+        else
+            break
         end
     end
-    return entry.step ~= before
+    local moved = entry.step ~= before
+    if atGuideEnd(guide, entry.step) and advanceToNextGuide(guide) then
+        return true
+    end
+    if activeGuide() and activeGuide().id ~= beforeGuide then
+        return true
+    end
+    return moved
 end
 
 inferLevels = function(name, id)
@@ -969,10 +1166,11 @@ end
 function ns.GuideSelect(id)
     local guide = findGuide(id)
     if not guide then
-        say("No guide with id \"" .. tostring(id) .. "\". /rxpb guides lists them.")
+        say("No guide with id \"" .. tostring(id) .. "\". /waynotes guides lists them.")
         return
     end
     reviewKey = nil
+    declinedOffStep = {}
     local db = charDB()
     db.guide = guide.id
     local entry = progress(guide.id)
@@ -993,7 +1191,14 @@ function ns.GuideCanStep(direction)
     if not guide then
         return false
     end
-    return neighbor(guide, progress(guide.id).step, direction < 0 and -1 or 1) ~= nil
+    local entry = progress(guide.id)
+    if neighbor(guide, entry.step, direction < 0 and -1 or 1) then
+        return true
+    end
+    if direction > 0 and atGuideEnd(guide, entry.step) and guide.next and findGuide(guide.next) then
+        return true
+    end
+    return false
 end
 
 function ns.GuideStep(direction)
@@ -1003,6 +1208,12 @@ function ns.GuideStep(direction)
     end
     local entry = progress(guide.id)
     local nextStep = neighbor(guide, entry.step, direction < 0 and -1 or 1)
+    if (not nextStep or nextStep == entry.step) and direction > 0 then
+        if atGuideEnd(guide, entry.step) and advanceToNextGuide(guide) then
+            refresh()
+        end
+        return
+    end
     if not nextStep or nextStep == entry.step then
         return
     end
@@ -1024,7 +1235,7 @@ function ns.GuideJump(index)
     index = math.floor(index)
     local guide = activeGuide()
     if not guide then
-        say("Choose a guide first. Right-click the tracker, or use /rxpb guides.")
+        say("Choose a guide first. Right-click the tracker, or use /waynotes guides.")
         return
     end
     local count = #guide.steps
@@ -1051,7 +1262,113 @@ function ns.GuideSkip(index)
     ns.GuideJump((tonumber(index) or 0) + 1)
 end
 
-local function addDetail(details, seen, text)
+local function detailKey(text)
+    if type(text) ~= "string" then
+        return nil
+    end
+    local plain = text:lower()
+    plain = plain:gsub("|cRB_[A-Z]+_", "")
+    plain = plain:gsub("|cRXP_[A-Z]+_", "")
+    plain = plain:gsub("|c%x%x%x%x%x%x%x%x", "")
+    plain = plain:gsub("|r", "")
+    plain = plain:gsub("[%[%]%.,;:!%?\"']", " ")
+    plain = plain:gsub("%s+", " ")
+    plain = strtrim(plain)
+    if plain == "" then
+        return nil
+    end
+    return plain
+end
+
+local function detailCovers(longKey, shortKey)
+    if not longKey or not shortKey or shortKey == "" then
+        return false
+    end
+    if longKey == shortKey then
+        return true
+    end
+    if #shortKey < 6 then
+        return false
+    end
+    if longKey:find(shortKey, 1, true) then
+        return true
+    end
+    -- Token overlap: "Escort Kaya Flathoof" vs "Escort Kaya Flathoof to Camp Aparaje".
+    local skip = {
+        the = true,
+        ["and"] = true,
+        ["for"] = true,
+        from = true,
+        with = true,
+        ["then"] = true,
+        her = true,
+        him = true,
+        them = true,
+        to = true,
+        of = true,
+        a = true,
+        an = true,
+        your = true,
+        this = true,
+    }
+    local function words(key)
+        local list = {}
+        for word in key:gmatch("%w+") do
+            if #word >= 3 and not skip[word] then
+                list[#list + 1] = word
+            end
+        end
+        return list
+    end
+    local shortWords = words(shortKey)
+    local longWords = words(longKey)
+    if #shortWords == 0 or #longWords == 0 then
+        return false
+    end
+    local have = {}
+    for _, word in ipairs(longWords) do
+        have[word] = true
+    end
+    local shared = 0
+    for _, word in ipairs(shortWords) do
+        if have[word] then
+            shared = shared + 1
+        end
+    end
+    return shared >= math.max(2, math.ceil(#shortWords * 0.75))
+end
+
+-- Strip author-only quest numbers, guide ids, and UI prompts from player-facing text.
+local function scrubPlayerText(text)
+    if type(text) ~= "string" then
+        return nil
+    end
+    local cleaned = text
+    cleaned = cleaned:gsub("[Gg]uide%s+[Ii][Dd]%s*:%s*[%w_%-]+%.?", "")
+    cleaned = cleaned:gsub("[Ee]scort%s+[Qq]uest%s+%d+%.?", "")
+    cleaned = cleaned:gsub("[Qq]uests?%s+%d[%d%s,]*and%s+%d+%.?", "")
+    cleaned = cleaned:gsub("[Qq]uests?%s+%d[%d%s,]*%d*%.?", "")
+    cleaned = cleaned:gsub("and%s+optional%s+%d+", "")
+    cleaned = cleaned:gsub("optional%s+%d+", "optional")
+    cleaned = cleaned:gsub("[Pp]ress%s+[Nn]ext%s+when%s+done%s+or%s+if%s+skipping%.?", "")
+    cleaned = cleaned:gsub(",%s*then%s+[Pp]ress%s+[Nn]ext%.?", "")
+    cleaned = cleaned:gsub("%.?%s*[Pp]ress%s+[Nn]ext%.?", "")
+    cleaned = cleaned:gsub("|c%x%x%x%x%x%x%x%x%s*|r", "")
+    cleaned = cleaned:gsub("|cRB_[%w_]+_%s*|r", "")
+    cleaned = cleaned:gsub("|cRB_WARN_%s+", "|cRB_WARN_")
+    cleaned = cleaned:gsub("%s+", " ")
+    cleaned = strtrim(cleaned)
+    cleaned = cleaned:gsub("^[%.,;:%-%s]+", "")
+    cleaned = cleaned:gsub("[%.,;:%-%s]+$", "")
+    cleaned = strtrim(cleaned)
+    if cleaned == "" or cleaned == "|cRB_WARN_|r" or cleaned:match("^|cRB_WARN_%.?|r$") then
+        return nil
+    end
+    return cleaned
+end
+
+local function addDetail(details, seen, text, headlineKey)
+    text = scrubPlayerText(text)
     if type(text) ~= "string" then
         return
     end
@@ -1059,9 +1376,26 @@ local function addDetail(details, seen, text)
     if text == "" or #details >= 6 then
         return
     end
-    local key = text:lower()
-    if seen[key] then
+    local key = detailKey(text)
+    if not key or seen[key] then
         return
+    end
+    if headlineKey and detailCovers(headlineKey, key) then
+        return
+    end
+    for index, existing in ipairs(details) do
+        local existingKey = detailKey(existing)
+        if existingKey then
+            if detailCovers(existingKey, key) then
+                return
+            end
+            if detailCovers(key, existingKey) then
+                details[index] = text
+                seen[existingKey] = nil
+                seen[key] = true
+                return
+            end
+        end
     end
     seen[key] = true
     details[#details + 1] = text
@@ -1073,14 +1407,103 @@ local function whoLine(who, turnIn)
     end
     if who.kind == "object" then
         if turnIn then
-            return "Turn in at " .. who.name
+            return "Turn in at |cRB_PICK_" .. who.name .. "|r"
         end
-        return "Accept at " .. who.name
+        return "Accept at |cRB_PICK_" .. who.name .. "|r"
     end
     if turnIn then
-        return "Turn in to " .. who.name
+        return "Turn in to |cRB_FRIENDLY_" .. who.name .. "|r"
     end
-    return "Accept from " .. who.name
+    return "Accept from |cRB_FRIENDLY_" .. who.name .. "|r"
+end
+
+-- Split "Talk to X. Turn in Y. Accept Z." into a short headline plus detail lines.
+local function authoredPresentation(step)
+    local details = {}
+    local seen = {}
+    local text = scrubPlayerText(type(step.text) == "string" and step.text or "") or ""
+    local headline = text
+    if text ~= "" then
+        local sentences = {}
+        local rest = text
+        while rest ~= "" do
+            local startAt, endAt = rest:find("%.%s+")
+            if not startAt then
+                local last = strtrim(rest)
+                if last ~= "" then
+                    sentences[#sentences + 1] = last:gsub("%.$", "")
+                end
+                break
+            end
+            local piece = strtrim(rest:sub(1, startAt - 1))
+            if piece ~= "" then
+                sentences[#sentences + 1] = piece
+            end
+            rest = strtrim(rest:sub(endAt + 1))
+        end
+        if #sentences > 0 then
+            headline = sentences[1]
+            local headlineKey = detailKey(headline)
+            for index = 2, #sentences do
+                addDetail(details, seen, sentences[index], headlineKey)
+            end
+        end
+    end
+    local headlineKey = detailKey(headline)
+    if type(step.details) == "table" then
+        for _, line in ipairs(step.details) do
+            addDetail(details, seen, line, headlineKey)
+        end
+    end
+    addDetail(details, seen, step.note, headlineKey)
+    if headline == "" then
+        local id = step.quests and step.quests[1]
+        if id then
+            headline = questName(id)
+        else
+            headline = "Step"
+        end
+        headlineKey = detailKey(headline)
+    end
+    return headline, details, seen, headlineKey
+end
+
+local function rememberGuideName(into, seen, name)
+    if type(name) ~= "string" then
+        return
+    end
+    name = strtrim(name:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|r", ""):gsub("|c%x%x%x%x%x%x%x%x", ""))
+    if name == "" or #name < 3 then
+        return
+    end
+    local key = name:lower()
+    if seen[key] then
+        return
+    end
+    seen[key] = true
+    into[#into + 1] = name
+end
+
+local function collectTaggedGuideNames(raw, into, seen)
+    if type(raw) ~= "string" then
+        return
+    end
+    for _, tag in ipairs({ "RB_ENEMY_", "RB_FRIENDLY_", "RB_LOOT_", "RB_PICK_", "RB_BUY_", "RB_QUEST_" }) do
+        local startAt = 1
+        local marker = "|c" .. tag
+        while true do
+            local found, finish = raw:find(marker, startAt, true)
+            if not found then
+                break
+            end
+            local close = raw:find("|r", finish + 1, true)
+            if not close then
+                break
+            end
+            rememberGuideName(into, seen, raw:sub(finish + 1, close - 1))
+            startAt = close + 2
+        end
+    end
 end
 
 local function authorPin(step)
@@ -1088,17 +1511,21 @@ local function authorPin(step)
         return nil
     end
     local x, y = step.x, step.y
-    if ns.IsForever and ns.IsForever() and LibQuestieDB and type(LibQuestieDB.EraToForeverByUiMapId) == "function" then
+    -- Curated Forever guides already store Forever percents. Classic-authored
+    -- guides (Zygor, etc.) still need Era→Forever remapping when available.
+    if not step.forever and ns.IsForever and ns.IsForever() and LibQuestieDB and type(LibQuestieDB.EraToForeverByUiMapId) == "function" then
         local ok, nx, ny = pcall(LibQuestieDB.EraToForeverByUiMapId, step.map, x, y)
         if ok and type(nx) == "number" and type(ny) == "number" then
             x, y = nx, ny
         end
     end
+    local zone = (ns.MapName and ns.MapName(step.map)) or (ns.MapZoneName and ns.MapZoneName(step.map)) or nil
     return {
         map = step.map,
         x = x,
         y = y,
-        zone = ns.MapName and ns.MapName(step.map) or nil,
+        zone = zone,
+        forever = step.forever and true or nil,
     }
 end
 
@@ -1122,32 +1549,19 @@ local function pinForStep(step)
 end
 
 local function worldPoint(pin)
-    if not pin or type(pin.map) ~= "number" or type(pin.x) ~= "number" or type(pin.y) ~= "number" then
+    if not pin or type(pin.x) ~= "number" or type(pin.y) ~= "number" then
         return nil
     end
-    if type(LibStub) ~= "function" then
-        return nil
+    local wx, wy, instance
+    if ns.PinToPlayerWorld then
+        wx, wy, instance = ns.PinToPlayerWorld(pin.map, pin.x, pin.y, pin.zone)
+    elseif ns.ZoneToWorld and type(pin.map) == "number" then
+        wx, wy, instance = ns.ZoneToWorld(pin.map, pin.x, pin.y)
     end
-    local ok, hbd = pcall(LibStub, "HereBeDragons-2.0")
-    if not ok or type(hbd) ~= "table" or type(hbd.GetWorldCoordinatesFromZone) ~= "function" then
-        return nil
-    end
-    local fine, wx, wy, instance = pcall(hbd.GetWorldCoordinatesFromZone, hbd, pin.x / 100, pin.y / 100, pin.map)
-    if not fine or type(wx) ~= "number" or type(wy) ~= "number" then
+    if type(wx) ~= "number" or type(wy) ~= "number" then
         return nil
     end
     return { wx = wx, wy = wy, instance = instance }
-end
-
-local function headlineFor(step)
-    if step.text then
-        return step.text
-    end
-    local id = step.quests[1]
-    if id then
-        return questName(id)
-    end
-    return "Step"
 end
 
 local function buildItem(step, full)
@@ -1169,18 +1583,15 @@ local function buildItem(step, full)
         primary = entries[1]
     end
 
-    local details = {}
-    local seen = {}
-    if type(step.details) == "table" then
-        for _, line in ipairs(step.details) do
-            addDetail(details, seen, line)
-        end
-    end
-    addDetail(details, seen, step.note)
+    local headline, details, seen, headlineKey = authoredPresentation(step)
+    local hasAuthoredText = type(step.text) == "string" and strtrim(step.text) ~= ""
 
     if full then
-        local facts = step.quests[1] and ns.QuestFacts and ns.QuestFacts(step.quests[1])
-        addDetail(details, seen, whoLine(facts and (step.when == "complete" and facts.turnIn or facts.giver), step.when == "complete"))
+        -- Authored talk/turn-in/accept text already covers the NPC action.
+        if not hasAuthoredText then
+            local facts = step.quests[1] and ns.QuestFacts and ns.QuestFacts(step.quests[1])
+            addDetail(details, seen, whoLine(facts and (step.when == "complete" and facts.turnIn or facts.giver), step.when == "complete"), headlineKey)
+        end
         local allDone = #step.quests > 0
         local unresolved = false
         for _, id in ipairs(step.quests) do
@@ -1188,48 +1599,92 @@ local function buildItem(step, full)
                 -- This quest is already turned in.
             elseif questOn(id) then
                 allDone = false
-                local lines = logObjectives(id)
-                if lines then
-                    for _, line in ipairs(lines) do
-                        addDetail(details, seen, line)
+                -- Live log objectives only while the quest is in the log.
+                if step.when == "objectives" or step.when == nil then
+                    local lines = logObjectives(id)
+                    if lines then
+                        for _, line in ipairs(lines) do
+                            addDetail(details, seen, line, headlineKey)
+                        end
                     end
                 end
             else
                 allDone = false
-                local questFacts = ns.QuestFacts and ns.QuestFacts(id)
-                if questFacts and questFacts.lines then
-                    for _, line in ipairs(questFacts.lines) do
-                        addDetail(details, seen, line)
+                -- Do not preview kill/collect objectives on accept/turn-in steps.
+                if step.when == "objectives" then
+                    local questFacts = ns.QuestFacts and ns.QuestFacts(id)
+                    if questFacts and questFacts.lines then
+                        for _, line in ipairs(questFacts.lines) do
+                            addDetail(details, seen, line, headlineKey)
+                        end
+                    else
+                        unresolved = true
                     end
-                else
-                    unresolved = true
                 end
             end
         end
-        if allDone then
-            addDetail(details, seen, "Completed.")
+        if allDone and step.when == "complete" then
+            addDetail(details, seen, "Completed.", headlineKey)
         elseif unresolved and not (ns.QuestieReady and ns.QuestieReady()) then
-            addDetail(details, seen, "QuestieDB is not installed.")
+            addDetail(details, seen, "QuestieDB is not installed.", headlineKey)
+        end
+    end
+
+    local names = {}
+    local nameSeen = {}
+    local quests = {}
+    local questSeen = {}
+    collectTaggedGuideNames(headline, names, nameSeen)
+    for _, line in ipairs(details) do
+        collectTaggedGuideNames(line, names, nameSeen)
+    end
+    for _, entry in ipairs(entries) do
+        if entry.name then
+            rememberGuideName(quests, questSeen, entry.name)
+        end
+    end
+    for _, id in ipairs(step.quests) do
+        local facts = ns.QuestFacts and ns.QuestFacts(id)
+        if facts then
+            rememberGuideName(quests, questSeen, facts.name)
+            if facts.giver and facts.giver.name then
+                rememberGuideName(names, nameSeen, facts.giver.name)
+            end
+            if facts.turnIn and facts.turnIn.name then
+                rememberGuideName(names, nameSeen, facts.turnIn.name)
+            end
+        else
+            rememberGuideName(quests, questSeen, questName(id))
         end
     end
 
     local item = {
         number = step.index,
-        headline = headlineFor(step),
+        headline = headline,
         details = details,
         actions = {},
-        names = {},
-        quests = {},
+        names = names,
+        quests = quests,
         stepIndex = step.index,
         sticky = false,
         stepQuests = entries,
         questId = primary and primary.id,
         questName = primary and primary.name,
     }
+    if type(step.guide) == "string" and step.guide ~= "" then
+        local linked = findGuide(step.guide)
+        if linked then
+            item.loadGuide = {
+                id = linked.id,
+                name = linked.name,
+            }
+        end
+    end
     if full then
         local pin = pinForStep(step)
         if pin then
             item.place = {
+                map = pin.map,
                 x = pin.x,
                 y = pin.y,
                 zone = pin.zone,
@@ -1252,7 +1707,7 @@ function ns.GuideObjectives()
                 headline = "No guide selected",
                 details = {
                     "Right-click the tracker to choose a guide.",
-                    "Add guides as Lua files in the Guides folder. /rxpb guides lists them.",
+                    "Add guides as Lua files in the Guides folder. /waynotes guides lists them.",
                 },
                 actions = {},
                 names = {},
@@ -1274,34 +1729,46 @@ function ns.GuideObjectives()
             entry.step = hopped
         end
     end
-    local ahead = 0
-    if not (ns.db and ns.db.simpleMode) then
-        ahead = 3
-    end
+    -- Our guide shows the current step only. Previewing several ahead mixed in
+    -- class/race branches that look unrelated.
     local items = {}
     local index = entry.step
     local guard = 0
     while index <= count and guard < count do
         local step = guide.steps[index]
         if stepApplies(step) then
-            items[#items + 1] = buildItem(step, #items == 0)
-            if #items > ahead then
-                break
-            end
+            items[#items + 1] = buildItem(step, true)
+            break
         end
         index = index + 1
         guard = guard + 1
     end
     if #items == 0 then
+        if advanceToNextGuide(guide) then
+            return ns.GuideObjectives()
+        end
+        local details = { "Right-click the tracker to choose another guide." }
+        local loadGuide
+        if guide.next then
+            local nxt = findGuide(guide.next)
+            if nxt then
+                details = { "Continue with " .. nxt.name .. "." }
+                loadGuide = {
+                    id = nxt.id,
+                    name = nxt.name,
+                }
+            end
+        end
         return {
             {
                 number = entry.step,
                 headline = "End of this guide",
-                details = { "Right-click the tracker to choose another guide." },
+                details = details,
                 actions = {},
                 names = {},
                 quests = {},
                 stepQuests = {},
+                loadGuide = loadGuide,
             },
         }
     end
@@ -1431,7 +1898,7 @@ local function buildMenu()
         menu:Hide()
     end)
 
-    menu = CreateFrame("Frame", "RestedXPBetterGuideMenu", UIParent, "BackdropTemplate")
+    menu = CreateFrame("Frame", "WaynotesGuideMenu", UIParent, "BackdropTemplate")
     menu:SetSize(280, 80)
     menu:SetFrameStrata("DIALOG")
     menu:SetFrameLevel(20)
@@ -1506,12 +1973,317 @@ function ns.ToggleGuideMenu()
 end
 
 local watcher = CreateFrame("Frame")
+local catchUpAt = 0
+local objectiveSnap
+local objectiveSnapReady = false
+local pendingOffStepCheck = false
+local promptedOffStepAt = 0
+
 watcher:RegisterEvent("ADDON_LOADED")
 watcher:RegisterEvent("PLAYER_LOGIN")
+watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
 watcher:RegisterEvent("QUEST_ACCEPTED")
 watcher:RegisterEvent("QUEST_TURNED_IN")
 watcher:RegisterEvent("QUEST_REMOVED")
 watcher:RegisterEvent("QUEST_LOG_UPDATE")
+watcher:RegisterEvent("UNIT_QUEST_LOG_CHANGED")
+
+local function objectiveParts(id)
+    local parts = {}
+    if C_QuestLog and C_QuestLog.GetQuestObjectives then
+        local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
+        if ok and type(list) == "table" then
+            for index, info in ipairs(list) do
+                if type(info) == "table" then
+                    parts[#parts + 1] = string.format(
+                        "%d:%d:%d:%s",
+                        index,
+                        tonumber(info.numFulfilled) or 0,
+                        tonumber(info.numRequired) or 0,
+                        info.finished and "1" or "0"
+                    )
+                end
+            end
+            if #parts > 0 then
+                return parts
+            end
+        end
+    end
+    if not GetNumQuestLogEntries or not GetQuestLogTitle or not GetNumQuestLeaderBoards or not GetQuestLogLeaderBoard then
+        return parts
+    end
+    local count = GetNumQuestLogEntries()
+    for index = 1, count do
+        local _, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(index)
+        local qid = questID
+        if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+            local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+            if ok and type(value) == "number" then
+                qid = value
+            end
+        end
+        if not isHeader and qid == id then
+            local boards = GetNumQuestLeaderBoards(index) or 0
+            for board = 1, boards do
+                local text, _, finished = GetQuestLogLeaderBoard(board, index)
+                local filled, need = 0, 0
+                if type(text) == "string" then
+                    local a, b = text:match("(%d+)%s*/%s*(%d+)")
+                    filled = tonumber(a) or 0
+                    need = tonumber(b) or 0
+                end
+                parts[#parts + 1] = string.format("%d:%d:%d:%s", board, filled, need, finished and "1" or "0")
+            end
+            break
+        end
+    end
+    return parts
+end
+
+local function objectiveSignature(id)
+    local parts = objectiveParts(id)
+    if #parts == 0 then
+        return ""
+    end
+    return table.concat(parts, "|")
+end
+
+local function logQuestIds()
+    local ids = {}
+    if not GetNumQuestLogEntries or not GetQuestLogTitle then
+        return ids
+    end
+    local count = GetNumQuestLogEntries()
+    for index = 1, count do
+        local _, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(index)
+        local qid = questID
+        if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+            local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+            if ok and type(value) == "number" then
+                qid = value
+            end
+        end
+        if not isHeader and type(qid) == "number" and qid > 0 then
+            ids[#ids + 1] = qid
+        end
+    end
+    return ids
+end
+
+local function takeObjectiveSnap()
+    local snap = {}
+    for _, id in ipairs(logQuestIds()) do
+        snap[id] = objectiveSignature(id)
+    end
+    return snap
+end
+
+local function progressedQuestIds(before, after)
+    local list = {}
+    if type(before) ~= "table" or type(after) ~= "table" then
+        return list
+    end
+    for id, signature in pairs(after) do
+        local previous = before[id]
+        if type(previous) == "string" and previous ~= "" and signature ~= previous then
+            local gained = false
+            local beforeByBoard = {}
+            for part in previous:gmatch("[^|]+") do
+                local board, filled = part:match("^(%d+):(%d+):")
+                board = tonumber(board)
+                filled = tonumber(filled)
+                if board and filled then
+                    beforeByBoard[board] = filled
+                end
+            end
+            for part in signature:gmatch("[^|]+") do
+                local board, filled = part:match("^(%d+):(%d+):")
+                board = tonumber(board)
+                filled = tonumber(filled)
+                if board and filled and filled > (beforeByBoard[board] or 0) then
+                    gained = true
+                    break
+                end
+            end
+            if gained then
+                list[#list + 1] = id
+            end
+        end
+    end
+    return list
+end
+
+local function stepHasQuest(step, questId)
+    if not step or not questId then
+        return false
+    end
+    for _, id in ipairs(step.quests or {}) do
+        if id == questId then
+            return true
+        end
+    end
+    return false
+end
+
+local function currentStepHasQuest(guide, stepIndex, questId)
+    local step = guide and guide.steps and guide.steps[stepIndex]
+    return stepHasQuest(step, questId)
+end
+
+local function findOffStepForQuest(guide, currentIndex, questId)
+    if not guide or type(questId) ~= "number" then
+        return nil
+    end
+    local bestIndex
+    local bestDistance
+    for index, step in ipairs(guide.steps) do
+        if index ~= currentIndex and stepApplies(step) and stepHasQuest(step, questId) then
+            local when = step.when
+            if when == nil or when == "objectives" then
+                if not stepDone(step) and questApplies(questId) then
+                    local distance = math.abs(index - currentIndex)
+                    if not bestIndex or distance < bestDistance or (distance == bestDistance and index > bestIndex) then
+                        bestIndex = index
+                        bestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+    return bestIndex
+end
+
+if not StaticPopupDialogs["WaynotesOffStepJump"] then
+    StaticPopupDialogs["WaynotesOffStepJump"] = {
+        text = "It seems like you're on another section, jump to step %s?",
+        button1 = "Yes",
+        button2 = "No",
+        button3 = "Don't Ask Again",
+        OnAccept = function(self, data)
+            local index = data or (self and self.data)
+            if type(index) == "number" then
+                ns.GuideJump(index)
+            end
+        end,
+        OnCancel = function(self, data)
+            local guide = activeGuide()
+            local index = data or (self and self.data)
+            if guide and type(index) == "number" then
+                declinedOffStep[guide.id .. ":" .. index] = true
+            end
+        end,
+        OnAlt = function(self)
+            if ns.db then
+                ns.db.promptOffStepJump = false
+            end
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
+            end
+            say("Jump suggestions off. Re-enable them in options.")
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+        exclusive = true,
+    }
+end
+
+local function promptOffStepJump(index)
+    if type(index) ~= "number" or not StaticPopup_Show then
+        return
+    end
+    if StaticPopup_Visible and StaticPopup_Visible("WaynotesOffStepJump") then
+        return
+    end
+    local now = GetTime()
+    if now - promptedOffStepAt < 2 then
+        return
+    end
+    promptedOffStepAt = now
+    StaticPopup_Show("WaynotesOffStepJump", tostring(index), nil, index)
+end
+
+local function considerOffStepJump(questIds)
+    if not ns.db or not ns.db.promptOffStepJump then
+        return
+    end
+    if not ns.UsingStandalone or not ns.UsingStandalone() then
+        return
+    end
+    local guide = activeGuide()
+    if not guide or type(questIds) ~= "table" or #questIds == 0 then
+        return
+    end
+    local current = progress(guide.id).step
+    local bestIndex
+    local bestDistance
+    for _, questId in ipairs(questIds) do
+        if not currentStepHasQuest(guide, current, questId) then
+            local index = findOffStepForQuest(guide, current, questId)
+            if index and not declinedOffStep[guide.id .. ":" .. index] then
+                local distance = math.abs(index - current)
+                if distance > 3 then
+                    if not bestIndex or distance < bestDistance or (distance == bestDistance and index > bestIndex) then
+                        bestIndex = index
+                        bestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+    if bestIndex then
+        promptOffStepJump(bestIndex)
+    end
+end
+
+local function runCatchUp()
+    if not ns.UsingStandalone or not ns.UsingStandalone() then
+        pendingOffStepCheck = false
+        return false
+    end
+    local beforeSnap = objectiveSnap
+    local checkOffStep = pendingOffStepCheck and objectiveSnapReady
+    pendingOffStepCheck = false
+    local progressed
+    if checkOffStep then
+        local afterSnap = takeObjectiveSnap()
+        progressed = progressedQuestIds(beforeSnap, afterSnap)
+        objectiveSnap = afterSnap
+    else
+        objectiveSnap = takeObjectiveSnap()
+        objectiveSnapReady = true
+    end
+    -- Quest progress always wins over a manual review pause.
+    reviewKey = nil
+    local moved = ns.GuideCatchUp()
+    if moved then
+        refresh()
+    end
+    if checkOffStep and progressed and #progressed > 0 then
+        considerOffStepJump(progressed)
+    end
+    return moved
+end
+
+local function queueCatchUp(delay, checkOffStep)
+    if checkOffStep then
+        pendingOffStepCheck = true
+    end
+    local when = GetTime() + (delay or 0)
+    if when > catchUpAt then
+        catchUpAt = when
+    end
+    watcher:SetScript("OnUpdate", function(self)
+        if GetTime() < catchUpAt then
+            return
+        end
+        self:SetScript("OnUpdate", nil)
+        catchUpAt = 0
+        runCatchUp()
+    end)
+end
+
 watcher:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" then
         if name ~= addonName then
@@ -1520,24 +2292,19 @@ watcher:SetScript("OnEvent", function(_, event, name)
         charDB()
         return
     end
-    if event == "PLAYER_LOGIN" then
+    if event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
         charDB()
-        if ns.UsingStandalone and ns.UsingStandalone() then
-            local moved = ns.GuideCatchUp()
-            if moved then
-                refresh()
-            end
-        end
+        objectiveSnapReady = false
+        declinedOffStep = {}
+        queueCatchUp(0.5, false)
+        return
+    end
+    if event == "UNIT_QUEST_LOG_CHANGED" and name ~= "player" then
         return
     end
     if not ns.UsingStandalone or not ns.UsingStandalone() then
         return
     end
-    -- Quest progress always wins over a manual review pause.
-    reviewKey = nil
-    local guide = activeGuide()
-    local before = guide and progress(guide.id).step
-    if ns.GuideCatchUp() and guide and progress(guide.id).step ~= before and ns.RefreshTracker then
-        ns.RefreshTracker(true)
-    end
+    local checkOffStep = event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED"
+    queueCatchUp(0.15, checkOffStep)
 end)

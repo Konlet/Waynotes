@@ -334,3 +334,38 @@ function ns.NpcPin(id)
     end
     return pinFor("npc", id)
 end
+
+-- All known spawn pins for an NPC (each with map/x/y when UiMap is known).
+-- Used by nav nearest-search so multi-zone NPCs pick the closest spawn.
+function ns.NpcSpawns(id)
+    id = tonumber(id)
+    if not id or id <= 0 then
+        return nil
+    end
+    local spawns = call(NpcDB.spawns, id)
+    if type(spawns) ~= "table" then
+        return nil
+    end
+    local list = {}
+    for areaId, points in pairs(spawns) do
+        if type(areaId) == "number" and type(points) == "table" then
+            local uiMap = areaUiMap(areaId)
+            local zone = areaName(areaId) or mapName(uiMap)
+            for _, entry in ipairs(points) do
+                if type(entry) == "table" and type(entry[1]) == "number" and type(entry[2]) == "number" and entry[1] > 0 and entry[2] > 0 then
+                    list[#list + 1] = {
+                        area = areaId,
+                        map = uiMap,
+                        x = entry[1],
+                        y = entry[2],
+                        zone = zone,
+                    }
+                end
+            end
+        end
+    end
+    if #list == 0 then
+        return nil
+    end
+    return list
+end

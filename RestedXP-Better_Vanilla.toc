@@ -1,22 +1,30 @@
 ## Interface: 11509
-## Title: RestedXP Better
+## Title: Waynotes
 ## Notes: A WoW-style tracker and options menu for RestedXP Guides.
-## Author: RestedXP Better
+## Author: Waynotes
 ## Version: 1.4.0
 ## Category: Quests
 ## Dependencies: RXPGuides
 ## RequiredDeps: RXPGuides
 ## OptionalDeps: QuestieDB
-## SavedVariables: RestedXPBetterDB
-## SavedVariablesPerCharacter: RestedXPBetterCharDB
+## SavedVariables: WaynotesDB
+## SavedVariablesPerCharacter: WaynotesCharDB
 
 Core.lua
 Database.lua
 Data/Innkeepers.lua
 Data/FlightMasters.lua
+Data/Banks.lua
+Data/AuctionHouses.lua
+Data/Mailboxes.lua
+Data/ClassTrainers.lua
 Nav.lua
 Travel.lua
 Guides.lua
-Guides/Example.lua
+Guides/Forever/Curated/Horde_Durotar_Curated.lua
+Guides/Forever/Curated/Horde_Barrens_Curated.lua
+Guides/Forever/Curated/Horde_Stonetalon_Curated.lua
+Guides/Forever/Horde_Durotar_ClassQuests.lua
+ReplaceGuide.lua
 Replace.lua
 Options.lua

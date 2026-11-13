@@ -1,0 +1,3564 @@
+[
+  {
+    "name": "Alfina Nightgaze",
+    "npcId": 270459,
+    "faction": "Both",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 11.8,
+      "y": 56.5
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Fahrad",
+    "npcId": 6707,
+    "faction": "Both",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 84.45,
+      "y": 80.32
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Jessa Weaver",
+    "npcId": 246797,
+    "faction": "Both",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 17.6,
+      "y": 69.5
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Alenndaar Lapidaar",
+    "npcId": 8308,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 18.03,
+      "y": 59.69
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Bolyun",
+    "npcId": 3698,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 17.96,
+      "y": 60.18
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Caelyb",
+    "npcId": 4320,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 49.72,
+      "y": 66.97
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Danlaar Nightstride",
+    "npcId": 3963,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 50.14,
+      "y": 67.95
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Anishar",
+    "npcId": 4215,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 37.92,
+      "y": 20.92
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Arias'ta Bladesinger",
+    "npcId": 4087,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 58.71,
+      "y": 34.9
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Astarii Starseeker",
+    "npcId": 4090,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 38.33,
+      "y": 80.95
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Darnath Bladesinger",
+    "npcId": 7315,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 58.94,
+      "y": 35.35
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Denatharion",
+    "npcId": 4218,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 34.77,
+      "y": 7.37
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dorion",
+    "npcId": 4205,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 42.21,
+      "y": 7.27
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Elissa Dumas",
+    "npcId": 4165,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 40.6,
+      "y": 82.13
+    },
+    "className": "Mage",
+    "trainerType": "portal"
+  },
+  {
+    "name": "Erion Shadewhisper",
+    "npcId": 4214,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 34.52,
+      "y": 25.93
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Fylerian Nightwing",
+    "npcId": 4219,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 33.51,
+      "y": 8.35
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Jandria",
+    "npcId": 4091,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 37.89,
+      "y": 82.74
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Jeen'ra Nightrunner",
+    "npcId": 4138,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 39.72,
+      "y": 5.39
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Jocaste",
+    "npcId": 4146,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 40.38,
+      "y": 8.55
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Lariia",
+    "npcId": 4092,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 40.35,
+      "y": 88.68
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Mathrengyl Bearwalker",
+    "npcId": 4217,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 35.37,
+      "y": 8.4
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Priestess Alathea",
+    "npcId": 11401,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 39.52,
+      "y": 81.2
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sildanair",
+    "npcId": 4089,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 61.78,
+      "y": 42.22
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Silvaria",
+    "npcId": 10089,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 42.47,
+      "y": 9.17
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Syurna",
+    "npcId": 4163,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 36.99,
+      "y": 21.91
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Alamar Grimm",
+    "npcId": 460,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.38,
+      "y": 66.18
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Azar Stronghammer",
+    "npcId": 1232,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 48.01,
+      "y": 52.01
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Branstock Khalder",
+    "npcId": 837,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.45,
+      "y": 66.68
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Bromos Grummner",
+    "npcId": 926,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.83,
+      "y": 68.33
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dannie Fizzwizzle",
+    "npcId": 6328,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.07,
+      "y": 53.59
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Gimrizz Shadowcog",
+    "npcId": 5612,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.54,
+      "y": 53.77
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Granis Swiftaxe",
+    "npcId": 1229,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.24,
+      "y": 52.78
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Grif Wildheart",
+    "npcId": 1231,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 45.81,
+      "y": 53.04
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Hogral Bakkan",
+    "npcId": 1234,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.72,
+      "y": 52.62
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ingrid Dunwald",
+    "npcId": 258113,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.3,
+      "y": 51.71
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Magis Sparkmantle",
+    "npcId": 1228,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.53,
+      "y": 52.16
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Marryk Nurribit",
+    "npcId": 944,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 29.08,
+      "y": 66.56
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Maxan Anvol",
+    "npcId": 1226,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.06,
+      "y": 52.32
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Peria Lamenur",
+    "npcId": 2878,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 46.68,
+      "y": 54.0
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Peria Lamenur",
+    "npcId": 2878,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 71.04,
+      "y": 38.03
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Solm Hargrin",
+    "npcId": 916,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.37,
+      "y": 67.51
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Teo Hammerstorm",
+    "npcId": 257446,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.67,
+      "y": 65.64
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Thorgas Grimson",
+    "npcId": 895,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 29.22,
+      "y": 67.47
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Thran Khorman",
+    "npcId": 912,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.79,
+      "y": 67.22
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Wren Darkspring",
+    "npcId": 6376,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.88,
+      "y": 66.1
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Dhugru Gorelust",
+    "npcId": 3172,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 54.36,
+      "y": 41.18
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Frang",
+    "npcId": 3153,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 42.98,
+      "y": 69.7
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Harruk",
+    "npcId": 3620,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 52.29,
+      "y": 43.5
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Hraug",
+    "npcId": 12776,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 40.42,
+      "y": 68.31
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Jen'shan",
+    "npcId": 3154,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 42.98,
+      "y": 69.2
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kaplak",
+    "npcId": 3170,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 51.92,
+      "y": 43.83
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ken'jai",
+    "npcId": 3707,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 42.33,
+      "y": 68.5
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kitha",
+    "npcId": 6027,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 54.73,
+      "y": 41.52
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Mai'ah",
+    "npcId": 5884,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 42.55,
+      "y": 68.95
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Nartok",
+    "npcId": 3156,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 40.79,
+      "y": 68.65
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Rwag",
+    "npcId": 3155,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 41.28,
+      "y": 68.0
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Shikrik",
+    "npcId": 3157,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 42.15,
+      "y": 69.26
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Swart",
+    "npcId": 3173,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 54.55,
+      "y": 42.61
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Tai'jin",
+    "npcId": 3706,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 54.23,
+      "y": 42.99
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Tarshaw Jaggedscar",
+    "npcId": 3169,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 54.09,
+      "y": 42.39
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Thotar",
+    "npcId": 3171,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 51.66,
+      "y": 43.4
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Un'Thuwa",
+    "npcId": 5880,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 56.31,
+      "y": 75.11
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Brother Karman",
+    "npcId": 8140,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 67.4,
+      "y": 47.41
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Captain Evencane",
+    "npcId": 8141,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 67.88,
+      "y": 48.41
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Brother Sammuel",
+    "npcId": 925,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 50.57,
+      "y": 42.0
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Brother Wilhelm",
+    "npcId": 927,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 40.9,
+      "y": 66.09
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Cylina Darkheart",
+    "npcId": 6374,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 44.4,
+      "y": 65.87
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Dane Winslow",
+    "npcId": 6373,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 50.17,
+      "y": 42.8
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Drusilla La Salle",
+    "npcId": 459,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 49.69,
+      "y": 42.65
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Isaac Chan",
+    "npcId": 258930,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 41.84,
+      "y": 66.41
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Jorik Kerridan",
+    "npcId": 915,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 50.31,
+      "y": 39.92
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Josephine Carson",
+    "npcId": 251507,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 41.36,
+      "y": 66.28
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Keryn Sylvius",
+    "npcId": 917,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 43.87,
+      "y": 65.94
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Khelden Bremen",
+    "npcId": 198,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 49.52,
+      "y": 39.32
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Llane Beshere",
+    "npcId": 911,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 50.16,
+      "y": 42.3
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Lyria Du Lac",
+    "npcId": 913,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 41.1,
+      "y": 65.63
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Maximillian Crowe",
+    "npcId": 906,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 44.39,
+      "y": 66.36
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Priestess Anetta",
+    "npcId": 375,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 49.95,
+      "y": 39.57
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Priestess Josetta",
+    "npcId": 377,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 43.28,
+      "y": 65.71
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Tordrin Sternblade",
+    "npcId": 248415,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 51.1,
+      "y": 40.6
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Zaldimar Wefhellt",
+    "npcId": 328,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 43.25,
+      "y": 66.2
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Golhine the Hooded",
+    "npcId": 9465,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Felwood",
+      "mapId": 1448,
+      "x": 61.85,
+      "y": 24.59
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kaerbrus",
+    "npcId": 5501,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Felwood",
+      "mapId": 1448,
+      "x": 61.89,
+      "y": 23.58
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Nalesette Wildbringer",
+    "npcId": 543,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Felwood",
+      "mapId": 1448,
+      "x": 62.28,
+      "y": 24.32
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Jannos Lighthoof",
+    "npcId": 8142,
+    "faction": "Horde",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 75.99,
+      "y": 42.28
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Alexander Calder",
+    "npcId": 5173,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 50.08,
+      "y": 7.45
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Beldruk Doombrow",
+    "npcId": 5148,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 24.55,
+      "y": 4.47
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Belia Thundergranite",
+    "npcId": 10090,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 70.86,
+      "y": 85.83
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Bilban Tosslespanner",
+    "npcId": 5114,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 65.9,
+      "y": 88.41
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Bink",
+    "npcId": 5144,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 27.28,
+      "y": 8.2
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Braenna Flintcrag",
+    "npcId": 5142,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 24.42,
+      "y": 9.17
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Brandur Ironhammer",
+    "npcId": 5149,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 23.13,
+      "y": 6.14
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Briarthorn",
+    "npcId": 5172,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 50.35,
+      "y": 5.66
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Daera Brightspear",
+    "npcId": 5115,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 70.97,
+      "y": 89.8
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dink",
+    "npcId": 7312,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 27.13,
+      "y": 8.67
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Eldrun Stormbreaker",
+    "npcId": 258098,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 47.4,
+      "y": 13.4
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Fenthwick",
+    "npcId": 5167,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 51.5,
+      "y": 15.33
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "High Priest Rohan",
+    "npcId": 11406,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 24.73,
+      "y": 8.16
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "High Priestess Mims",
+    "npcId": 258785,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 24.8,
+      "y": 9.7
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Hulfdan Blackbeard",
+    "npcId": 5165,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 51.96,
+      "y": 14.84
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Jubahl Corpseseeker",
+    "npcId": 6382,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 52.7,
+      "y": 6.08
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Juli Stormkettle",
+    "npcId": 5145,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 26.3,
+      "y": 6.77
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kelstrum Stonebreaker",
+    "npcId": 1901,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 66.97,
+      "y": 90.15
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kelv Sternhammer",
+    "npcId": 5113,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 70.34,
+      "y": 90.65
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Milstaff Stormeye",
+    "npcId": 2489,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 25.5,
+      "y": 7.07
+    },
+    "className": "Mage",
+    "trainerType": "portal"
+  },
+  {
+    "name": "Nittlebur Sparkfizzle",
+    "npcId": 5146,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 25.93,
+      "y": 6.17
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Olmin Burningbeard",
+    "npcId": 5116,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 70.89,
+      "y": 83.61
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ormyr Flinteye",
+    "npcId": 5166,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 52.89,
+      "y": 15.01
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Regnus Thundergranite",
+    "npcId": 5117,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 69.87,
+      "y": 82.9
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Theodrus Frostbeard",
+    "npcId": 5141,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 24.08,
+      "y": 8.41
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Thistleheart",
+    "npcId": 5171,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 51.09,
+      "y": 6.61
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Toldren Deepiron",
+    "npcId": 5143,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 25.21,
+      "y": 10.76
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Valgar Highforge",
+    "npcId": 5147,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 23.7,
+      "y": 5.1
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Claude Erksine",
+    "npcId": 3545,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 82.21,
+      "y": 62.85
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Dargh Trueaim",
+    "npcId": 10930,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 82.4,
+      "y": 62.39
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Loganaar",
+    "npcId": 12042,
+    "faction": "Both",
+    "position": {
+      "zone": "Moonglade",
+      "mapId": 1450,
+      "x": 52.53,
+      "y": 40.57
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Gart Mistrunner",
+    "npcId": 3060,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 44.87,
+      "y": 76.52
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Gennia Runetotem",
+    "npcId": 3064,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 47.49,
+      "y": 62.99
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Hana Lighthoof",
+    "npcId": 262560,
+    "faction": "Both",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 33.39,
+      "y": 21.96
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Harutt Thunderhorn",
+    "npcId": 3059,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 43.73,
+      "y": 76.75
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Krang Stonehoof",
+    "npcId": 3063,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 48.35,
+      "y": 63.74
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Lanka Farshot",
+    "npcId": 3061,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 43.97,
+      "y": 76.31
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Meela Dawnstrider",
+    "npcId": 3062,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 44.37,
+      "y": 76.6
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Narm Skychaser",
+    "npcId": 3066,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 47.39,
+      "y": 62.5
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Palah Thunderhoof",
+    "npcId": 262558,
+    "faction": "Both",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 33.51,
+      "y": 22.44
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Reban Freerunner",
+    "npcId": 3688,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 46.66,
+      "y": 59.77
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Yaw Sharpmane",
+    "npcId": 3065,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 47.11,
+      "y": 59.57
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Deino",
+    "npcId": 5885,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 38.45,
+      "y": 86.13
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Enyo",
+    "npcId": 5883,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 38.85,
+      "y": 85.77
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Gest",
+    "npcId": 3327,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 42.69,
+      "y": 51.48
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Grezz Ragefist",
+    "npcId": 3353,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 79.79,
+      "y": 31.42
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Grol'dar",
+    "npcId": 3324,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 47.98,
+      "y": 45.93
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kardris Dreamseeker",
+    "npcId": 3344,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 38.8,
+      "y": 36.38
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kurgul",
+    "npcId": 5815,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 47.52,
+      "y": 46.72
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Mirket",
+    "npcId": 3325,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 48.62,
+      "y": 46.95
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ormak Grimshot",
+    "npcId": 3352,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 66.05,
+      "y": 18.53
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ormok",
+    "npcId": 3328,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 43.9,
+      "y": 54.63
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Pephredo",
+    "npcId": 5882,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 38.28,
+      "y": 85.59
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sagorne Creststrider",
+    "npcId": 13417,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 38.66,
+      "y": 35.91
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Shenthul",
+    "npcId": 3401,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 43.05,
+      "y": 53.74
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sian'dur",
+    "npcId": 3407,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 67.96,
+      "y": 17.8
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sian'tsu",
+    "npcId": 3403,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 37.84,
+      "y": 36.45
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sorek",
+    "npcId": 3354,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 80.39,
+      "y": 32.38
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Thuul",
+    "npcId": 5958,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 38.68,
+      "y": 85.29
+    },
+    "className": "Mage",
+    "trainerType": "portal"
+  },
+  {
+    "name": "Ur'kyo",
+    "npcId": 6018,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 35.56,
+      "y": 87.83
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Uthel'nay",
+    "npcId": 7311,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 39.16,
+      "y": 86.27
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "X'yera",
+    "npcId": 6014,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 36.04,
+      "y": 87.72
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Xao'tsu",
+    "npcId": 10088,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 66.32,
+      "y": 14.81
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Xor'juul",
+    "npcId": 3406,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 67.24,
+      "y": 20.2
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Zayus",
+    "npcId": 5994,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 35.72,
+      "y": 86.9
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Zel'mak",
+    "npcId": 3408,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 80.38,
+      "y": 29.5
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Zevrost",
+    "npcId": 3326,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 48.47,
+      "y": 45.43
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ander Germaine",
+    "npcId": 914,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 80.19,
+      "y": 61.26
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Arthur the Faithful",
+    "npcId": 5491,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 49.61,
+      "y": 49.84
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Brother Benjamin",
+    "npcId": 5484,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 52.28,
+      "y": 47.65
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Brother Joshua",
+    "npcId": 5489,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 49.5,
+      "y": 45.21
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Demisette Cloyce",
+    "npcId": 461,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 39.24,
+      "y": 84.96
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Einris Brightspear",
+    "npcId": 5515,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 67.35,
+      "y": 36.25
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Elsharin",
+    "npcId": 5498,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 48.21,
+      "y": 87.22
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "High Priestess Laurena",
+    "npcId": 376,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 49.53,
+      "y": 44.6
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ilsa Corbin",
+    "npcId": 5480,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 80.26,
+      "y": 59.72
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Jennea Cannon",
+    "npcId": 5497,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 49.56,
+      "y": 85.8
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Karrina Mekenda",
+    "npcId": 2879,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 67.32,
+      "y": 36.81
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Larimaine Purdue",
+    "npcId": 2485,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 50.39,
+      "y": 85.99
+    },
+    "className": "Mage",
+    "trainerType": "portal"
+  },
+  {
+    "name": "Lord Grayson Shadowbreaker",
+    "npcId": 928,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 48.43,
+      "y": 50.22
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Lord Tony Romano",
+    "npcId": 13283,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 80.28,
+      "y": 68.58
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Maginor Dumas",
+    "npcId": 331,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 49.25,
+      "y": 87.77
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Maldryn",
+    "npcId": 5506,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 34.44,
+      "y": 65.18
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Nara Meideros",
+    "npcId": 11397,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 35.68,
+      "y": 63.18
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Osborne the Night Man",
+    "npcId": 918,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 77.43,
+      "y": 65.31
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sandahl",
+    "npcId": 5496,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 39.66,
+      "y": 85.74
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sheldras Moontree",
+    "npcId": 5504,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 35.84,
+      "y": 67.38
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Spackle Thornberry",
+    "npcId": 5520,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 39.53,
+      "y": 84.53
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Theridran",
+    "npcId": 5505,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 36.11,
+      "y": 64.39
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Thorfin Stoneshield",
+    "npcId": 5517,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 68.02,
+      "y": 36.0
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ulfir Ironbeard",
+    "npcId": 5516,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 67.57,
+      "y": 35.77
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ursula Deline",
+    "npcId": 5495,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 39.89,
+      "y": 84.19
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Wu Shen",
+    "npcId": 5479,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 80.7,
+      "y": 59.95
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ian Strom",
+    "npcId": 1411,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 26.82,
+      "y": 77.15
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kragg",
+    "npcId": 1404,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 31.27,
+      "y": 28.58
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Zudd",
+    "npcId": 3624,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 31.07,
+      "y": 29.04
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Grokor",
+    "npcId": 3622,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 47.35,
+      "y": 52.89
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Haromm",
+    "npcId": 986,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 48.19,
+      "y": 57.94
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kartosh",
+    "npcId": 988,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 48.65,
+      "y": 55.64
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Malosh",
+    "npcId": 985,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 44.89,
+      "y": 57.62
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ogromm",
+    "npcId": 987,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 47.26,
+      "y": 53.43
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Alyissia",
+    "npcId": 3593,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 59.64,
+      "y": 38.3
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ayanna Everstride",
+    "npcId": 3596,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 58.69,
+      "y": 40.62
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dazalar",
+    "npcId": 3601,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.66,
+      "y": 59.4
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Frahun Shadewhisper",
+    "npcId": 3594,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 59.64,
+      "y": 38.8
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Jannok Breezesong",
+    "npcId": 3599,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.38,
+      "y": 60.14
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kal",
+    "npcId": 3602,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 55.95,
+      "y": 61.56
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Keldas",
+    "npcId": 3306,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.83,
+      "y": 59.87
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Kyra Windblade",
+    "npcId": 3598,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.21,
+      "y": 59.19
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Laurna Morninglight",
+    "npcId": 3600,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 55.56,
+      "y": 56.75
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Mardant Strongoak",
+    "npcId": 3597,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 58.6,
+      "y": 40.12
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Shanda",
+    "npcId": 3595,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 59.17,
+      "y": 40.44
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Bordolf Axegrim",
+    "npcId": 270278,
+    "faction": "Alliance",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 14.24,
+      "y": 43.03
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Farseer Maret Firetend",
+    "npcId": 270263,
+    "faction": "Alliance",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 14.41,
+      "y": 42.57
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Torin Treehame",
+    "npcId": 270280,
+    "faction": "Alliance",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 14.75,
+      "y": 43.0
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Alodan the Hopeful",
+    "npcId": 246344,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 25.4,
+      "y": 14.6
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Archmage Shymm",
+    "npcId": 3047,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 22.76,
+      "y": 14.53
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Beram Skychaser",
+    "npcId": 3032,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 21.99,
+      "y": 18.8
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Birgitte Cranston",
+    "npcId": 5957,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 22.5,
+      "y": 16.91
+    },
+    "className": "Mage",
+    "trainerType": "portal"
+  },
+  {
+    "name": "Boarton Shadetotem",
+    "npcId": 205729,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 39.5,
+      "y": 65.1
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Father Cobb",
+    "npcId": 3046,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 25.64,
+      "y": 20.7
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Hesuwa Thunderhorn",
+    "npcId": 10086,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 54.09,
+      "y": 83.99
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Holt Thunderhorn",
+    "npcId": 3039,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 57.33,
+      "y": 89.82
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kary Thunderhorn",
+    "npcId": 3038,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 58.49,
+      "y": 88.33
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ker Ragetotem",
+    "npcId": 3043,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 57.58,
+      "y": 85.5
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kym Wildmane",
+    "npcId": 3036,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 77.15,
+      "y": 29.82
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Malakai Cross",
+    "npcId": 3045,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 24.56,
+      "y": 22.57
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Miles Welsh",
+    "npcId": 3044,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 25.32,
+      "y": 15.27
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sark Ragetotem",
+    "npcId": 3042,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 56.96,
+      "y": 89.48
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sheal Runetotem",
+    "npcId": 3034,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 77.14,
+      "y": 27.02
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Siln Skychaser",
+    "npcId": 3030,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 22.82,
+      "y": 21.11
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Thurston Xane",
+    "npcId": 3049,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 25.18,
+      "y": 20.96
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Tigor Skychaser",
+    "npcId": 3031,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 23.64,
+      "y": 18.79
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Torm Ragetotem",
+    "npcId": 3041,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 57.24,
+      "y": 87.37
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Turak Runetotem",
+    "npcId": 3033,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 76.48,
+      "y": 27.22
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Urek Thunderhorn",
+    "npcId": 3040,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 59.13,
+      "y": 86.87
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Ursyn Ghull",
+    "npcId": 3048,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 25.7,
+      "y": 14.19
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Aramis Hammerhand",
+    "npcId": 244808,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 30.97,
+      "y": 66.77
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Austil de Mon",
+    "npcId": 2131,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 61.87,
+      "y": 52.85
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Cain Firesong",
+    "npcId": 2128,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 62.22,
+      "y": 52.33
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dannal Stern",
+    "npcId": 2119,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 32.83,
+      "y": 65.48
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dark Cleric Beryl",
+    "npcId": 2129,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 61.31,
+      "y": 52.1
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dark Cleric Duesten",
+    "npcId": 2123,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 31.34,
+      "y": 65.85
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "David Trias",
+    "npcId": 2122,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 32.39,
+      "y": 65.73
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Gina Lang",
+    "npcId": 5750,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 61.31,
+      "y": 52.66
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Hilda the Breaker",
+    "npcId": 246389,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 22.0,
+      "y": 47.2
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Isabella",
+    "npcId": 2124,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 30.76,
+      "y": 65.81
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kayla Smithe",
+    "npcId": 5749,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 30.6,
+      "y": 66.33
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Marion Call",
+    "npcId": 2130,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 61.85,
+      "y": 51.89
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Maximillion",
+    "npcId": 2126,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 31.09,
+      "y": 66.28
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Rupert Boch",
+    "npcId": 2127,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 61.72,
+      "y": 52.37
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Shari Stilwell",
+    "npcId": 246152,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 60.2,
+      "y": 52.5
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Aelthalyste",
+    "npcId": 4606,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 49.26,
+      "y": 17.12
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Anastasia Hartwell",
+    "npcId": 4568,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 85.14,
+      "y": 10.03
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Angela Curthas",
+    "npcId": 4594,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 48.32,
+      "y": 15.96
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Baltus Fowler",
+    "npcId": 4595,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 47.4,
+      "y": 17.29
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Carolyn Ward",
+    "npcId": 4582,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 83.86,
+      "y": 72.07
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Christoph Walker",
+    "npcId": 4593,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 46.93,
+      "y": 15.23
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Father Lankester",
+    "npcId": 4607,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 49.14,
+      "y": 14.61
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Father Lazarus",
+    "npcId": 4608,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 47.57,
+      "y": 18.9
+    },
+    "className": "Priest",
+    "trainerType": "class"
+  },
+  {
+    "name": "Garen Largo",
+    "npcId": 260093,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 47.5,
+      "y": 14.9
+    },
+    "className": "Paladin",
+    "trainerType": "class"
+  },
+  {
+    "name": "Gregory Charles",
+    "npcId": 4584,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 84.88,
+      "y": 73.53
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kaal Soulreaper",
+    "npcId": 4563,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 86.21,
+      "y": 15.93
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Kaelystia Hatebringer",
+    "npcId": 4566,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 85.02,
+      "y": 14.02
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Lexington Mortaim",
+    "npcId": 2492,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 84.19,
+      "y": 15.58
+    },
+    "className": "Mage",
+    "trainerType": "portal"
+  },
+  {
+    "name": "Luther Pickman",
+    "npcId": 4564,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 86.43,
+      "y": 15.25
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Martha Strain",
+    "npcId": 5753,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 85.7,
+      "y": 16.08
+    },
+    "className": "Warlock",
+    "trainerType": "demon"
+  },
+  {
+    "name": "Miles Dexter",
+    "npcId": 4583,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 85.21,
+      "y": 71.57
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Pierce Shackleton",
+    "npcId": 4567,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 85.45,
+      "y": 13.51
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Richard Kerwin",
+    "npcId": 4565,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 88.91,
+      "y": 15.86
+    },
+    "className": "Warlock",
+    "trainerType": "class"
+  },
+  {
+    "name": "Aarnor Galestrike",
+    "npcId": 254082,
+    "faction": "Horde",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.5,
+      "y": 44.8
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Akeri Duskblade",
+    "npcId": 251389,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.8,
+      "y": 24.2
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Anathamaas Aetherwind",
+    "npcId": 252373,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 65.8,
+      "y": 80.5
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Blademaster Ren",
+    "npcId": 251964,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.3,
+      "y": 24.2
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Corsan Earthrazer",
+    "npcId": 254088,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 44.8,
+      "y": 45.2
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Dorii Brightwhisper",
+    "npcId": 251379,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 41.37,
+      "y": 23.63
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Elayaa Easewind",
+    "npcId": 254084,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 45.45,
+      "y": 44.19
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Eltheen Nightbreeze",
+    "npcId": 252379,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.87,
+      "y": 72.58
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Lotheluum Starbreeze",
+    "npcId": 252359,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 64.0,
+      "y": 75.0
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Miriaan Mistblade",
+    "npcId": 254087,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.2,
+      "y": 43.2
+    },
+    "className": "Rogue",
+    "trainerType": "class"
+  },
+  {
+    "name": "Naeluna Swiftmend",
+    "npcId": 254081,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 44.95,
+      "y": 44.21
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  },
+  {
+    "name": "Quel'ana Quickgale",
+    "npcId": 252389,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.33,
+      "y": 72.63
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Quel'dora Quickgale",
+    "npcId": 254411,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.69,
+      "y": 72.11
+    },
+    "className": "Hunter",
+    "trainerType": "pet"
+  },
+  {
+    "name": "Seena Skybreaker",
+    "npcId": 252377,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.91,
+      "y": 73.08
+    },
+    "className": "Warrior",
+    "trainerType": "class"
+  },
+  {
+    "name": "Sessaria Skystride",
+    "npcId": 252382,
+    "faction": "Horde",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 58.2,
+      "y": 78.5
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Shenaan Spellwind",
+    "npcId": 254086,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 45.0,
+      "y": 45.8
+    },
+    "className": "Mage",
+    "trainerType": "class"
+  },
+  {
+    "name": "Tai'ree Farsight",
+    "npcId": 251376,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 42.36,
+      "y": 23.61
+    },
+    "className": "Hunter",
+    "trainerType": "class"
+  },
+  {
+    "name": "Windshaper Boro",
+    "npcId": 251374,
+    "faction": "Horde",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 42.84,
+      "y": 23.49
+    },
+    "className": "Shaman",
+    "trainerType": "class"
+  },
+  {
+    "name": "Xyton Silverwind",
+    "npcId": 251373,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 41.73,
+      "y": 23.27
+    },
+    "className": "Druid",
+    "trainerType": "class"
+  }
+]

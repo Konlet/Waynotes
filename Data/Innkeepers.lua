@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Generated from Data/wow-forever-innkeepers.json
 -- Coordinates are Forever zone percents. map is Classic Era UiMap ID when known.
--- npc ids let Questie override the pin for accurate Go-button arrow aiming.
+-- npc ids are classic references; Forever presets are authoritative for aiming.
 
 ns.NavInnkeepers = {
     { name = "Amisi Azuregaze", zone = "Alterac Mountains", map = 1416, x = 18.25, y = 66.48, faction = "Alliance", forever = true },
@@ -20,7 +20,7 @@ ns.NavInnkeepers = {
     { name = "Innkeeper Grosk", zone = "Durotar", map = 1411, x = 51.51, y = 41.64, faction = "Horde", forever = true, npc = 6928 },
     { name = "Innkeeper Trelayne", zone = "Duskwood", map = 1431, x = 73.87, y = 44.41, faction = "Alliance", forever = true, npc = 6790 },
     { name = "Innkeeper Janene", zone = "Dustwallow Marsh", map = 1445, x = 66.59, y = 45.22, faction = "Alliance", forever = true, npc = 6272 },
-    { name = "Jessica Chambers", zone = "Eastern Plaguelands", map = 1423, x = 71.8, y = 48.52, faction = nil, forever = true, npc = 16256 },
+    { name = "Jessica Chambers", zone = "Eastern Plaguelands", map = 1423, x = 71.8, y = 48.52, faction = "Both", forever = true, npc = 16256 },
     { name = "Innkeeper Farley", zone = "Elwynn Forest", map = 1429, x = 43.77, y = 65.8, faction = "Alliance", forever = true, npc = 295 },
     { name = "Innkeeper Greul", zone = "Feralas", map = 1444, x = 74.8, y = 45.18, faction = "Horde", forever = true, npc = 7737 },
     { name = "Innkeeper Shyria", zone = "Feralas", map = 1444, x = 30.97, y = 43.49, faction = "Alliance", forever = true, npc = 7736 },
@@ -36,21 +36,21 @@ ns.NavInnkeepers = {
     { name = "Innkeeper Brianna", zone = "Redridge Mountains", map = 1433, x = 21.92, y = 44.82, faction = "Alliance", forever = true, npc = 6727 },
     { name = "Barracks Master Harlan", zone = "Riverglades", x = 64.64, y = 84.2, faction = "Alliance", forever = true },
     { name = "Innkeeper Toka", zone = "Riverglades", x = 58.01, y = 45.12, faction = "Horde", forever = true },
-    { name = "Innkeeper Zizplink", zone = "Riverglades", x = 78.75, y = 54.03, faction = nil, forever = true },
+    { name = "Innkeeper Zizplink", zone = "Riverglades", x = 78.75, y = 54.03, faction = "Both", forever = true },
     { name = "Adarien", zone = "Shen'dralas", x = 42.79, y = 70.48, faction = nil, forever = true },
-    { name = "Calandrath", zone = "Silithus", map = 1451, x = 51.89, y = 39.16, faction = nil, forever = true, npc = 15174 },
+    { name = "Calandrath", zone = "Silithus", map = 1451, x = 51.89, y = 39.16, faction = "Both", forever = true, npc = 15174 },
     { name = "Innkeeper Bates", zone = "Silverpine Forest", map = 1421, x = 43.18, y = 41.28, faction = "Horde", forever = true, npc = 6739 },
     { name = "Innkeeper Faralia", zone = "Stonetalon Mountains", map = 1442, x = 35.79, y = 5.74, faction = "Alliance", forever = true, npc = 16458 },
     { name = "Innkeeper Jayka", zone = "Stonetalon Mountains", map = 1442, x = 47.47, y = 62.13, faction = "Horde", forever = true, npc = 7731 },
     { name = "Innkeeper Allison", zone = "Stormwind City", map = 1453, x = 60.39, y = 75.27, faction = "Alliance", forever = true, npc = 6740 },
-    { name = "Innkeeper Skindle", zone = "Stranglethorn Vale", map = 1434, x = 27.04, y = 77.31, faction = nil, forever = true, npc = 6807 },
+    { name = "Innkeeper Skindle", zone = "Stranglethorn Vale", map = 1434, x = 27.04, y = 77.31, faction = "Both", forever = true, npc = 6807 },
     { name = "Innkeeper Thulbek", zone = "Stranglethorn Vale", map = 1434, x = 31.49, y = 29.75, faction = "Horde", forever = true, npc = 5814 },
     { name = "Innkeeper Karakul", zone = "Swamp of Sorrows", map = 1435, x = 45.16, y = 56.66, faction = "Horde", forever = true, npc = 6930 },
-    { name = "Innkeeper Fizzgrimble", zone = "Tanaris", map = 1446, x = 52.51, y = 27.91, faction = nil, forever = true, npc = 7733 },
+    { name = "Innkeeper Fizzgrimble", zone = "Tanaris", map = 1446, x = 52.51, y = 27.91, faction = "Both", forever = true, npc = 7733 },
     { name = "Innkeeper Keldamyr", zone = "Teldrassil", map = 1438, x = 55.62, y = 59.79, faction = "Alliance", forever = true, npc = 6736 },
     { name = "Innkeeper Boorand Plainswind", zone = "The Barrens", map = 1413, x = 51.99, y = 29.89, faction = "Horde", forever = true, npc = 3934 },
     { name = "Innkeeper Byula", zone = "The Barrens", map = 1413, x = 45.58, y = 59.04, faction = "Horde", forever = true, npc = 7714 },
-    { name = "Innkeeper Wiley", zone = "The Barrens", map = 1413, x = 62.05, y = 39.41, faction = nil, forever = true, npc = 6791 },
+    { name = "Innkeeper Wiley", zone = "The Barrens", map = 1413, x = 62.05, y = 39.41, faction = "Both", forever = true, npc = 6791 },
     { name = "Innkeeper Thulfram", zone = "The Hinterlands", map = 1425, x = 14.15, y = 41.57, faction = "Alliance", forever = true, npc = 7744 },
     { name = "Lard", zone = "The Hinterlands", map = 1425, x = 78.14, y = 81.38, faction = "Horde", forever = true, npc = 14731 },
     { name = "Innkeeper Abeqwa", zone = "Thousand Needles", map = 1441, x = 46.07, y = 51.52, faction = "Horde", forever = true, npc = 11116 },
@@ -59,8 +59,8 @@ ns.NavInnkeepers = {
     { name = "Innkeeper Norman", zone = "Undercity", map = 1458, x = 67.74, y = 37.89, faction = "Horde", forever = true, npc = 6741 },
     { name = "Innkeeper Heather", zone = "Westfall", map = 1436, x = 52.86, y = 53.71, faction = "Alliance", forever = true, npc = 8931 },
     { name = "Innkeeper Helbrek", zone = "Wetlands", map = 1437, x = 10.7, y = 60.95, faction = "Alliance", forever = true, npc = 1464 },
-    { name = "Innkeeper Vizzie", zone = "Winterspring", map = 1452, x = 61.36, y = 38.83, faction = nil, forever = true, npc = 11118 },
-    { name = "Coriella Calmbreeze", zone = "Zephras Isle", x = 43.01, y = 43.23, faction = nil, forever = true },
-    { name = "Donaal Downbreeze", zone = "Zephras Isle", x = 62.19, y = 72.61, faction = nil, forever = true },
+    { name = "Innkeeper Vizzie", zone = "Winterspring", map = 1452, x = 61.36, y = 38.83, faction = "Both", forever = true, npc = 11118 },
+    { name = "Coriella Calmbreeze", zone = "Zephras Isle", x = 43.01, y = 43.23, faction = "Both", forever = true },
+    { name = "Donaal Downbreeze", zone = "Zephras Isle", x = 62.19, y = 72.61, faction = "Both", forever = true },
 }
 

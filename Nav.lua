@@ -3,115 +3,55 @@
 -- Nav.lua: quick navigation to the nearest inn, bank, auction house, mailbox,
 -- flight master or class trainer.
 --
--- Innkeepers and flight masters come from Data/Innkeepers.lua and
--- Data/FlightMasters.lua (Forever-sourced). Inns use Forever zone percent
--- coords and skip EraToForever. Flight masters keep classic continent world
--- coords as a fallback; aiming prefers HBD world coords from the resolved
--- zone pin so the Go-button arrow matches the player coordinate system.
---
--- Banks, mailboxes, auction houses, and trainers stay as Classic Era UiMap
--- percent presets and are converted with LibQuestieDB.EraToForeverByUiMapId
--- on Forever, matching authored guide pins.
---
--- Questie override: when a preset has an npc id and QuestieDB can resolve it
--- (ns.NpcPin), the live spawn data replaces the preset coordinates.
+-- All destination lists come from Data/*.lua (generated from Forever JSON).
+-- Nearest search scores every candidate in player-space HereBeDragons yards.
 
-local PRESETS = {
-    -- Banks
-    { kind = "bank", faction = "Horde", map = 1454, x = 49.6, y = 69.4, name = "Bank of Orgrimmar", zone = "Orgrimmar" },
-    { kind = "bank", faction = "Horde", map = 1456, x = 47.7, y = 58.9, name = "Thunder Bluff Bank", zone = "Thunder Bluff" },
-    { kind = "bank", faction = "Horde", map = 1458, x = 66.6, y = 44.1, name = "Undercity Bank", zone = "Undercity" },
-    { kind = "bank", faction = "Alliance", map = 1453, x = 61.5, y = 75.0, name = "Stormwind Bank", zone = "Stormwind City" },
-    { kind = "bank", faction = "Alliance", map = 1455, x = 35.5, y = 60.7, name = "Ironforge Bank", zone = "Ironforge" },
-    { kind = "bank", faction = "Alliance", map = 1457, x = 39.9, y = 42.2, name = "Darnassus Bank", zone = "Darnassus" },
+local PRESETS = {}
 
-    -- Auction houses
-    { kind = "auction", faction = "Horde", map = 1454, x = 55.7, y = 62.9, name = "Auction House", zone = "Orgrimmar" },
-    { kind = "auction", faction = "Horde", map = 1456, x = 40.4, y = 51.8, name = "Auction House", zone = "Thunder Bluff" },
-    { kind = "auction", faction = "Horde", map = 1458, x = 60.7, y = 44.1, name = "Auction House", zone = "Undercity" },
-    { kind = "auction", faction = "Alliance", map = 1453, x = 60.9, y = 70.3, name = "Auction House", zone = "Stormwind City" },
-    { kind = "auction", faction = "Alliance", map = 1455, x = 25.2, y = 74.3, name = "Auction House", zone = "Ironforge" },
-    { kind = "auction", faction = "Alliance", map = 1457, x = 40.4, y = 41.6, name = "Auction House", zone = "Darnassus" },
-
-    -- Mailboxes: Horde
-    { kind = "mail", faction = "Horde", map = 1454, x = 52.4, y = 66.4, name = "Mailbox", zone = "Orgrimmar" },
-    { kind = "mail", faction = "Horde", map = 1456, x = 45.3, y = 63.2, name = "Mailbox", zone = "Thunder Bluff" },
-    { kind = "mail", faction = "Horde", map = 1458, x = 67.3, y = 39.1, name = "Mailbox", zone = "Undercity" },
-    { kind = "mail", faction = "Horde", map = 1411, x = 52.4, y = 42.1, name = "Mailbox", zone = "Razor Hill" },
-    { kind = "mail", faction = "Horde", map = 1413, x = 51.9, y = 30.8, name = "Mailbox", zone = "The Crossroads" },
-    { kind = "mail", faction = "Horde", map = 1413, x = 45.0, y = 58.6, name = "Mailbox", zone = "Camp Taurajo" },
-    { kind = "mail", faction = "Horde", map = 1412, x = 46.9, y = 60.4, name = "Mailbox", zone = "Bloodhoof Village" },
-    { kind = "mail", faction = "Horde", map = 1420, x = 60.4, y = 52.9, name = "Mailbox", zone = "Brill" },
-    { kind = "mail", faction = "Horde", map = 1421, x = 43.6, y = 40.8, name = "Mailbox", zone = "The Sepulcher" },
-    { kind = "mail", faction = "Horde", map = 1440, x = 73.9, y = 60.2, name = "Mailbox", zone = "Splintertree Post" },
-    { kind = "mail", faction = "Horde", map = 1440, x = 12.0, y = 33.8, name = "Mailbox", zone = "Zoram'gar Outpost" },
-    { kind = "mail", faction = "Horde", map = 1442, x = 45.8, y = 59.6, name = "Mailbox", zone = "Sun Rock Retreat" },
-
-    -- Mailboxes: Alliance
-    { kind = "mail", faction = "Alliance", map = 1453, x = 52.2, y = 66.4, name = "Mailbox", zone = "Stormwind City" },
-    { kind = "mail", faction = "Alliance", map = 1455, x = 33.1, y = 57.1, name = "Mailbox", zone = "Ironforge" },
-    { kind = "mail", faction = "Alliance", map = 1457, x = 66.5, y = 14.7, name = "Mailbox", zone = "Darnassus" },
-    { kind = "mail", faction = "Alliance", map = 1429, x = 42.2, y = 66.0, name = "Mailbox", zone = "Goldshire" },
-    { kind = "mail", faction = "Alliance", map = 1426, x = 47.3, y = 52.8, name = "Mailbox", zone = "Kharanos" },
-    { kind = "mail", faction = "Alliance", map = 1438, x = 55.9, y = 59.1, name = "Mailbox", zone = "Dolanaar" },
-    { kind = "mail", faction = "Alliance", map = 1439, x = 36.8, y = 43.9, name = "Mailbox", zone = "Auberdine" },
-    { kind = "mail", faction = "Alliance", map = 1436, x = 52.7, y = 53.3, name = "Mailbox", zone = "Sentinel Hill" },
-    { kind = "mail", faction = "Alliance", map = 1432, x = 35.0, y = 48.2, name = "Mailbox", zone = "Thelsamar" },
-    { kind = "mail", faction = "Alliance", map = 1433, x = 26.7, y = 44.5, name = "Mailbox", zone = "Lakeshire" },
-    { kind = "mail", faction = "Alliance", map = 1440, x = 36.5, y = 49.7, name = "Mailbox", zone = "Astranaar" },
-
-    -- Class trainers: Horde (Orgrimmar and Thunder Bluff)
-    { kind = "trainer", faction = "Horde", class = "Warrior", map = 1454, x = 79.8, y = 31.4, name = "Sorek", zone = "Orgrimmar", npc = 3354 },
-    { kind = "trainer", faction = "Horde", class = "Hunter", map = 1454, x = 66.1, y = 18.5, name = "Hunter Trainer", zone = "Orgrimmar" },
-    { kind = "trainer", faction = "Horde", class = "Rogue", map = 1454, x = 42.2, y = 53.5, name = "Shenthul", zone = "Orgrimmar", npc = 3401 },
-    { kind = "trainer", faction = "Horde", class = "Priest", map = 1454, x = 36.4, y = 84.8, name = "Priest Trainer", zone = "Orgrimmar" },
-    { kind = "trainer", faction = "Horde", class = "Shaman", map = 1454, x = 38.0, y = 36.1, name = "Kardris Dreamseeker", zone = "Orgrimmar", npc = 3344 },
-    { kind = "trainer", faction = "Horde", class = "Mage", map = 1454, x = 38.4, y = 85.7, name = "Mage Trainer", zone = "Orgrimmar" },
-    { kind = "trainer", faction = "Horde", class = "Warlock", map = 1454, x = 48.8, y = 46.5, name = "Dhugru Gorelust", zone = "Orgrimmar", npc = 3324 },
-    { kind = "trainer", faction = "Horde", class = "Druid", map = 1456, x = 75.0, y = 26.8, name = "Druid Trainer", zone = "Thunder Bluff" },
-
-    -- Class trainers: Alliance (Stormwind, Ironforge, Darnassus)
-    { kind = "trainer", faction = "Alliance", class = "Warrior", map = 1453, x = 78.4, y = 46.6, name = "Warrior Trainer", zone = "Stormwind City" },
-    { kind = "trainer", faction = "Alliance", class = "Paladin", map = 1453, x = 37.5, y = 32.3, name = "Paladin Trainer", zone = "Stormwind City" },
-    { kind = "trainer", faction = "Alliance", class = "Priest", map = 1453, x = 39.5, y = 27.5, name = "Priest Trainer", zone = "Stormwind City" },
-    { kind = "trainer", faction = "Alliance", class = "Rogue", map = 1453, x = 74.5, y = 39.0, name = "Rogue Trainer", zone = "Stormwind City" },
-    { kind = "trainer", faction = "Alliance", class = "Mage", map = 1453, x = 25.9, y = 78.0, name = "Mage Trainer", zone = "Stormwind City" },
-    { kind = "trainer", faction = "Alliance", class = "Warlock", map = 1453, x = 25.2, y = 78.6, name = "Gakin the Darkbinder", zone = "Stormwind City", npc = 5172 },
-    { kind = "trainer", faction = "Alliance", class = "Warrior", map = 1455, x = 75.9, y = 10.6, name = "Warrior Trainer", zone = "Ironforge" },
-    { kind = "trainer", faction = "Alliance", class = "Paladin", map = 1455, x = 23.4, y = 8.7, name = "Paladin Trainer", zone = "Ironforge" },
-    { kind = "trainer", faction = "Alliance", class = "Hunter", map = 1455, x = 70.9, y = 84.1, name = "Hunter Trainer", zone = "Ironforge" },
-    { kind = "trainer", faction = "Alliance", class = "Priest", map = 1455, x = 25.3, y = 7.9, name = "Priest Trainer", zone = "Ironforge" },
-    { kind = "trainer", faction = "Alliance", class = "Rogue", map = 1455, x = 61.0, y = 87.3, name = "Rogue Trainer", zone = "Ironforge" },
-    { kind = "trainer", faction = "Alliance", class = "Mage", map = 1455, x = 27.0, y = 8.6, name = "Mage Trainer", zone = "Ironforge" },
-    { kind = "trainer", faction = "Alliance", class = "Warlock", map = 1455, x = 50.8, y = 6.0, name = "Warlock Trainer", zone = "Ironforge" },
-    { kind = "trainer", faction = "Alliance", class = "Warrior", map = 1457, x = 58.9, y = 21.5, name = "Warrior Trainer", zone = "Darnassus" },
-    { kind = "trainer", faction = "Alliance", class = "Hunter", map = 1457, x = 59.8, y = 19.7, name = "Hunter Trainer", zone = "Darnassus" },
-    { kind = "trainer", faction = "Alliance", class = "Rogue", map = 1457, x = 42.4, y = 78.6, name = "Rogue Trainer", zone = "Darnassus" },
-    { kind = "trainer", faction = "Alliance", class = "Priest", map = 1457, x = 38.6, y = 22.0, name = "Priest Trainer", zone = "Darnassus" },
-    { kind = "trainer", faction = "Alliance", class = "Druid", map = 1457, x = 35.4, y = 8.4, name = "Mathrengyl Bearwalker", zone = "Darnassus", npc = 3060 },
-}
-
--- Merge Forever innkeeper / flight-master tables loaded from Data/*.lua.
+-- Merge Forever nav tables loaded from Data/*.lua.
 do
-    local inns = ns.NavInnkeepers
-    if type(inns) == "table" then
-        for index = 1, #inns do
-            local entry = inns[index]
-            if type(entry) == "table" and type(entry.map) == "number" and type(entry.x) == "number" and type(entry.y) == "number" then
-                PRESETS[#PRESETS + 1] = {
-                    kind = "inn",
-                    faction = entry.faction,
-                    map = entry.map,
-                    x = entry.x,
-                    y = entry.y,
-                    name = entry.name,
-                    zone = entry.zone,
-                    forever = true,
-                    npc = entry.npc,
-                }
+    local function pushZone(kind, entry, extra)
+        if type(entry) ~= "table" or type(entry.x) ~= "number" or type(entry.y) ~= "number" then
+            return
+        end
+        local row = {
+            kind = kind,
+            faction = entry.faction,
+            map = entry.map,
+            x = entry.x,
+            y = entry.y,
+            name = entry.name,
+            zone = entry.zone,
+            forever = true,
+            npc = entry.npc,
+        }
+        if type(extra) == "table" then
+            for key, value in pairs(extra) do
+                row[key] = value
             end
         end
+        PRESETS[#PRESETS + 1] = row
     end
+
+    local function mergeZoneTable(kind, list, extraKey)
+        if type(list) ~= "table" then
+            return
+        end
+        for index = 1, #list do
+            local entry = list[index]
+            local extra
+            if extraKey and type(entry) == "table" then
+                extra = { [extraKey] = entry[extraKey] }
+            end
+            pushZone(kind, entry, extra)
+        end
+    end
+
+    mergeZoneTable("inn", ns.NavInnkeepers)
+    mergeZoneTable("bank", ns.NavBanks)
+    mergeZoneTable("auction", ns.NavAuctionHouses)
+    mergeZoneTable("mail", ns.NavMailboxes)
+    mergeZoneTable("trainer", ns.NavClassTrainers, "class")
 
     local flights = ns.NavFlightMasters
     if type(flights) == "table" then
@@ -157,7 +97,14 @@ local TRAINER_CLASSES = {
     "Druid",
 }
 
-local FAR_AWAY = 1e12
+-- Scoring tiers (lower wins). Same-zone / same-continent finite yards must
+-- always beat other-continent results. Unresolved pins are worst.
+-- IMPORTANT: OTHER_CONTINENT must be >> any real same-continent distance, and
+-- UNRESOLVED must be >> OTHER_CONTINENT so a failed Barrens convert never loses
+-- to "Arathi is 1580 yd away" measured in the wrong continent space.
+local FAR_AWAY = 1e15
+local UNRESOLVED = 1e14
+local OTHER_CONTINENT = 1e12
 
 local target
 
@@ -241,6 +188,10 @@ local function worldPoint(map, x, y)
     return nil
 end
 
+function ns.ZoneToWorld(map, x, y)
+    return worldPoint(map, x, y)
+end
+
 local function zoneFromWorld(wx, wy, instance)
     local hbd = getHBD()
     if not hbd or not isNumber(wx) or not isNumber(wy) or not isNumber(instance) then
@@ -256,6 +207,34 @@ local function zoneFromWorld(wx, wy, instance)
     return map, x * 100, y * 100
 end
 
+-- Forever HBD continent ids may not match flight JSON mapId 0/1. Try a few.
+local function zoneFromWorldAny(wx, wy, preferred)
+    if not isNumber(wx) or not isNumber(wy) then
+        return nil
+    end
+    local tried = {}
+    local function try(instance)
+        if not isNumber(instance) or tried[instance] then
+            return nil
+        end
+        tried[instance] = true
+        return zoneFromWorld(wx, wy, instance)
+    end
+    local map, x, y = try(preferred)
+    if map then
+        return map, x, y
+    end
+    map, x, y = try(0)
+    if map then
+        return map, x, y
+    end
+    map, x, y = try(1)
+    if map then
+        return map, x, y
+    end
+    return nil
+end
+
 local function playerPoint()
     local hbd = getHBD()
     if not hbd or type(hbd.GetPlayerWorldPosition) ~= "function" then
@@ -268,28 +247,94 @@ local function playerPoint()
     return wx, wy, instance
 end
 
--- Resolve destination world coords. Prefer HBD conversion from the resolved
--- zone pin (Questie / Forever percents) so aiming shares the player coordinate
--- space. Raw flight wx/wy are the fallback when zone conversion is unavailable.
-local function entryWorld(entry, map, x, y)
-    local wx, wy, instance = worldPoint(map, x, y)
-    if wx then
-        return wx, wy, instance
-    end
-    if type(entry) == "table" then
-        if type(entry.waypoint) == "table" and isNumber(entry.waypoint.wx) and isNumber(entry.waypoint.wy) then
-            return entry.waypoint.wx, entry.waypoint.wy, entry.waypoint.instance
+local function playerZonePos()
+    local hbd = getHBD()
+    if hbd and type(hbd.GetPlayerZonePosition) == "function" then
+        local ok, x, y, map = pcall(hbd.GetPlayerZonePosition, hbd, true)
+        if ok and isNumber(x) and isNumber(y) and isNumber(map) then
+            return x, y, map
         end
-        if isNumber(entry.wx) and isNumber(entry.wy) then
-            return entry.wx, entry.wy, entry.instance
+    end
+    if C_Map and C_Map.GetBestMapForUnit and C_Map.GetPlayerMapPosition then
+        local map = C_Map.GetBestMapForUnit("player")
+        if isNumber(map) then
+            local ok, pos = pcall(C_Map.GetPlayerMapPosition, map, "player")
+            if ok and type(pos) == "table" then
+                local x = pos.GetXY and pos:GetXY() or pos.x
+                local y = pos.GetXY and select(2, pos:GetXY()) or pos.y
+                if isNumber(x) and isNumber(y) then
+                    return x, y, map
+                end
+            end
         end
     end
     return nil
 end
 
+local function playerZoneName()
+    if GetRealZoneText then
+        local name = GetRealZoneText()
+        if type(name) == "string" and name ~= "" then
+            return name
+        end
+    end
+    if GetZoneText then
+        local name = GetZoneText()
+        if type(name) == "string" and name ~= "" then
+            return name
+        end
+    end
+    return nil
+end
+
+local function toFraction(value)
+    if not isNumber(value) then
+        return nil
+    end
+    if value > 1 then
+        return value / 100
+    end
+    return value
+end
+
+local function normalizeZoneName(name)
+    if type(name) ~= "string" or name == "" then
+        return nil
+    end
+    return name:lower():gsub("^the%s+", ""):gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function zonesMatch(a, b)
+    local na = normalizeZoneName(a)
+    local nb = normalizeZoneName(b)
+    if not na or not nb then
+        return false
+    end
+    if na == nb then
+        return true
+    end
+    -- Forever sometimes reports a sub-area while presets keep the parent zone.
+    if #na >= 4 and #nb >= 4 and (na:find(nb, 1, true) or nb:find(na, 1, true)) then
+        return true
+    end
+    return false
+end
+
+-- Convert a zone pin into player-space world coords via HBD/C_Map.
+local function pinWorld(map, x, y)
+    return worldPoint(map, x, y)
+end
+
+-- Same-zone ranking when classic UiMap conversion fails on Forever. Absolute
+-- yards are approximate; ranking only needs nearby pins to beat far ones.
+local function zonePercentYards(pzx, pzy, dx, dy)
+    local SCALE = 4000
+    local ex = (pzx - dx) * SCALE
+    local ey = (pzy - dy) * SCALE
+    return (ex * ex + ey * ey) ^ 0.5
+end
+
 -- Same convention as tracker step arrows: use the player's instance id.
--- HereBeDragons GetWorldVector does not require the destination's stored
--- continent id, and Forever flight JSON uses 0/1 which may not match HBD.
 local function worldDistance(hbd, instance, px, py, wx, wy)
     if not hbd or not isNumber(px) or not isNumber(wx) then
         return nil
@@ -312,6 +357,421 @@ local function worldDistance(hbd, instance, px, py, wx, wy)
     return nil
 end
 
+-- Classic Era UiMap labels. Forever's C_Map.GetMapInfo often returns nil for
+-- these ids even while the player is standing in that zone under a new map id.
+local CLASSIC_MAP_ZONE = {
+    [1411] = "Durotar",
+    [1412] = "Mulgore",
+    [1413] = "The Barrens",
+    [1417] = "Arathi Highlands",
+    [1418] = "Badlands",
+    [1419] = "Blasted Lands",
+    [1420] = "Tirisfal Glades",
+    [1421] = "Silverpine Forest",
+    [1422] = "Western Plaguelands",
+    [1423] = "Eastern Plaguelands",
+    [1424] = "Hillsbrad Foothills",
+    [1425] = "The Hinterlands",
+    [1426] = "Dun Morogh",
+    [1427] = "Searing Gorge",
+    [1428] = "Burning Steppes",
+    [1429] = "Elwynn Forest",
+    [1430] = "Deadwind Pass",
+    [1431] = "Duskwood",
+    [1432] = "Loch Modan",
+    [1433] = "Redridge Mountains",
+    [1434] = "Stranglethorn Vale",
+    [1435] = "Swamp of Sorrows",
+    [1436] = "Westfall",
+    [1437] = "Wetlands",
+    [1438] = "Teldrassil",
+    [1439] = "Darkshore",
+    [1440] = "Ashenvale",
+    [1441] = "Thousand Needles",
+    [1442] = "Stonetalon Mountains",
+    [1443] = "Desolace",
+    [1444] = "Feralas",
+    [1445] = "Dustwallow Marsh",
+    [1446] = "Tanaris",
+    [1447] = "Azshara",
+    [1448] = "Felwood",
+    [1449] = "Un'Goro Crater",
+    [1450] = "Moonglade",
+    [1451] = "Silithus",
+    [1452] = "Winterspring",
+    [1453] = "Stormwind City",
+    [1454] = "Orgrimmar",
+    [1455] = "Ironforge",
+    [1456] = "Thunder Bluff",
+    [1457] = "Darnassus",
+    [1458] = "Undercity",
+    [1416] = "Alterac Mountains",
+}
+
+local function mapName(map)
+    if not isNumber(map) then
+        return nil
+    end
+    if C_Map and C_Map.GetMapInfo then
+        local ok, info = pcall(C_Map.GetMapInfo, map)
+        if ok and type(info) == "table" and type(info.name) == "string" and info.name ~= "" then
+            return info.name
+        end
+    end
+    return CLASSIC_MAP_ZONE[map]
+end
+
+function ns.MapZoneName(map)
+    return mapName(map)
+end
+
+-- Forever: UnitPosition (player world) and UiMap zone→world can disagree by
+-- hundreds of yards. Build the waypoint in UnitPosition space by applying the
+-- zone-space delta between the player and the pin.
+local function pinWorldFromZoneDelta(map, pinX, pinY, pzx, pzy, px, py, pinstance)
+    if not isNumber(map) or not isNumber(pinX) or not isNumber(pzx) or not isNumber(px) then
+        return nil
+    end
+    local playerWx, playerWy = pinWorld(map, pzx * 100, pzy * 100)
+    local pinWx, pinWy, pinInstance = pinWorld(map, pinX, pinY)
+    if not playerWx or not pinWx then
+        return nil
+    end
+    return px + (pinWx - playerWx), py + (pinWy - playerWy), pinstance or pinInstance
+end
+
+-- When HBD cannot convert a map at all, approximate the pin in UnitPosition
+-- space from zone-percent delta. Outdoor classic zones are ~3-6k yd across.
+local function pinWorldFromPercent(pzx, pzy, pinX, pinY, px, py, pinstance)
+    local dx = toFraction(pinX)
+    local dy = toFraction(pinY)
+    if not isNumber(pzx) or not isNumber(dx) or not isNumber(px) then
+        return nil
+    end
+    local SCALE = 4000
+    return px + (dx - pzx) * SCALE, py + (dy - pzy) * SCALE, pinstance
+end
+
+-- Convert a zone pin into UnitPosition-space world coords for arrow aiming.
+-- Forever's UiMap zone→world origin often disagrees with UnitPosition; applying
+-- the zone-space delta to the live player position keeps step/Go arrows honest.
+function ns.PinToPlayerWorld(map, x, y, zone)
+    if not isNumber(x) or not isNumber(y) then
+        return nil
+    end
+    local px, py, pinstance = playerPoint()
+    local pzx, pzy, pmap = playerZonePos()
+    local pzone = playerZoneName()
+    local hbd = getHBD()
+    local pinZone = zone or mapName(map)
+
+    local function deltaOn(useMap, useX, useY)
+        return pinWorldFromZoneDelta(useMap, x, y, useX, useY, px, py, pinstance)
+    end
+
+    local sameZone = (isNumber(map) and isNumber(pmap) and map == pmap)
+        or zonesMatch(pzone, pinZone)
+
+    if isNumber(px) and isNumber(pzx) then
+        -- Live player map first. Classic pin.map often fails to convert on Forever
+        -- even when the player is standing in that zone under a remapped UiMap.
+        if sameZone and isNumber(pmap) then
+            local wx, wy, instance = deltaOn(pmap, pzx, pzy)
+            if wx then
+                return wx, wy, instance
+            end
+            wx, wy, instance = pinWorldFromPercent(pzx, pzy, x, y, px, py, pinstance)
+            if wx then
+                return wx, wy, instance
+            end
+        end
+
+        if isNumber(map) and hbd and type(hbd.GetZoneCoordinatesFromWorld) == "function" then
+            local ok, zx, zy = pcall(hbd.GetZoneCoordinatesFromWorld, hbd, px, py, pinstance or 0, map, true)
+            if ok and isNumber(zx) and isNumber(zy) then
+                local wx, wy, instance = deltaOn(map, zx, zy)
+                if wx then
+                    return wx, wy, instance
+                end
+            end
+        end
+
+        if isNumber(map) then
+            local wx, wy, instance = deltaOn(map, pzx, pzy)
+            if wx then
+                return wx, wy, instance
+            end
+        end
+
+        -- Classic map id will not convert on Forever: if zone names match (or the
+        -- classic id is known for this zone), keep Forever percents on the live map.
+        if sameZone and isNumber(pmap) then
+            local abs = worldPoint(map, x, y)
+            if not abs then
+                local wx, wy, instance = deltaOn(pmap, pzx, pzy)
+                if wx then
+                    return wx, wy, instance
+                end
+                return pinWorldFromPercent(pzx, pzy, x, y, px, py, pinstance)
+            end
+        end
+    end
+
+    return worldPoint(map, x, y)
+end
+
+-- Zone yards for UI when a world waypoint cannot be built yet.
+function ns.PinZoneDistance(map, x, y, zone)
+    if not isNumber(x) or not isNumber(y) then
+        return nil
+    end
+    local pzx, pzy, pmap = playerZonePos()
+    local pzone = playerZoneName()
+    local hbd = getHBD()
+    local dx, dy = toFraction(x), toFraction(y)
+    pzx, pzy = toFraction(pzx), toFraction(pzy)
+    if not isNumber(pzx) or not isNumber(dx) then
+        return nil
+    end
+    local pinZone = zone or mapName(map)
+    local sameZone = (isNumber(map) and isNumber(pmap) and map == pmap) or zonesMatch(pzone, pinZone)
+    if not sameZone then
+        return nil
+    end
+    if hbd and isNumber(pmap) and type(hbd.GetZoneDistance) == "function" then
+        local ok, dist = pcall(hbd.GetZoneDistance, hbd, pmap, pzx, pzy, pmap, dx, dy)
+        if ok and isNumber(dist) then
+            return dist
+        end
+    end
+    -- Prefer live-map size over a flat 4000 yd guess when HBD can convert corners.
+    if hbd and isNumber(pmap) and type(hbd.GetWorldCoordinatesFromZone) == "function" then
+        local ok0, wx0, wy0, inst0 = pcall(hbd.GetWorldCoordinatesFromZone, hbd, 0, 0, pmap)
+        local ok1, wx1, wy1, inst1 = pcall(hbd.GetWorldCoordinatesFromZone, hbd, 1, 1, pmap)
+        if ok0 and ok1 and isNumber(wx0) and isNumber(wx1) and inst0 == inst1 then
+            local scaleX = math.abs(wx1 - wx0)
+            local scaleY = math.abs(wy1 - wy0)
+            if scaleX > 1 and scaleY > 1 then
+                local ex = (dx - pzx) * scaleX
+                local ey = (dy - pzy) * scaleY
+                return (ex * ex + ey * ey) ^ 0.5
+            end
+        end
+    end
+    return zonePercentYards(pzx, pzy, dx, dy)
+end
+
+-- Prefer a UnitPosition-relative waypoint when possible; otherwise the closest
+-- raw zone→world conversion.
+local function closestPinWorld(pin, pmap, pzx, pzy, px, py, pinstance)
+    if type(pin) ~= "table" or not isNumber(pin.x) or not isNumber(pin.y) then
+        return nil
+    end
+
+    if isNumber(pmap) and isNumber(pzx) and isNumber(px) then
+        local wx, wy, instance = pinWorldFromZoneDelta(pmap, pin.x, pin.y, pzx, pzy, px, py, pinstance)
+        if wx then
+            local dist = worldDistance(getHBD(), pinstance, px, py, wx, wy)
+            return wx, wy, instance or pinstance, dist
+        end
+    end
+
+    local bestWx, bestWy, bestInstance, bestDist
+    local function consider(map)
+        if not isNumber(map) then
+            return
+        end
+        local wx, wy, instance = pinWorld(map, pin.x, pin.y)
+        if not wx then
+            return
+        end
+        local dist = isNumber(px) and worldDistance(getHBD(), pinstance, px, py, wx, wy) or nil
+        if not bestWx or (isNumber(dist) and (not isNumber(bestDist) or dist < bestDist)) then
+            bestWx, bestWy, bestInstance, bestDist = wx, wy, instance or pinstance, dist
+        end
+    end
+    consider(pmap)
+    if isNumber(pin.map) and pin.map ~= pmap then
+        consider(pin.map)
+    end
+    return bestWx, bestWy, bestInstance, bestDist
+end
+
+-- Prefer same-zone scoring first. Forever often fails classic Barrens UiMap
+-- 1413 conversion for ranking, and classic world converts can be 500+ yd off.
+local function pinDistance(hbd, pzx, pzy, pmap, pzone, pin, px, py, pinstance)
+    if type(pin) ~= "table" then
+        return nil, nil, nil, nil
+    end
+
+    local dx = toFraction(pin.x)
+    local dy = toFraction(pin.y)
+    local wx, wy, instance
+
+    local sameZone = (isNumber(pin.map) and isNumber(pmap) and pin.map == pmap)
+        or zonesMatch(pzone, pin.zone)
+
+    -- Same zone: measure on the player's live map with Forever percents.
+    if sameZone and isNumber(dx) and isNumber(dy) and isNumber(pzx) and isNumber(pmap) then
+        local zoneDist
+        if hbd and type(hbd.GetZoneDistance) == "function" then
+            local ok, yards = pcall(hbd.GetZoneDistance, hbd, pmap, pzx, pzy, pmap, dx, dy)
+            if ok and isNumber(yards) then
+                zoneDist = yards
+            end
+        end
+        if not zoneDist then
+            zoneDist = zonePercentYards(pzx, pzy, dx, dy)
+        end
+
+        local worldDist
+        wx, wy, instance, worldDist = closestPinWorld(pin, pmap, pzx, pzy, px, py, pinstance)
+        -- UnitPosition-relative waypoint yards match what the arrow displays.
+        local dist = worldDist or zoneDist
+        if dist then
+            return dist, wx, wy, instance or pinstance
+        end
+    end
+
+    -- Cross-map zone distance only when HBD can convert both ends (same continent).
+    if hbd and isNumber(pmap) and isNumber(pzx) and isNumber(dx) and isNumber(pin.map) and type(hbd.GetZoneDistance) == "function" then
+        local ok, dist = pcall(hbd.GetZoneDistance, hbd, pmap, pzx, pzy, pin.map, dx, dy)
+        if ok and isNumber(dist) then
+            wx, wy, instance = closestPinWorld(pin, pmap, pzx, pzy, px, py, pinstance)
+            if not wx then
+                wx, wy, instance = pinWorld(pin.map, pin.x, pin.y)
+            end
+            return dist, wx, wy, instance
+        end
+    end
+
+    -- World-space fallback only when conversion works.
+    if isNumber(pin.map) and isNumber(pin.x) then
+        wx, wy, instance = closestPinWorld(pin, pmap, pzx, pzy, px, py, pinstance)
+        if not wx then
+            wx, wy, instance = pinWorld(pin.map, pin.x, pin.y)
+        end
+    elseif isNumber(pin.wx) then
+        wx, wy, instance = pin.wx, pin.wy, pin.instance
+    end
+    if wx and px and hbd then
+        local dist = worldDistance(hbd, pinstance, px, py, wx, wy)
+        if dist then
+            -- Missing instance metadata: treat as other-continent so it cannot
+            -- beat a same-zone neighbor that only has percent scoring.
+            if not isNumber(instance) or not isNumber(pinstance) or instance ~= pinstance then
+                return OTHER_CONTINENT + dist, wx, wy, instance
+            end
+            return dist, wx, wy, instance
+        end
+    end
+
+    return nil, wx, wy, instance
+end
+
+-- Build comparable candidate pins for an entry (Questie spawns, zone percents,
+-- or flight world coords converted into a zone pin).
+local function candidatePins(entry, pinstance)
+    local pins = {}
+
+    -- Forever inn/flight presets already store Forever zone percents. Questie
+    -- classic spawns disagree with that layout and produce huge yard errors.
+    local allowQuestie = not entry.forever
+
+    if allowQuestie and entry.npc and ns.NpcSpawns then
+        local ok, spawns = pcall(ns.NpcSpawns, entry.npc)
+        if ok and type(spawns) == "table" then
+            for index = 1, #spawns do
+                local pin = spawns[index]
+                if type(pin) == "table" and isNumber(pin.map) and isNumber(pin.x) and isNumber(pin.y) then
+                    pins[#pins + 1] = {
+                        map = pin.map,
+                        x = pin.x,
+                        y = pin.y,
+                        zone = pin.zone or entry.zone,
+                        source = "questie",
+                    }
+                end
+            end
+        end
+    end
+
+    if allowQuestie and #pins == 0 and entry.npc and ns.NpcPin then
+        local ok, pin = pcall(ns.NpcPin, entry.npc)
+        if ok and type(pin) == "table" and isNumber(pin.map) and isNumber(pin.x) and isNumber(pin.y) then
+            pins[#pins + 1] = {
+                map = pin.map,
+                x = pin.x,
+                y = pin.y,
+                zone = pin.zone or entry.zone,
+                source = "questie",
+            }
+        end
+    end
+
+    if isNumber(entry.map) and isNumber(entry.x) and isNumber(entry.y) then
+        local x, y = entry.x, entry.y
+        if not entry.forever and ns.IsForever and ns.IsForever() and LibQuestieDB and type(LibQuestieDB.EraToForeverByUiMapId) == "function" then
+            local ok, nx, ny = pcall(LibQuestieDB.EraToForeverByUiMapId, entry.map, x, y)
+            if ok and isNumber(nx) and isNumber(ny) then
+                x, y = nx, ny
+            end
+        end
+        pins[#pins + 1] = {
+            map = entry.map,
+            x = x,
+            y = y,
+            zone = entry.zone,
+            source = "preset",
+        }
+    end
+
+    if isNumber(entry.wx) and isNumber(entry.wy) then
+        local map, x, y = zoneFromWorldAny(entry.wx, entry.wy, pinstance or entry.instance)
+        if map then
+            pins[#pins + 1] = {
+                map = map,
+                x = x,
+                y = y,
+                zone = entry.zone,
+                source = "flight-world",
+                wx = entry.wx,
+                wy = entry.wy,
+                instance = entry.instance,
+            }
+        else
+            -- Last resort: keep raw world coords tagged so scoring can still
+            -- compare flight masters against each other on the same continent.
+            pins[#pins + 1] = {
+                zone = entry.zone,
+                source = "flight-raw",
+                wx = entry.wx,
+                wy = entry.wy,
+                instance = entry.instance,
+            }
+        end
+    end
+
+    return pins
+end
+
+-- Resolve a candidate pin into player-space world coords for distance/aiming.
+local function candidateWorld(pin, pinstance)
+    if type(pin) ~= "table" then
+        return nil
+    end
+    if isNumber(pin.map) and isNumber(pin.x) and isNumber(pin.y) then
+        local wx, wy, instance = pinWorld(pin.map, pin.x, pin.y)
+        if wx then
+            return wx, wy, instance or pinstance, pin
+        end
+    end
+    if isNumber(pin.wx) and isNumber(pin.wy) then
+        return pin.wx, pin.wy, pin.instance or pinstance, pin
+    end
+    return nil
+end
+
 local function destWorld(dest)
     if type(dest) ~= "table" then
         return nil
@@ -319,51 +779,34 @@ local function destWorld(dest)
     if type(dest.waypoint) == "table" and isNumber(dest.waypoint.wx) and isNumber(dest.waypoint.wy) then
         return dest.waypoint.wx, dest.waypoint.wy, dest.waypoint.instance
     end
-    local wx, wy, instance = entryWorld(dest, dest.map, dest.x, dest.y)
+    local wx, wy, instance = pinWorld(dest.map, dest.x, dest.y)
+    if not wx and isNumber(dest.wx) and isNumber(dest.wy) then
+        wx, wy, instance = dest.wx, dest.wy, dest.instance
+    end
     if wx then
         dest.waypoint = { wx = wx, wy = wy, instance = instance }
     end
     return wx, wy, instance
 end
 
--- Returns map, x, y for a preset. Questie spawn data wins when an npc id is set.
-local function resolvePin(entry)
-    if entry.npc and ns.NpcPin then
-        local ok, pin = pcall(ns.NpcPin, entry.npc)
-        if ok and type(pin) == "table" and isNumber(pin.map) and isNumber(pin.x) and isNumber(pin.y) then
-            return pin.map, pin.x, pin.y
-        end
-    end
-
-    if isNumber(entry.wx) and isNumber(entry.wy) and isNumber(entry.instance) then
-        local map, x, y = zoneFromWorld(entry.wx, entry.wy, entry.instance)
-        if map then
-            return map, x, y
-        end
-        return entry.map, entry.x, entry.y
-    end
-
-    local x, y = entry.x, entry.y
-    -- Forever-sourced pins already use Forever percents; do not convert again.
-    if not entry.forever and ns.IsForever and ns.IsForever() and LibQuestieDB and type(LibQuestieDB.EraToForeverByUiMapId) == "function" then
-        local ok, nx, ny = pcall(LibQuestieDB.EraToForeverByUiMapId, entry.map, x, y)
-        if ok and isNumber(nx) and isNumber(ny) then
-            x, y = nx, ny
-        end
-    end
-    return entry.map, x, y
-end
-
-local function copyResolved(entry, map, x, y)
+local function copyResolved(entry, pin, wx, wy, instance)
     local dest = {}
     for key, value in pairs(entry) do
         dest[key] = value
     end
-    dest.map = map
-    dest.x = x
-    dest.y = y
-    -- Waypoint is filled by NavFindNearest via entryWorld after resolvePin.
-    dest.waypoint = nil
+    if type(pin) == "table" then
+        dest.map = pin.map
+        dest.x = pin.x
+        dest.y = pin.y
+        if pin.zone then
+            dest.zone = pin.zone
+        end
+    end
+    if wx then
+        dest.waypoint = { wx = wx, wy = wy, instance = instance }
+    else
+        dest.waypoint = nil
+    end
     return dest
 end
 
@@ -401,46 +844,43 @@ function ns.NavFindNearest(kind, className)
     end
 
     local px, py, pinstance = playerPoint()
+    local pzx, pzy, pmap = playerZonePos()
+    local pzone = playerZoneName()
     local hbd = getHBD()
 
     local best, bestScore
     for index, entry in ipairs(PRESETS) do
         local matches = entry.kind == kind
         -- nil faction means usable by both (neutral inns / flight hubs).
-        if matches and faction and entry.faction and entry.faction ~= faction then
+        -- nil / "Both" means usable by either faction.
+        if matches and faction and entry.faction and entry.faction ~= "Both" and entry.faction ~= faction then
             matches = false
         end
         if matches and kind == "trainer" and entry.class ~= className then
             matches = false
         end
         if matches then
-            local map, x, y = resolvePin(entry)
-            local score = FAR_AWAY + index
-            if px and hbd then
-                local wx, wy = entryWorld(entry, map, x, y)
-                if wx then
-                    local dist = worldDistance(hbd, pinstance, px, py, wx, wy)
-                    if dist then
-                        score = dist
-                    end
+            local pins = candidatePins(entry, pinstance)
+            if #pins == 0 then
+                local score = FAR_AWAY + index
+                if not bestScore or score < bestScore then
+                    bestScore = score
+                    best = copyResolved(entry, nil, nil, nil, nil)
                 end
             else
-                score = index
-            end
-            if not bestScore or score < bestScore then
-                bestScore = score
-                best = copyResolved(entry, map, x, y)
-                local wx, wy, instance = entryWorld(best, map, x, y)
-                if wx then
-                    -- Store player continent when the source had none, so later
-                    -- reads stay usable even if JSON continent ids differ.
-                    best.waypoint = {
-                        wx = wx,
-                        wy = wy,
-                        instance = instance or pinstance,
-                    }
-                else
-                    best.waypoint = nil
+                for pinIndex = 1, #pins do
+                    local pin = pins[pinIndex]
+                    local score = UNRESOLVED + index + pinIndex * 0.001
+                    local dist, wx, wy, instance = pinDistance(hbd, pzx, pzy, pmap, pzone, pin, px, py, pinstance)
+                    if isNumber(dist) then
+                        score = dist
+                    elseif not px and not pzx then
+                        score = index + pinIndex * 0.001
+                    end
+                    if not bestScore or score < bestScore then
+                        bestScore = score
+                        best = copyResolved(entry, pin, wx, wy, instance or pinstance)
+                    end
                 end
             end
         end
@@ -701,7 +1141,7 @@ local function buildMenu()
     catcher:RegisterForClicks("AnyUp")
     catcher:SetScript("OnClick", hideMenus)
 
-    menu = CreateFrame("Frame", "RestedXPBetterNavMenu", UIParent, "BackdropTemplate")
+    menu = CreateFrame("Frame", "WaynotesNavMenu", UIParent, "BackdropTemplate")
     menu:SetSize(MENU_WIDTH, 80)
     menu:SetFrameStrata("DIALOG")
     menu:SetFrameLevel(20)
@@ -720,7 +1160,7 @@ local function buildMenu()
         end
     end)
 
-    subMenu = CreateFrame("Frame", "RestedXPBetterNavSubMenu", UIParent, "BackdropTemplate")
+    subMenu = CreateFrame("Frame", "WaynotesNavSubMenu", UIParent, "BackdropTemplate")
     subMenu:SetSize(SUB_WIDTH, 80)
     subMenu:SetFrameStrata("DIALOG")
     subMenu:SetFrameLevel(30)

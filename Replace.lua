@@ -1,1201 +1,66 @@
 local addonName, ns = ...
 
-local lastSignature
-
-local applyFont, paint, plainText, primaryStep, currentGuide
-local maintainReview, earlierStep, goToStep, goBackward, skipListedStep
-local guideTitle, isProgress, progressItemName, itemWindow, hereBeDragons
-local playerOnQuest, collectObjectives
-
--- Guide helpers stay in this block so the tracker below can keep its own locals.
--- One chunk can hold 200 locals, and this file is past that on its own.
-do
-local function uiFont()
-    if GameFontHighlight then
-        local font = GameFontHighlight:GetFont()
-        if font then
-            return font
-        end
-    end
-    return "Fonts\\FRIZQT__.TTF"
-end
-
-function applyFont(fs, size, flags)
-    local font = uiFont()
-    if not fs:SetFont(font, size, flags) then
-        fs:SetFont(font, size)
-    end
-end
-
-function paint(fs, size, r, g, b)
-    applyFont(fs, size, "")
-    fs:SetShadowOffset(1, -1)
-    fs:SetShadowColor(0, 0, 0, 1)
-    fs:SetTextColor(r, g, b)
-    fs:SetJustifyH("LEFT")
-    fs:SetJustifyV("TOP")
-end
-
-local function objectiveText(text)
-    if type(text) ~= "string" then
-        return nil
-    end
-    text = text:gsub("|T.-|t", "")
-    text = text:gsub("|H.-|h(.-)|h", "%1")
-    text = text:gsub("|cRXP_[A-Z]+_(.-)|r", "%1")
-    text = text:gsub("RXP_[A-Z]+_", "")
-    text = text:gsub("|n", "\n")
-    text = strtrim(text)
-    if text == "" or text == " " then
-        return nil
-    end
-    return text
-end
-
-function plainText(text)
-    text = objectiveText(text)
-    if not text then
-        return nil
-    end
-    text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
-    text = text:gsub("|r", "")
-    text = text:gsub("|c", "")
-    text = strtrim(text)
-    if text == "" then
-        return nil
-    end
-    return text
-end
-
-local function niceTitle(step)
-    local title = plainText(step and step.title)
-    if not title or title:match("^Step %d+$") then
-        return nil
-    end
-    return title
-end
-
-function primaryStep()
-    local steps = _G.RXPFrame and _G.RXPFrame.activeSteps
-    if type(steps) ~= "table" then
-        return nil
-    end
-    for _, step in ipairs(steps) do
-        if step and not step.tip and not step.sticky and not step.hidewindow and type(step.index) == "number" then
-            return step
-        end
-    end
-end
-
-local function stepSetter()
-    local menu = _G.RXPFrame and _G.RXPFrame.bottomMenu
-    local setStep = menu and menu[1] and menu[1].func
-    if type(setStep) == "function" then
-        return setStep
-    end
-end
-
-function currentGuide()
-    local pool = _G.RXPFrame and _G.RXPFrame.ScrollChild and _G.RXPFrame.ScrollChild.framePool
-    if type(pool) ~= "table" then
-        return nil
-    end
-    for _, frame in ipairs(pool) do
-        if frame and frame.guide and type(frame.guide.steps) == "table" then
-            return frame.guide
-        end
-    end
-end
-
-local reviewStep
-
-local function restorePinnedText(step)
-    if not step or type(step.elements) ~= "table" then
-        return
-    end
-    for _, element in ipairs(step.elements) do
-        if element.__rxpbWasTextOnly ~= nil then
-            element.textOnly = element.__rxpbWasTextOnly == 1
-            element.__rxpbWasTextOnly = nil
-        end
-    end
-end
-
-local function releaseReview()
-    local step = reviewStep
-    reviewStep = nil
-    restorePinnedText(step)
-end
-
-local function pinStep(step)
-    if not step then
-        return
-    end
-    step.completed = false
-    if step.tipWindow then
-        step.tipWindow.completed = false
-    end
-    if _G.RXPCData and _G.RXPCData.stepSkip and step.index then
-        _G.RXPCData.stepSkip[step.index] = nil
-    end
-    local elements = step.elements
-    if type(elements) ~= "table" then
-        return
-    end
-    local pinned = false
-    for _, element in ipairs(elements) do
-        if not element.textOnly then
-            local button = element.frame and element.frame.button
-            if button and button.SetChecked and button:GetChecked() then
-                button:SetChecked(false)
-            end
-            element.completed = nil
-            element.skip = nil
-            pinned = true
-        end
-    end
-    if not pinned then
-        local element = elements[1]
-        if element then
-            if element.__rxpbWasTextOnly == nil then
-                element.__rxpbWasTextOnly = element.textOnly and 1 or 0
-            end
-            element.textOnly = false
-            element.completed = nil
-            element.skip = nil
-        end
-    end
-end
-
-function maintainReview()
-    local step = reviewStep
-    if not step then
-        return
-    end
-    local guide = currentGuide()
-    local now = primaryStep()
-    if guide and guide.steps and step.index and guide.steps[step.index] ~= step and now ~= step then
-        releaseReview()
-        return
-    end
-    if now and now ~= step and step.index and now.index and now.index > step.index then
-        pinStep(step)
-        local setStep = stepSetter()
-        if setStep then
-            pcall(setStep, step.index)
-        end
-        now = primaryStep()
-        if not now or now.index ~= step.index then
-            releaseReview()
-            return
-        end
-        lastSignature = nil
-        if ns.RefreshTracker then
-            ns.RefreshTracker(true)
-        end
-    end
-    pinStep(step)
-end
-
-local function reopenStep(step)
-    pinStep(step)
-end
-
-function earlierStep(guide, index)
-    local steps = guide and guide.steps
-    if type(steps) ~= "table" then
-        if index > 1 then
-            return index - 1
-        end
-        return nil
-    end
-    for n = index - 1, 1, -1 do
-        local step = steps[n]
-        if step and not step.sticky and not step.tip and not step.hidewindow then
-            return n
-        end
-    end
-end
-
-local function holdReview(now, previousIndex)
-    if not now or not now.index or not previousIndex or now.index >= previousIndex then
-        return
-    end
-    if reviewStep and reviewStep ~= now then
-        local previous = reviewStep
-        reviewStep = nil
-        restorePinnedText(previous)
-    end
-    reviewStep = now
-    pinStep(now)
-end
-
-function goToStep(index)
-    local setStep = stepSetter()
-    if not setStep or type(index) ~= "number" or index < 1 then
-        return
-    end
-    releaseReview()
-    if not pcall(setStep, index) then
-        return
-    end
-    lastSignature = nil
-    ns.RefreshTracker(true)
-end
-
-function goBackward()
-    local setStep = stepSetter()
-    local step = primaryStep()
-    if not setStep or not step then
-        return
-    end
-    local guide = currentGuide()
-    local steps = guide and guide.steps
-    local current = step.index
-    local n = current - 1
-    local tries = 0
-    while n >= 1 and tries < 12 do
-        local candidate = steps and steps[n]
-        if candidate and (candidate.sticky or candidate.tip or candidate.hidewindow) then
-            n = n - 1
-        else
-            tries = tries + 1
-            if candidate then
-                reopenStep(candidate)
-            end
-            if not pcall(setStep, n) then
-                return
-            end
-            local now = primaryStep()
-            if now and now.index < current then
-                holdReview(now, current)
-                break
-            end
-            n = n - 1
-        end
-    end
-    lastSignature = nil
-    ns.RefreshTracker(true)
-end
-
-local function jumpToStep(index)
-    index = tonumber(index)
-    if not index then
-        return
-    end
-    index = math.floor(index)
-    if index < 1 then
-        return
-    end
-    if ns.db and ns.db.standaloneGuide and ns.GuideJump then
-        ns.GuideJump(index)
-        return
-    end
-    local guide = currentGuide()
-    local steps = guide and guide.steps
-    if type(steps) == "table" and #steps > 0 then
-        if index > #steps then
-            index = #steps
-        end
-        local step = steps[index]
-        if not step or step.sticky or step.tip or step.hidewindow then
-            local found = earlierStep(guide, index + 1)
-            if found then
-                index = found
-            end
-        end
-    end
-    local current = primaryStep()
-    local currentIndex = current and current.index or 0
-    if index < currentIndex then
-        local candidate = steps and steps[index]
-        if candidate then
-            reopenStep(candidate)
-        end
-        local setStep = stepSetter()
-        if not setStep or not pcall(setStep, index) then
-            return
-        end
-        holdReview(primaryStep(), currentIndex)
-        lastSignature = nil
-        ns.RefreshTracker(true)
-        return
-    end
-    goToStep(index)
-end
-
-function skipListedStep(index, sticky)
-    if type(index) ~= "number" then
-        return
-    end
-    if ns.db and ns.db.standaloneGuide and ns.GuideSkip then
-        ns.GuideSkip(index)
-        return
-    end
-    local guide = currentGuide()
-    local step = guide and guide.steps and guide.steps[index]
-    if not step then
-        return
-    end
-    if sticky or step.sticky then
-        if not _G.RXPCData then
-            return
-        end
-        _G.RXPCData.stepSkip = _G.RXPCData.stepSkip or {}
-        _G.RXPCData.stepSkip[index] = true
-        step.completed = true
-        step.active = nil
-        if reviewStep == step then
-            releaseReview()
-        end
-        local current = primaryStep()
-        local stay = current and current.index
-        if not stay and type(_G.RXPCData.currentStep) == "number" then
-            stay = _G.RXPCData.currentStep
-        end
-        if stay == index then
-            stay = index + 1
-        end
-        local setStep = stepSetter()
-        if setStep and stay then
-            pcall(setStep, stay)
-        end
-        lastSignature = nil
-        ns.RefreshTracker(true)
-        return
-    end
-    goToStep(index + 1)
-end
-
-if not StaticPopupDialogs["RestedXPBetterJump"] then
-    StaticPopupDialogs["RestedXPBetterJump"] = {
-        text = "Jump to step number",
-        button1 = "Jump",
-        button2 = "Cancel",
-        hasEditBox = true,
-        timeout = 0,
-        whileDead = true,
-        hideOnEscape = true,
-        preferredIndex = 3,
-        OnShow = function(self)
-            local box = self.editBox
-            if not box and self.GetName then
-                box = _G[self:GetName() .. "EditBox"]
-            end
-            if not box then
-                return
-            end
-            box:SetNumeric(true)
-            box:SetMaxLetters(4)
-            box:SetText("")
-            box:SetFocus()
-        end,
-        OnAccept = function(self)
-            local box = self.editBox
-            if not box and self.GetName then
-                box = _G[self:GetName() .. "EditBox"]
-            end
-            local number = box and tonumber(box:GetText())
-            if number then
-                jumpToStep(number)
-            end
-        end,
-        EditBoxOnEnterPressed = function(editBox)
-            local dialog = editBox:GetParent()
-            if dialog and dialog.button1 and dialog.button1.Click then
-                dialog.button1:Click()
-                return
-            end
-            local number = tonumber(editBox:GetText())
-            if number then
-                jumpToStep(number)
-            end
-            if dialog and dialog.Hide then
-                dialog:Hide()
-            end
-        end,
-    }
-end
-
-function guideTitle()
-    if ns.db and ns.db.standaloneGuide and ns.GuideTitle then
-        return ns.GuideTitle()
-    end
-    local rxp = _G.RXPFrame
-    local widget = rxp and rxp.GuideName and rxp.GuideName.text
-    local shown = widget and widget.GetText and widget:GetText()
-    local title = plainText(shown)
-    if title then
-        title = title:match("^[^\n]+") or title
-        title = strtrim(title)
-        if title ~= "" and not title:find("Welcome to RestedXP") then
-            return title
-        end
-    end
-    if RXPCData and type(RXPCData.currentGuideName) == "string" and RXPCData.currentGuideName ~= "" then
-        return RXPCData.currentGuideName:gsub("\\n", " ")
-    end
-    return "RestedXP"
-end
-
-local function stepFrame(activeIndex)
-    local rxp = _G.RXPFrame
-    local current = rxp and rxp.CurrentStepFrame
-    local pool = current and current.framePool
-    return pool and pool[activeIndex]
-end
-
-function isProgress(text)
-    local plain = plainText(text)
-    if not plain then
-        return false
-    end
-    if plain:match("^%d+%s*/%s*%d+") then
-        return true
-    end
-    if plain:match("%d+%s*/%s*%d+%s*$") then
-        return true
-    end
-    return false
-end
-
-function progressItemName(text)
-    local plain = plainText(text)
-    if not plain or not isProgress(plain) then
-        return nil
-    end
-    local name = plain:match("^%d+%s*/%s*%d+%s+(.+)$")
-    if not name then
-        name = plain:match("^(.-)%s*:%s*%d+%s*/%s*%d+%s*$")
-    end
-    if not name then
-        name = plain:match("^(.-)%s+%d+%s*/%s*%d+%s*$")
-    end
-    if not name then
-        return nil
-    end
-    name = strtrim(name)
-    if name == "" or name:match("^%d+%s*/%s*%d+$") then
-        return nil
-    end
-    return name
-end
-
-local function rememberName(into, seen, name)
-    name = plainText(name)
-    if not name then
-        return
-    end
-    local key = name:lower()
-    if seen[key] then
-        return
-    end
-    seen[key] = true
-    into[#into + 1] = name
-end
-
-local function namesFromValue(value, into, seen)
-    if type(value) == "string" then
-        rememberName(into, seen, value)
-    elseif type(value) == "table" then
-        if type(value.name) == "string" then
-            rememberName(into, seen, value.name)
-        end
-        for key, entry in pairs(value) do
-            if key ~= "name" and entry ~= value then
-                namesFromValue(entry, into, seen)
-            end
-        end
-    end
-end
-
-local function questTitle(id)
-    if type(id) ~= "number" then
-        return nil
-    end
-    if C_QuestLog and C_QuestLog.GetTitleForQuestID then
-        local ok, name = pcall(C_QuestLog.GetTitleForQuestID, id)
-        if ok and type(name) == "string" and name ~= "" then
-            return name
-        end
-    end
-    if C_QuestLog and C_QuestLog.GetQuestInfo then
-        local ok, name = pcall(C_QuestLog.GetQuestInfo, id)
-        if ok and type(name) == "string" and name ~= "" then
-            return name
-        end
-    end
-    local cache = _G.RXPCData and _G.RXPCData.questNameCache
-    if type(cache) == "table" and type(cache[id]) == "string" and cache[id] ~= "" then
-        return cache[id]
-    end
-    local saved = _G.RXPData and _G.RXPData.questNames
-    if type(saved) == "table" and type(saved[id]) == "string" and saved[id] ~= "" then
-        return saved[id]
-    end
-end
-
-local function rememberQuest(element, into, seen)
-    if type(element) ~= "table" then
-        return
-    end
-    local id = element.questId
-    if type(id) ~= "number" and type(element.ids) == "table" then
-        id = element.ids[1]
-    end
-    rememberName(into, seen, questTitle(id))
-    if type(element.ids) == "table" then
-        for _, questId in ipairs(element.ids) do
-            rememberName(into, seen, questTitle(questId))
-        end
-    end
-    if element.arrow or element.objIndex then
-        return
-    end
-    if type(id) ~= "number" and type(element.ids) ~= "table" then
-        return
-    end
-    local title = plainText(element.title)
-    if title and not title:match("^Step %d+$") then
-        rememberName(into, seen, title)
-    end
-end
-
-local function collectTaggedNames(raw, into, seen)
-    if type(raw) ~= "string" then
-        return
-    end
-    for _, tag in ipairs({ "RXP_ENEMY_", "RXP_FRIENDLY_", "RXP_LOOT_", "RXP_PICK_", "RXP_BUY_" }) do
-        local startAt = 1
-        local marker = "|c" .. tag
-        while true do
-            local found, finish = raw:find(marker, startAt, true)
-            if not found then
-                break
-            end
-            local close = raw:find("|r", finish + 1, true)
-            if not close then
-                break
-            end
-            rememberName(into, seen, raw:sub(finish + 1, close - 1))
-            startAt = close + 2
-        end
-    end
-end
-
-local function itemName(id)
-    if type(id) ~= "number" then
-        return nil
-    end
-
-    if C_Item and C_Item.RequestLoadItemDataByID then
-        pcall(C_Item.RequestLoadItemDataByID, id)
-    end
-
-    if C_Item and C_Item.GetItemInfo then
-        local ok, name = pcall(C_Item.GetItemInfo, id)
-        if ok and type(name) == "string" and name ~= "" then
-            return name
-        end
-        if ok and type(name) == "table" then
-            local fromTable = name.itemName or name.name
-            if type(fromTable) == "string" and fromTable ~= "" then
-                return fromTable
-            end
-        end
-    end
-
-    if GetItemInfo then
-        local ok, name = pcall(GetItemInfo, id)
-        if ok and type(name) == "string" and name ~= "" then
-            return name
-        end
-    end
-end
-
-local function buttonItemName(button)
-    if not button or not button.IsShown or not button:IsShown() then
-        return nil
-    end
-    if type(button.name) == "string" and button.name ~= "" then
-        return button.name
-    end
-    if type(button.itemName) == "string" then
-        return button.itemName
-    end
-    if type(button.itemLink) == "string" then
-        return button.itemLink:match("%[(.-)%]")
-    end
-    local id = button.itemId or button.itemID or button.id
-    local name = itemName(id)
-    if name then
-        return name
-    end
-    if button.GetAttribute then
-        local ok, attr = pcall(button.GetAttribute, button, "item")
-        if ok and type(attr) == "string" then
-            return attr:match("%[(.-)%]") or attr
-        end
-    end
-end
-
-function itemWindow()
-    return _G.RXPItemFrame or (_G.RXPFrame and _G.RXPFrame.activeItemFrame)
-end
-
-local function shownItemButtons()
-    local frame = itemWindow()
-    local buttons = {}
-    if not frame or type(frame.buttonList) ~= "table" then
-        return buttons
-    end
-    for _, button in ipairs(frame.buttonList) do
-        if button and button.IsShown and button:IsShown() then
-            buttons[#buttons + 1] = button
-        end
-    end
-    return buttons
-end
-
-local function shownTargetButtons()
-    local frame = _G.RXPTargetFrame
-    local buttons = {}
-    if not frame then
-        return buttons
-    end
-    local function take(list)
-        for _, button in ipairs(list or {}) do
-            if button and button.IsShown and button:IsShown() and button.targetData and button.targetData.name then
-                buttons[#buttons + 1] = button
-            end
-        end
-    end
-    take(frame.enemyTargetButtons)
-    take(frame.friendlyTargetButtons)
-    return buttons
-end
-
-local function stepItemNames(step)
-    local names = {}
-    local seen = {}
-    for key, value in pairs(step.activeItems or {}) do
-        if type(value) == "string" then
-            rememberName(names, seen, value)
-        elseif type(key) == "string" and not tonumber(key) then
-            rememberName(names, seen, key)
-        end
-        local id = type(key) == "number" and key or type(value) == "number" and value
-        if type(value) == "table" then
-            id = value.id or value.itemID or id
-            if type(value.name) == "string" then
-                rememberName(names, seen, value.name)
-            end
-        end
-        rememberName(names, seen, itemName(id))
-    end
-    return names
-end
-
-local function appendDetail(details, seen, text)
-    local plain = plainText(text)
-    if not plain or seen[plain:lower()] then
-        return
-    end
-    seen[plain:lower()] = true
-    details[#details + 1] = text
-end
-
-local function buildObjective(step, lines, extras)
-    local seen = {}
-    local details = {}
-    local headline
-    local title = niceTitle(step)
-    if title then
-        headline = title
-        seen[title:lower()] = true
-    end
-
-    for _, text in ipairs(lines) do
-        local plain = plainText(text)
-        if plain and not headline and not isProgress(text) and not seen[plain:lower()] then
-            headline = text
-            seen[plain:lower()] = true
-        end
-    end
-
-    for _, text in ipairs(lines) do
-        local plain = plainText(text)
-        if plain and not seen[plain:lower()] then
-            if not headline then
-                headline = text
-                seen[plain:lower()] = true
-            else
-                appendDetail(details, seen, text)
-            end
-        end
-    end
-
-    for _, text in ipairs(extras) do
-        appendDetail(details, seen, text)
-    end
-
-    if not headline then
-        return nil
-    end
-
-    return {
-        number = step.index or 0,
-        headline = headline,
-        details = details,
-        actions = {},
-    }
-end
-
-local function visibleLines(step, activeIndex)
-    local frame = stepFrame(activeIndex)
-    if frame and frame.GetAlpha and frame:GetAlpha() <= 0 then
-        return nil
-    end
-
-    local lines = {}
-    local wantsTargets = false
-    local targetNames = {}
-    local targetSeen = {}
-    local questNames = {}
-    local questSeen = {}
-
-    for elementIndex, element in ipairs(step.elements or {}) do
-        if element and not element.skip then
-            rememberQuest(element, questNames, questSeen)
-            if element.mobs or element.targets or element.unitscan then
-                wantsTargets = true
-                namesFromValue(element.mobs, targetNames, targetSeen)
-                namesFromValue(element.targets, targetNames, targetSeen)
-                namesFromValue(element.unitscan, targetNames, targetSeen)
-            end
-            collectTaggedNames(element.text, targetNames, targetSeen)
-
-            local elementFrame = frame and frame.elements and frame.elements[elementIndex]
-            local hidden = elementFrame and elementFrame.GetAlpha and elementFrame:GetAlpha() <= 0
-            local finished = element.completed and not element.textOnly
-            if not hidden and not finished then
-                local raw
-                if elementFrame and elementFrame.text and elementFrame.text.GetText then
-                    raw = elementFrame.text:GetText()
-                end
-                if not raw or raw == "" or raw == " " then
-                    raw = element.text
-                end
-                collectTaggedNames(raw, targetNames, targetSeen)
-                local text = objectiveText(raw)
-                if text then
-                    lines[#lines + 1] = text
-                end
-            end
-        end
-    end
-
-    return lines, wantsTargets, targetNames, questNames
-end
-
-function hereBeDragons()
-    if not LibStub then
-        return nil
-    end
-    local ok, lib = pcall(LibStub, "HereBeDragons-2.0")
-    if ok then
-        return lib
-    end
-end
-
-local function elementWorld(element, hbd)
-    if type(element.wx) == "number" and type(element.wy) == "number" then
-        return element.wx, element.wy, element.instance
-    end
-    if hbd and type(element.x) == "number" and type(element.y) == "number" and element.zone then
-        local wx, wy, instance = hbd:GetWorldCoordinatesFromZone(element.x / 100, element.y / 100, element.zone)
-        if wx and wy then
-            return wx, wy, instance or element.instance
-        end
-    end
-end
-
-local function arrowElementUsable(element)
-    if not element or not element.arrow or element.skip or element.hidden then
-        return false
-    end
-    local parent = element.parent
-    if type(parent) == "table" and (parent.completed or parent.skip) and not parent.textOnly then
-        return false
-    end
-    return true
-end
-
-local function stepWaypoint(step)
-    if not step then
-        return nil
-    end
-    local arrow = _G.RXPG_ARROW
-    local current = arrow and arrow.element
-    if current and current.step == step and arrowElementUsable(current) then
-        local hbd = hereBeDragons()
-        local wx, wy, instance = elementWorld(current, hbd)
-        if wx and wy then
-            return { wx = wx, wy = wy, instance = instance }
-        end
-    end
-
-    local hbd = hereBeDragons()
-    local px, py, instance
-    if hbd then
-        px, py, instance = hbd:GetPlayerWorldPosition()
-    end
-    local best, bestDist, bestLow, bestRoute
-    for _, element in ipairs(step.elements or {}) do
-        if arrowElementUsable(element) then
-            local wx, wy, inst = elementWorld(element, hbd)
-            if wx and wy then
-                local low = element.lowPrio and true or false
-                local dist
-                if hbd and px and (not inst or inst == instance or instance == -1) then
-                    local _, yards = hbd:GetWorldVector(instance, px, py, wx, wy)
-                    dist = yards
-                end
-                local route
-                local aim = { wx = wx, wy = wy, instance = inst }
-                if ns.TravelBestPath and (element.tag == "goto" or element.tag == "fly" or element.tag == "hs" or element.arrow) then
-                    local prefer
-                    if element.tag == "hs" then
-                        prefer = "hearth"
-                    elseif element.tag == "fly" then
-                        prefer = "fly"
-                    end
-                    route = ns.TravelBestPath({
-                        name = element.zone,
-                        zone = element.zone,
-                        wx = wx,
-                        wy = wy,
-                        instance = inst,
-                        prefer = prefer,
-                    }, { prefer = prefer })
-                    if route then
-                        if route.waypoint then
-                            aim = route.waypoint
-                        end
-                        if type(route.seconds) == "number" then
-                            dist = route.seconds * 10
-                        end
-                    end
-                end
-                local replace = not best
-                if best then
-                    if bestLow and not low then
-                        replace = true
-                    elseif bestLow == low and dist and (not bestDist or dist < bestDist) then
-                        replace = true
-                    end
-                end
-                if replace then
-                    best = aim
-                    bestDist = dist
-                    bestLow = low
-                    bestRoute = route
-                end
-            end
-        end
-    end
-    if best and bestRoute and bestRoute.waypoint then
-        return bestRoute.waypoint
-    end
-    return best
-end
-
-function playerOnQuest(id)
-    if type(id) ~= "number" then
-        return false
-    end
-    if C_QuestLog and C_QuestLog.IsOnQuest then
-        local ok, on = pcall(C_QuestLog.IsOnQuest, id)
-        if ok then
-            return on and true or false
-        end
-    end
-    if IsOnQuest then
-        local ok, on = pcall(IsOnQuest, id)
-        if ok then
-            return on and true or false
-        end
-    end
-    return false
-end
-
-local function zoneLabel(zone)
-    if type(zone) == "string" and zone ~= "" then
-        return zone
-    end
-    if type(zone) == "number" and C_Map and C_Map.GetMapInfo then
-        local ok, info = pcall(C_Map.GetMapInfo, zone)
-        if ok and type(info) == "table" and type(info.name) == "string" and info.name ~= "" then
-            return info.name
-        end
-    end
-end
-
-local function stepPlace(step)
-    local fallback
-    for _, element in ipairs(step and step.elements or {}) do
-        if element and type(element.x) == "number" and type(element.y) == "number" and not element.skip then
-            local place = {
-                x = element.x,
-                y = element.y,
-                zone = zoneLabel(element.zone),
-            }
-            if element.arrow then
-                return place
-            end
-            if not fallback then
-                fallback = place
-            end
-        end
-    end
-    return fallback
-end
-
-local function stepQuests(step)
-    local list = {}
-    local seen = {}
-    local function add(id)
-        if type(id) ~= "number" or id <= 0 or seen[id] then
-            return
-        end
-        seen[id] = true
-        list[#list + 1] = {
-            id = id,
-            name = questTitle(id),
-            on = playerOnQuest(id),
-        }
-    end
-    for _, element in ipairs(step and step.elements or {}) do
-        if element then
-            add(element.questId)
-            if type(element.ids) == "table" then
-                for _, id in ipairs(element.ids) do
-                    add(id)
-                end
-            end
-        end
-    end
-    table.sort(list, function(a, b)
-        if a.on ~= b.on then
-            return a.on and not b.on
-        end
-        return a.id < b.id
-    end)
-    return list
-end
-
-function collectObjectives()
-    if ns.db and ns.db.standaloneGuide and ns.GuideObjectives then
-        local ok, items = pcall(ns.GuideObjectives)
-        if ok and type(items) == "table" then
-            return items
-        end
-        return {
-            {
-                number = 0,
-                headline = "The guide could not be read.",
-                details = {},
-                actions = {},
-                names = {},
-                quests = {},
-                stepQuests = {},
-            },
-        }
-    end
-    local rxp = _G.RXPFrame
-    local steps = rxp and rxp.activeSteps
-    local list = {}
-    if type(steps) ~= "table" then
-        return list
-    end
-
-    local order = {}
-    local primaryIndex
-    for index, step in ipairs(steps) do
-        if step and not step.tip and not step.sticky and not primaryIndex then
-            primaryIndex = index
-        end
-    end
-    if not primaryIndex and ns.db and ns.db.simpleMode then
-        for index, step in ipairs(steps) do
-            if step and not step.tip then
-                primaryIndex = index
-                break
-            end
-        end
-    end
-    if primaryIndex then
-        order[#order + 1] = primaryIndex
-    end
-    if not (ns.db and ns.db.simpleMode) then
-        for index, step in ipairs(steps) do
-            if index ~= primaryIndex and step and not step.tip then
-                order[#order + 1] = index
-            end
-        end
-    end
-
-    local targetButtons = shownTargetButtons()
-    local itemButtons = shownItemButtons()
-    local usedButtons = {}
-    local targetClaim = nil
-    local itemClaim = nil
-
-    local function claimButton(objective, button)
-        if not objective or not button or usedButtons[button] then
-            return false
-        end
-        usedButtons[button] = true
-        objective.actions[#objective.actions + 1] = button
-        return true
-    end
-
-    local function targetButtonFor(name)
-        local key = type(name) == "string" and name:lower() or nil
-        if not key then
-            return nil
-        end
-        for _, button in ipairs(targetButtons) do
-            if not usedButtons[button] then
-                local buttonName = button.targetData and button.targetData.name
-                if type(buttonName) == "string" and buttonName:lower() == key then
-                    return button
-                end
-            end
-        end
-    end
-
-    local function itemButtonFor(name, id)
-        for _, button in ipairs(itemButtons) do
-            if not usedButtons[button] then
-                if id and button.itemId == id then
-                    return button
-                end
-                local buttonName = buttonItemName(button)
-                if name and buttonName and buttonName:lower() == name:lower() then
-                    return button
-                end
-            end
-        end
-    end
-
-    local function hostFor(step)
-        if step then
-            for _, objective in ipairs(list) do
-                if objective._step == step then
-                    return objective
-                end
-            end
-        end
-        return list[1]
-    end
-
-    for _, activeIndex in ipairs(order) do
-        local step = steps[activeIndex]
-        local lines, wantsTargets, targetNames, questNames = visibleLines(step, activeIndex)
-        if lines then
-            if wantsTargets and not targetClaim then
-                targetClaim = step
-            end
-            if step.activeItems and not itemClaim then
-                itemClaim = step
-            end
-
-            local objective = buildObjective(step, lines, {})
-            if objective then
-                objective._step = step
-                objective.names = targetNames
-                objective.quests = questNames
-                local seen = {}
-                seen[(plainText(objective.headline) or ""):lower()] = true
-
-                local claimedTarget = false
-                for _, name in ipairs(targetNames) do
-                    if claimButton(objective, targetButtonFor(name)) then
-                        claimedTarget = true
-                    end
-                end
-                if not claimedTarget then
-                    for _, name in ipairs(targetNames) do
-                        appendDetail(objective.details, seen, "Target: " .. name)
-                    end
-                end
-
-                local claimedItems = {}
-                for key, value in pairs(step.activeItems or {}) do
-                    local id = type(key) == "number" and key or type(value) == "number" and value
-                    if type(value) == "table" then
-                        id = value.id or value.itemID or id
-                    end
-                    local button = itemButtonFor(nil, id)
-                    if claimButton(objective, button) then
-                        local buttonName = buttonItemName(button)
-                        if buttonName then
-                            claimedItems[buttonName:lower()] = true
-                        end
-                    end
-                end
-                for _, name in ipairs(stepItemNames(step)) do
-                    if not claimedItems[name:lower()] and not claimButton(objective, itemButtonFor(name)) then
-                        appendDetail(objective.details, seen, "Use: " .. name)
-                    end
-                end
-
-                objective.waypoint = stepWaypoint(step)
-                objective.stepIndex = step.index
-                objective.sticky = step.sticky and true or false
-                objective.place = stepPlace(step)
-                objective.stepQuests = stepQuests(step)
-                local quest = objective.stepQuests[1]
-                objective.questId = quest and quest.id
-                objective.questName = quest and quest.name
-                list[#list + 1] = objective
-            end
-        end
-    end
-
-    local targetHost = hostFor(targetClaim)
-    for _, button in ipairs(targetButtons) do
-        claimButton(targetHost, button)
-    end
-    local itemHost = hostFor(itemClaim)
-    for _, button in ipairs(itemButtons) do
-        claimButton(itemHost, button)
-    end
-
-    for _, objective in ipairs(list) do
-        objective._step = nil
-    end
-    return list
-end
-end -- guide helpers
-
-local COLUMN = 26
-local TRACKER_WIDTH = 300
-local mouseBusy = false
-local alphaBusy = false
-local buttonBusy = false
-local parked = {}
-local hookedMouse = {}
-local rows = {}
-local sizeKey = ""
-local remeasure = false
-local pointRestored = false
-local expandedTips = {}
-local MORE_TIP_THRESHOLD = 2
-
-local tracker = CreateFrame("Frame", "RestedXPBetterTracker", UIParent, "BackdropTemplate")
-tracker:SetSize(TRACKER_WIDTH, 72)
+-- Tracker UI. Guide/RXP helpers live in ReplaceGuide.lua (ns.RG) so this
+-- chunk stays under Lua 5.1's 200-local limit.
+
+local RG = ns.RG
+local State = ns.ReplaceState
+
+local UI = {
+    COLUMN = 26,
+    TRACKER_WIDTH = 300,
+    MORE_TIP_THRESHOLD = 2,
+    HEADER_RIGHT = -144,
+    HEADER_BOTTOM = 27,
+    WHITE = "Interface\\BUTTONS\\WHITE8X8",
+    FLIGHT_STRIP = 26,
+    NAV_STRIP = 28,
+    ARROW_TEXTURE = nil,
+    ARROW_COLUMN = 48,
+    PROGRESS_BAR_HEIGHT = 6,
+    PROGRESS_BAR_GAP = 2,
+    TRACKER_CHROME = 44,
+    MIN_TRACKER_WIDTH = 220,
+    MAX_TRACKER_WIDTH = 640,
+    MIN_TRACKER_HEIGHT = 120,
+    MAX_TRACKER_HEIGHT = 800,
+    MEDIA = { ringPad = 2, ringThickness = 2, cornerPad = 2, circlePad = 4, circleSize = 128 },
+    GUIDE_TAG_COLORS = {
+        RB_FRIENDLY_ = "FF00FF25",
+        RB_ENEMY_ = "FFFF5722",
+        RB_LOOT_ = "FF00BCD4",
+        RB_WARN_ = "FFFCDC00",
+        RB_PICK_ = "FFDB2EEF",
+        RB_BUY_ = "FF0E8312",
+        RB_QUEST_ = "FFFFD100",
+    },
+}
+
+State.lastSignature = nil
+State.mouseBusy = false
+State.alphaBusy = false
+State.buttonBusy = false
+State.parked = {}
+State.hookedMouse = {}
+State.rows = {}
+State.sizeKey = ""
+State.remeasure = false
+State.pointRestored = false
+State.expandedTips = {}
+State.chromeHooked = {}
+State.cogBusy = false
+State.cogHome = nil
+State.satelliteHooked = {}
+State.standaloneWas = false
+State.hardcoreWas = false
+State.elapsed = 0
+State.flight = { chrome = 0 }
+State.nav = { chrome = 0 }
+State.mapPins = { frames = {}, signature = nil }
+
+
+local tracker = CreateFrame("Frame", "WaynotesTracker", UIParent, "BackdropTemplate")
+tracker:SetSize(UI.TRACKER_WIDTH, 72)
 tracker:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 24, -180)
 tracker:SetFrameStrata("MEDIUM")
 tracker:SetClampedToScreen(true)
@@ -1212,13 +77,12 @@ tracker:SetBackdropColor(0, 0, 0, 0.4)
 tracker:SetBackdropBorderColor(1, 0.82, 0, 0.45)
 tracker:Hide()
 
-local HEADER_RIGHT = -144
 
 local header = tracker:CreateFontString(nil, "OVERLAY")
 header:SetPoint("TOPLEFT", 10, -7)
-header:SetPoint("TOPRIGHT", HEADER_RIGHT, -7)
+header:SetPoint("TOPRIGHT", UI.HEADER_RIGHT, -7)
 header:SetHeight(16)
-paint(header, 13, ns.Color("accent"))
+RG.paint(header, 13, ns.Color("accent"))
 if header.SetMaxLines then
     header:SetMaxLines(1)
 end
@@ -1236,7 +100,7 @@ local function guidePercentLabel()
     if not (ns.db and ns.db.showGuidePercent) then
         return nil
     end
-    local guide = currentGuide()
+    local guide = RG.currentGuide()
     local steps = guide and guide.steps
     local total = type(steps) == "table" and #steps or 0
     if total < 1 then
@@ -1244,7 +108,7 @@ local function guidePercentLabel()
     end
     local current = tonumber(_G.RXPCData and _G.RXPCData.currentStep)
     if not current then
-        local step = primaryStep()
+        local step = RG.primaryStep()
         current = step and step.index
     end
     if type(current) ~= "number" or current < 1 then
@@ -1264,11 +128,11 @@ local function placeGuidePercent()
         guidePercent:Hide()
         header:ClearAllPoints()
         header:SetPoint("TOPLEFT", 10, -7)
-        header:SetPoint("TOPRIGHT", HEADER_RIGHT, -7)
+        header:SetPoint("TOPRIGHT", UI.HEADER_RIGHT, -7)
         return
     end
     local r, g, b = ns.Color("accent")
-    paint(guidePercent, 12, r, g, b)
+    RG.paint(guidePercent, 12, r, g, b)
     guidePercent:SetText(label)
     guidePercent:Show()
     guidePercent:ClearAllPoints()
@@ -1276,19 +140,14 @@ local function placeGuidePercent()
     if rightOf then
         guidePercent:SetPoint("TOPRIGHT", rightOf, "TOPLEFT", -6, 1)
     else
-        guidePercent:SetPoint("TOPRIGHT", HEADER_RIGHT, -7)
+        guidePercent:SetPoint("TOPRIGHT", UI.HEADER_RIGHT, -7)
     end
     header:ClearAllPoints()
     header:SetPoint("TOPLEFT", 10, -7)
     header:SetPoint("TOPRIGHT", guidePercent, "TOPLEFT", -6, 0)
 end
 
-local WHITE = "Interface\\BUTTONS\\WHITE8X8"
-local HEADER_BOTTOM = 27
-local RING_PAD = 2
-local CORNER_PAD = 2
-local CIRCLE_PAD = 4
-local CIRCLE_SIZE = 128
+-- Keep pad/size knobs on one table so this chunk stays under Lua's 200-local limit.
 
 local function texSpan(a, b, inset)
     if a < b then
@@ -1303,7 +162,7 @@ local function useSolid(texture)
         texture:SetColorTexture(1, 1, 1, 1)
         return
     end
-    texture:SetTexture(WHITE)
+    texture:SetTexture(UI.WHITE)
     texture:SetTexCoord(0.375, 0.625, 0.375, 0.625)
 end
 
@@ -1320,6 +179,8 @@ local function media(file)
     return "Interface\\AddOns\\" .. addonName .. "\\Media\\" .. file
 end
 
+UI.ARROW_TEXTURE = media("arrow.tga")
+
 local function clampCornerRadius(radius)
     radius = math.floor((radius or 0) + 0.5)
     if radius < 4 then
@@ -1332,7 +193,7 @@ end
 
 local function setQuarterCorner(texture, radius, left, right, top, bottom)
     radius = clampCornerRadius(radius)
-    local inset = CORNER_PAD / (radius + CORNER_PAD * 2)
+    local inset = UI.MEDIA.cornerPad / (radius + UI.MEDIA.cornerPad * 2)
     texture:SetTexture(media("corner-" .. radius .. ".tga"))
     texture.__rxpbSolid = nil
     local u0, u1 = texSpan(left, right, inset)
@@ -1341,7 +202,7 @@ local function setQuarterCorner(texture, radius, left, right, top, bottom)
 end
 
 local function setCircleTexture(texture)
-    local inset = CIRCLE_PAD / (CIRCLE_SIZE + CIRCLE_PAD * 2)
+    local inset = UI.MEDIA.circlePad / (UI.MEDIA.circleSize + UI.MEDIA.circlePad * 2)
     texture:SetTexture(media("circle.tga"))
     texture:SetTexCoord(inset, 1 - inset, inset, 1 - inset)
 end
@@ -1359,7 +220,7 @@ end
 local function makeTexture(parent, layer, sub, file)
     local texture = parent:CreateTexture(nil, layer)
     setLayer(texture, layer, sub)
-    if not file or file == WHITE then
+    if not file or file == UI.WHITE then
         useSolid(texture)
     else
         texture:SetTexture(file)
@@ -1572,7 +433,7 @@ local function showBorder(plate, anchor, radius)
     end
 
     local path = media("ring-" .. radius .. ".tga")
-    local ringInset = RING_PAD / (radius + RING_PAD * 2)
+    local ringInset = UI.MEDIA.ringPad / (radius + UI.MEDIA.ringPad * 2)
     local function corner(texture, point, left, right, top, bottom)
         texture:SetTexture(path)
         local u0, u1 = texSpan(left, right, ringInset)
@@ -1589,18 +450,23 @@ local function showBorder(plate, anchor, radius)
     corner(plate.br, "BOTTOMRIGHT", 1, 0, 1, 0)
     plate.c:Hide()
 
+    local thick = UI.MEDIA.ringThickness
+    if thick < 1 then
+        thick = 1
+    end
+    local overlap = thick
     local gapW = width - (radius * 2)
     local gapH = height - (radius * 2)
     if gapW >= 1 then
         plate.t:ClearAllPoints()
-        plate.t:SetPoint("TOPLEFT", anchor, "TOPLEFT", radius - 1, 0)
-        plate.t:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", -(radius - 1), 0)
-        plate.t:SetHeight(1)
+        plate.t:SetPoint("TOPLEFT", anchor, "TOPLEFT", radius - overlap, 0)
+        plate.t:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", -(radius - overlap), 0)
+        plate.t:SetHeight(thick)
         plate.t:Show()
         plate.b:ClearAllPoints()
-        plate.b:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", radius - 1, 0)
-        plate.b:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -(radius - 1), 0)
-        plate.b:SetHeight(1)
+        plate.b:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", radius - overlap, 0)
+        plate.b:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -(radius - overlap), 0)
+        plate.b:SetHeight(thick)
         plate.b:Show()
     else
         plate.t:Hide()
@@ -1608,14 +474,14 @@ local function showBorder(plate, anchor, radius)
     end
     if gapH >= 1 then
         plate.l:ClearAllPoints()
-        plate.l:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0, -(radius - 1))
-        plate.l:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", 0, radius - 1)
-        plate.l:SetWidth(1)
+        plate.l:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0, -(radius - overlap))
+        plate.l:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", 0, radius - overlap)
+        plate.l:SetWidth(thick)
         plate.l:Show()
         plate.r:ClearAllPoints()
-        plate.r:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", 0, -(radius - 1))
-        plate.r:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", 0, radius - 1)
-        plate.r:SetWidth(1)
+        plate.r:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", 0, -(radius - overlap))
+        plate.r:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", 0, radius - overlap)
+        plate.r:SetWidth(thick)
         plate.r:Show()
     else
         plate.l:Hide()
@@ -1664,8 +530,17 @@ local function styleChromeButton(button, fillR, fillG, fillB, fillA, edgeR, edge
         return
     end
     if not button.fillPlate then
-        button.fillPlate = makePlate(button, "BACKGROUND", 1)
-        button.edgePlate = makePlate(button, "BORDER", 1)
+        button.edgePlate = makePlate(button, "BACKGROUND", 1)
+        button.fillPlate = makePlate(button, "BACKGROUND", 2)
+        button.__rxpbDualFill = true
+    elseif not button.__rxpbDualFill then
+        for index = 1, #button.edgePlate.list do
+            setLayer(button.edgePlate.list[index], "BACKGROUND", 1)
+        end
+        for index = 1, #button.fillPlate.list do
+            setLayer(button.fillPlate.list[index], "BACKGROUND", 2)
+        end
+        button.__rxpbDualFill = true
     end
     local radius = math.floor((button:GetHeight() or 16) / 2)
     if radius < 4 then
@@ -1673,10 +548,34 @@ local function styleChromeButton(button, fillR, fillG, fillB, fillA, edgeR, edge
     elseif radius > 16 then
         radius = 16
     end
-    showPlate(button.fillPlate, button, 0, 0, 0, 0, radius)
-    paintPlate(button.fillPlate, fillR, fillG, fillB, fillA)
-    showBorder(button.edgePlate, button, radius)
+    local thick = UI.MEDIA.ringThickness
+    if thick < 1 then
+        thick = 1
+    end
+    local innerRadius = radius - thick
+    if innerRadius < 0 then
+        innerRadius = 0
+    end
+
+    showPlate(button.edgePlate, button, 0, 0, 0, 0, radius)
     paintPlate(button.edgePlate, edgeR, edgeG, edgeB, edgeA)
+
+    showPlate(button.fillPlate, button, thick, thick, thick, thick, innerRadius)
+    -- Dual-fill needs an opaque inner plate so edge color does not bleed through.
+    local fr, fg, fb, fa = fillR, fillG, fillB, fillA or 1
+    if fa < 0.999 then
+        local br, bg, bb = ns.Color("background")
+        local panelA = ns.db and ns.db.trackerBackground
+        if type(panelA) ~= "number" then
+            panelA = 0.4
+        end
+        br, bg, bb = br * panelA, bg * panelA, bb * panelA
+        local keep = 1 - fa
+        fr, fg, fb = fr * fa + br * keep, fg * fa + bg * keep, fb * fa + bb * keep
+        fa = 1
+    end
+    paintPlate(button.fillPlate, fr, fg, fb, fa)
+
     button:SetBackdropColor(0, 0, 0, 0)
     button:SetBackdropBorderColor(0, 0, 0, 0)
 end
@@ -1686,7 +585,7 @@ shadowHost:SetFrameStrata("LOW")
 shadowHost:EnableMouse(false)
 shadowHost:Hide()
 
-local headerBar = makeTexture(tracker, "BACKGROUND", 2, WHITE)
+local headerBar = makeTexture(tracker, "BACKGROUND", 2, UI.WHITE)
 local panelFill = makePlate(tracker, "BACKGROUND", 1)
 local panelHeader = makePlate(tracker, "BACKGROUND", 3)
 local panelBorder = makePlate(tracker, "BORDER", 1)
@@ -1728,14 +627,14 @@ local function createStepButton(direction, anchorX)
             styleStepButtons()
             return
         end
-        local step = primaryStep()
+        local step = RG.primaryStep()
         if not step then
             return
         end
         if self.direction < 0 then
-            goBackward()
+            RG.goBackward()
         else
-            goToStep(step.index + 1)
+            RG.goToStep(step.index + 1)
         end
         styleStepButtons()
     end)
@@ -1773,12 +672,12 @@ local function stepButtonEnabled(button)
     if ns.db and ns.db.standaloneGuide then
         return ns.GuideCanStep and ns.GuideCanStep(button.direction) or false
     end
-    local step = primaryStep()
+    local step = RG.primaryStep()
     if not step then
         return false
     end
     if button.direction < 0 then
-        return earlierStep(currentGuide(), step.index) ~= nil
+        return RG.earlierStep(RG.currentGuide(), step.index) ~= nil
     end
     return true
 end
@@ -1848,11 +747,11 @@ jumpButton.glow = jumpGlow
 jumpButton:RegisterForClicks("LeftButtonUp")
 jumpButton.text = jumpButton:CreateFontString(nil, "OVERLAY")
 jumpButton.text:SetPoint("CENTER", 0, 0)
-applyFont(jumpButton.text, 10, "OUTLINE")
+RG.applyFont(jumpButton.text, 10, "OUTLINE")
 jumpButton.text:SetText("Jump")
 jumpButton:SetScript("OnClick", function()
     if StaticPopup_Show then
-        StaticPopup_Show("RestedXPBetterJump")
+        StaticPopup_Show("WaynotesJump")
     end
 end)
 jumpButton:SetScript("OnEnter", function(self)
@@ -1894,7 +793,7 @@ navButton.glow = navGlow
 navButton:RegisterForClicks("LeftButtonUp")
 navButton.text = navButton:CreateFontString(nil, "OVERLAY")
 navButton.text:SetPoint("CENTER", 0, 0)
-applyFont(navButton.text, 10, "OUTLINE")
+RG.applyFont(navButton.text, 10, "OUTLINE")
 navButton.text:SetText("Go")
 navButton:SetScript("OnClick", function(self)
     if ns.ToggleNavMenu then
@@ -1929,7 +828,7 @@ guidePercent:SetJustifyV("MIDDLE")
 if guidePercent.SetWordWrap then
     guidePercent:SetWordWrap(false)
 end
-applyFont(guidePercent, 12, "OUTLINE")
+RG.applyFont(guidePercent, 12, "OUTLINE")
 guidePercent:Hide()
 
 local rule = tracker:CreateTexture(nil, "ARTWORK")
@@ -1946,7 +845,7 @@ scroller:EnableMouse(false)
 scroller:EnableMouseWheel(true)
 
 local body = CreateFrame("Frame", nil, scroller)
-body:SetSize(TRACKER_WIDTH - 16, 20)
+body:SetSize(UI.TRACKER_WIDTH - 16, 20)
 scroller:SetScrollChild(body)
 
 local scrollBar = CreateFrame("Frame", nil, tracker)
@@ -1964,7 +863,7 @@ paintTexture(scrollThumb, 1, 0.82, 0, 0.55)
 local empty = body:CreateFontString(nil, "OVERLAY")
 empty:SetPoint("TOPLEFT", 4, 0)
 empty:SetPoint("RIGHT", -4, 0)
-paint(empty, 13, 0.85, 0.85, 0.85)
+RG.paint(empty, 13, 0.85, 0.85, 0.85)
 empty:SetText("Right-click to choose a guide")
 empty:Hide()
 
@@ -1974,17 +873,13 @@ useSolid(divider)
 paintTexture(divider, 1, 1, 1, 0.16)
 divider:Hide()
 
-local FLIGHT_STRIP = 26
-local NAV_STRIP = 28
-local flight = { chrome = 0 }
-local nav = { chrome = 0 }
 local updateFlightStrip
 local updateNavStrip
 local placeBottomChrome
 
 do
     local strip = CreateFrame("Frame", nil, tracker)
-    strip:SetHeight(FLIGHT_STRIP)
+    strip:SetHeight(UI.FLIGHT_STRIP)
     strip:SetPoint("BOTTOMLEFT", 1, 1)
     strip:SetPoint("BOTTOMRIGHT", -1, 1)
     strip:Hide()
@@ -2020,7 +915,7 @@ do
     if destText.SetWordWrap then
         destText:SetWordWrap(false)
     end
-    applyFont(destText, 11, "")
+    RG.applyFont(destText, 11, "")
     destText:SetTextColor(0.9, 0.9, 0.86)
 
     local timeText = strip:CreateFontString(nil, "OVERLAY")
@@ -2028,16 +923,16 @@ do
     timeText:SetHeight(12)
     timeText:SetJustifyH("RIGHT")
     timeText:SetJustifyV("MIDDLE")
-    applyFont(timeText, 11, "OUTLINE")
+    RG.applyFont(timeText, 11, "OUTLINE")
     timeText:SetTextColor(1, 0.82, 0)
 
-    flight.strip = strip
-    flight.rule = flightRule
-    flight.track = track
-    flight.trackBg = trackBg
-    flight.fill = trackFill
-    flight.dest = destText
-    flight.time = timeText
+    State.flight.strip = strip
+    State.flight.rule = flightRule
+    State.flight.track = track
+    State.flight.trackBg = trackBg
+    State.flight.fill = trackFill
+    State.flight.dest = destText
+    State.flight.time = timeText
 
     local state = {
         pending = false,
@@ -2058,10 +953,10 @@ do
     end
 
     placeBottomChrome = function()
-        local bottom = 10 + (flight.chrome or 0) + (nav.chrome or 0)
+        local bottom = 10 + (State.flight.chrome or 0) + (State.nav.chrome or 0)
         placeScroller(bottom)
-        if nav.layout then
-            nav.layout()
+        if State.nav.layout then
+            State.nav.layout()
         end
     end
 
@@ -2185,13 +1080,13 @@ do
 
     local function setChrome(want)
         want = want or 0
-        if flight.chrome == want then
+        if State.flight.chrome == want then
             return
         end
-        flight.chrome = want
+        State.flight.chrome = want
         placeBottomChrome()
-        remeasure = true
-        lastSignature = nil
+        State.remeasure = true
+        State.lastSignature = nil
         if tracker:IsShown() and ns.RefreshTracker then
             ns.RefreshTracker(true)
         end
@@ -2200,7 +1095,7 @@ do
     local function showStrip(on)
         if on then
             strip:Show()
-            setChrome(FLIGHT_STRIP)
+            setChrome(UI.FLIGHT_STRIP)
         else
             strip:Hide()
             setChrome(0)
@@ -2229,7 +1124,7 @@ do
         timeText:SetTextColor(edgeR, edgeG, edgeB)
     end
 
-    flight.paint = paintFlight
+    State.flight.paint = paintFlight
 
     local watcher
     function updateFlightStrip()
@@ -2265,17 +1160,17 @@ do
 
         local showUI = tracker:IsShown() and ns.db and ns.db.showFlightTimer ~= false and state.flying
         if not showUI then
-            if flight.chrome > 0 then
+            if State.flight.chrome > 0 then
                 showStrip(false)
             end
             return
         end
 
         showStrip(true)
-        local elapsed = GetTime() - (state.started or GetTime())
+        local flown = GetTime() - (state.started or GetTime())
         destText:SetText(state.destName or "Flight path")
         if state.duration and state.duration > 0 then
-            local left = state.duration - elapsed
+            local left = state.duration - flown
             if left < 0 then
                 left = 0
             end
@@ -2284,7 +1179,7 @@ do
             if width < 1 then
                 width = 1
             end
-            local ratio = elapsed / state.duration
+            local ratio = flown / state.duration
             if ratio < 0 then
                 ratio = 0
             elseif ratio > 1 then
@@ -2293,7 +1188,7 @@ do
             trackFill:SetWidth(math.max(1, width * ratio))
             trackFill:Show()
         else
-            timeText:SetText(formatClock(elapsed))
+            timeText:SetText(formatClock(flown))
             trackFill:SetWidth(1)
             trackFill:Hide()
         end
@@ -2335,7 +1230,7 @@ end
 
 do
     local strip = CreateFrame("Frame", nil, tracker)
-    strip:SetHeight(NAV_STRIP)
+    strip:SetHeight(UI.NAV_STRIP)
     strip:SetPoint("BOTTOMLEFT", 1, 1)
     strip:SetPoint("BOTTOMRIGHT", -1, 1)
     strip:Hide()
@@ -2362,7 +1257,7 @@ do
     if title.SetWordWrap then
         title:SetWordWrap(false)
     end
-    applyFont(title, 11, "")
+    RG.applyFont(title, 11, "")
     title:SetTextColor(0.9, 0.9, 0.86)
 
     local detail = strip:CreateFontString(nil, "OVERLAY")
@@ -2374,7 +1269,7 @@ do
     if detail.SetWordWrap then
         detail:SetWordWrap(false)
     end
-    applyFont(detail, 10, "")
+    RG.applyFont(detail, 10, "")
     detail:SetTextColor(0.82, 0.82, 0.82)
 
     local distText = strip:CreateFontString(nil, "OVERLAY")
@@ -2382,7 +1277,7 @@ do
     distText:SetHeight(12)
     distText:SetJustifyH("RIGHT")
     distText:SetJustifyV("MIDDLE")
-    applyFont(distText, 11, "OUTLINE")
+    RG.applyFont(distText, 11, "OUTLINE")
     distText:SetTextColor(1, 0.82, 0)
 
     local clear = CreateFrame("Button", nil, strip)
@@ -2392,7 +1287,7 @@ do
     clear:RegisterForClicks("LeftButtonUp")
     clear.text = clear:CreateFontString(nil, "OVERLAY")
     clear.text:SetPoint("CENTER", 0, 0)
-    applyFont(clear.text, 12, "OUTLINE")
+    RG.applyFont(clear.text, 12, "OUTLINE")
     clear.text:SetText("x")
     clear:SetScript("OnClick", function()
         if ns.NavClearTarget then
@@ -2409,16 +1304,16 @@ do
         GameTooltip:Hide()
     end)
 
-    nav.strip = strip
-    nav.rule = navRule
-    nav.arrow = arrow
-    nav.title = title
-    nav.detail = detail
-    nav.dist = distText
-    nav.clear = clear
+    State.nav.strip = strip
+    State.nav.rule = navRule
+    State.nav.arrow = arrow
+    State.nav.title = title
+    State.nav.detail = detail
+    State.nav.dist = distText
+    State.nav.clear = clear
 
-    nav.layout = function()
-        local lift = flight.chrome or 0
+    State.nav.layout = function()
+        local lift = State.flight.chrome or 0
         strip:ClearAllPoints()
         strip:SetPoint("BOTTOMLEFT", 1, 1 + lift)
         strip:SetPoint("BOTTOMRIGHT", -1, 1 + lift)
@@ -2426,15 +1321,15 @@ do
 
     local function setNavChrome(want)
         want = want or 0
-        if nav.chrome == want then
+        if State.nav.chrome == want then
             return
         end
-        nav.chrome = want
+        State.nav.chrome = want
         if placeBottomChrome then
             placeBottomChrome()
         end
-        remeasure = true
-        lastSignature = nil
+        State.remeasure = true
+        State.lastSignature = nil
         if tracker:IsShown() and ns.RefreshTracker then
             ns.RefreshTracker(true)
         end
@@ -2443,7 +1338,7 @@ do
     local function showNav(on)
         if on then
             strip:Show()
-            setNavChrome(NAV_STRIP)
+            setNavChrome(UI.NAV_STRIP)
         else
             strip:Hide()
             setNavChrome(0)
@@ -2476,7 +1371,7 @@ do
         arrow:SetVertexColor(edgeR, edgeG, edgeB, 1)
     end
 
-    nav.paint = function()
+    State.nav.paint = function()
         painted = false
         paintNav(true)
     end
@@ -2498,20 +1393,75 @@ do
         if type(dest) ~= "table" then
             return nil
         end
+        local hbd = RG.hereBeDragons()
+        local function zoneToWorld(map, x, y)
+            if not hbd or not hbd.GetWorldCoordinatesFromZone or type(map) ~= "number" or type(x) ~= "number" or type(y) ~= "number" then
+                return nil
+            end
+            local zx, zy = x, y
+            if zx > 1 or zy > 1 then
+                zx, zy = zx / 100, zy / 100
+            end
+            local wx, wy, instance = hbd:GetWorldCoordinatesFromZone(zx, zy, map)
+            if type(wx) == "number" and type(wy) == "number" then
+                return wx, wy, instance
+            end
+            return nil
+        end
+
+        local px, py, pinstance
+        if hbd and hbd.GetPlayerWorldPosition then
+            px, py, pinstance = hbd:GetPlayerWorldPosition()
+        end
+        local pzx, pzy, pmap
+        if hbd and hbd.GetPlayerZonePosition then
+            local ok, x, y, map = pcall(hbd.GetPlayerZonePosition, hbd, true)
+            if ok and type(x) == "number" and type(map) == "number" then
+                pzx, pzy, pmap = x, y, map
+            end
+        end
+
+        local sameZone = type(dest.map) == "number" and dest.map == pmap
+        if not sameZone and type(dest.zone) == "string" and GetRealZoneText then
+            local a = dest.zone:lower():gsub("^the%s+", "")
+            local b = tostring(GetRealZoneText() or ""):lower():gsub("^the%s+", "")
+            sameZone = a ~= "" and b ~= "" and (a == b or a:find(b, 1, true) or b:find(a, 1, true))
+        end
+
+        -- Same-zone: rebuild every refresh in UnitPosition space. Forever's
+        -- UiMap zone→world origin disagrees with UnitPosition, so a cached
+        -- absolute convert stays ~500 yd wrong even when standing on the NPC.
+        if sameZone and type(pmap) == "number" and type(pzx) == "number" and type(px) == "number" and type(dest.x) == "number" then
+            local playerWx, playerWy = zoneToWorld(pmap, pzx, pzy)
+            local pinWx, pinWy = zoneToWorld(pmap, dest.x, dest.y)
+            if not pinWx and type(dest.map) == "number" then
+                pinWx, pinWy = zoneToWorld(dest.map, dest.x, dest.y)
+                playerWx, playerWy = zoneToWorld(dest.map, pzx, pzy)
+            end
+            if type(playerWx) == "number" and type(pinWx) == "number" then
+                dest.waypoint = {
+                    wx = px + (pinWx - playerWx),
+                    wy = py + (pinWy - playerWy),
+                    instance = pinstance,
+                }
+                return dest.waypoint
+            end
+        end
+
         local wp = dest.waypoint
         if type(wp) == "table" and type(wp.wx) == "number" and type(wp.wy) == "number" then
             return wp
         end
-        -- Zone pin -> HBD world (same space as tracker step arrows).
-        local hbd = hereBeDragons()
-        if hbd and hbd.GetWorldCoordinatesFromZone and type(dest.map) == "number" and type(dest.x) == "number" and type(dest.y) == "number" then
-            local wx, wy, instance = hbd:GetWorldCoordinatesFromZone(dest.x / 100, dest.y / 100, dest.map)
-            if type(wx) == "number" and type(wy) == "number" then
-                dest.waypoint = { wx = wx, wy = wy, instance = instance }
-                return dest.waypoint
-            end
+
+        local wx, wy, instance = zoneToWorld(pmap or dest.map, dest.x, dest.y)
+        if type(wx) ~= "number" then
+            wx, wy, instance = zoneToWorld(dest.map, dest.x, dest.y)
         end
-        -- Flight-master fallback: authored continent world coords.
+        if type(wx) == "number" then
+            dest.waypoint = { wx = wx, wy = wy, instance = instance }
+            return dest.waypoint
+        end
+
         if type(dest.wx) == "number" and type(dest.wy) == "number" then
             dest.waypoint = { wx = dest.wx, wy = dest.wy, instance = dest.instance }
             return dest.waypoint
@@ -2524,14 +1474,14 @@ do
         local showUI = tracker:IsShown() and dest ~= nil
         if not showUI then
             arrow.__rxpbWp = nil
-            if nav.chrome > 0 then
+            if State.nav.chrome > 0 then
                 showNav(false)
             end
             lastTitle, lastDetail, lastDist = nil, nil, nil
             return
         end
 
-        if nav.chrome == 0 then
+        if State.nav.chrome == 0 then
             showNav(true)
             paintNav(true)
         elseif not strip:IsShown() then
@@ -2565,12 +1515,12 @@ do
     end
 
     -- Filled after formatYards/tintArrow exist (same file, later locals).
-    nav._arrow = arrow
-    nav._distText = distText
-    nav._getLastDist = function()
+    State.nav._arrow = arrow
+    State.nav._distText = distText
+    State.nav._getLastDist = function()
         return lastDist
     end
-    nav._setLastDist = function(value)
+    State.nav._setLastDist = function(value)
         lastDist = value
     end
 
@@ -2603,14 +1553,14 @@ local function useBackdrop(mode)
         tracker:SetBackdrop(nil)
     elseif mode == "border" then
         tracker:SetBackdrop({
-            bgFile = WHITE,
-            edgeFile = WHITE,
+            bgFile = UI.WHITE,
+            edgeFile = UI.WHITE,
             edgeSize = 1,
             insets = { left = 1, right = 1, top = 1, bottom = 1 },
         })
     else
         tracker:SetBackdrop({
-            bgFile = WHITE,
+            bgFile = UI.WHITE,
         })
     end
 end
@@ -2661,16 +1611,16 @@ local function styleTracker()
         end
     end
 
-    paint(header, 13, edgeR, edgeG, edgeB)
+    RG.paint(header, 13, edgeR, edgeG, edgeB)
     if guidePercent then
-        paint(guidePercent, 12, edgeR, edgeG, edgeB)
+        RG.paint(guidePercent, 12, edgeR, edgeG, edgeB)
     end
     paintTexture(rule, edgeR, edgeG, edgeB, 0.55)
-    if flight.paint then
-        flight.paint()
+    if State.flight.paint then
+        State.flight.paint()
     end
-    if nav.paint then
-        nav.paint()
+    if State.nav.paint then
+        State.nav.paint()
     end
 
     if rounded then
@@ -2698,7 +1648,7 @@ local function styleTracker()
     if ns.db.darkHeader then
         local hr, hg, hb, ha = headerTone(panelR, panelG, panelB, background)
         if rounded then
-            showHeader(panelHeader, tracker, 0, 0, 0, HEADER_BOTTOM, radius)
+            showHeader(panelHeader, tracker, 0, 0, 0, UI.HEADER_BOTTOM, radius)
             paintPlate(panelHeader, hr, hg, hb, ha)
             headerBar:Hide()
         else
@@ -2707,7 +1657,7 @@ local function styleTracker()
             headerBar:ClearAllPoints()
             headerBar:SetPoint("TOPLEFT", tracker, "TOPLEFT", inset, -inset)
             headerBar:SetPoint("TOPRIGHT", tracker, "TOPRIGHT", -inset, -inset)
-            headerBar:SetHeight(math.max(1, HEADER_BOTTOM - inset))
+            headerBar:SetHeight(math.max(1, UI.HEADER_BOTTOM - inset))
             paintTexture(headerBar, hr, hg, hb, ha)
             headerBar:Show()
         end
@@ -2912,7 +1862,7 @@ tracker:SetScript("OnMouseUp", onMouseUp)
 tracker:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_NONE")
     local ar, ag, ab = ns.Color("accent")
-    GameTooltip:SetText(guideTitle(), ar, ag, ab, 1, true)
+    GameTooltip:SetText(RG.guideTitle(), ar, ag, ab, 1, true)
     GameTooltip:AddLine("Drag to move. Right-click to choose a guide. The header arrows change step, and Jump opens a step number.", 1, 1, 1, true)
     ns.FinishTooltip()
     placeTrackerTooltip()
@@ -2924,8 +1874,6 @@ tracker:SetScript("OnLeave", function(self)
     clearGuideTips()
 end)
 
-local ARROW_TEXTURE = media("arrow.tga")
-local ARROW_COLUMN = 48
 
 local function arrowTint()
     local r, g, b = ns.Color("accent")
@@ -2933,12 +1881,14 @@ local function arrowTint()
 end
 
 local function tintArrow(texture, r, g, b, alpha)
+    if not texture then
+        return
+    end
     if texture.SetDesaturated then
         texture:SetDesaturated(true)
     end
-    local paint = alpha or 1
-    texture:SetVertexColor(r, g, b, 0)
-    texture:SetVertexColor(r, g, b, paint)
+    -- Do not poke alpha to 0 first: that flashes every frame when called from OnUpdate.
+    texture:SetVertexColor(r, g, b, alpha or 1)
 end
 
 local function formatYards(dist)
@@ -2952,58 +1902,159 @@ local function formatYards(dist)
     return yards .. " yd"
 end
 
+local function setArrowAlpha(texture, alpha)
+    if not texture then
+        return
+    end
+    if texture.__rxpbAlpha ~= alpha then
+        texture.__rxpbAlpha = alpha
+        texture:SetAlpha(alpha)
+    end
+end
+
+-- Match HereBeDragons:GetWorldVector so angle - GetPlayerFacing() is relative.
+local PI2 = math.pi * 2
+local function facingBearing(deltaX, deltaY)
+    if type(deltaX) ~= "number" or type(deltaY) ~= "number" then
+        return nil
+    end
+    if deltaX * deltaX + deltaY * deltaY <= 1e-12 then
+        return nil
+    end
+    local angle = math.atan2(-deltaX, deltaY)
+    if angle > 0 then
+        return PI2 - angle
+    end
+    return -angle
+end
+
+local function setArrowRotation(texture, rotation)
+    if not texture or type(rotation) ~= "number" then
+        return false
+    end
+    if texture.__rxpbRot == rotation then
+        return true
+    end
+    texture.__rxpbRot = rotation
+    -- Forever often no-ops Texture:SetRotation; SetTexCoord is the reliable path.
+    -- Same relative angle convention as HBD demos: (bearing - facing).
+    local cos, sin = math.cos(rotation), math.sin(rotation)
+    texture:SetTexCoord(
+        0.5 - cos * 0.5 + sin * 0.5, 0.5 + sin * 0.5 + cos * 0.5,
+        0.5 - cos * 0.5 - sin * 0.5, 0.5 + sin * 0.5 - cos * 0.5,
+        0.5 + cos * 0.5 + sin * 0.5, 0.5 - sin * 0.5 + cos * 0.5,
+        0.5 + cos * 0.5 - sin * 0.5, 0.5 - sin * 0.5 - cos * 0.5
+    )
+    return true
+end
+
+local function playerZonePosForAim(hbd)
+    if hbd and type(hbd.GetPlayerZonePosition) == "function" then
+        local ok, x, y, map = pcall(hbd.GetPlayerZonePosition, hbd, true)
+        if ok and type(x) == "number" and type(y) == "number" then
+            return x, y, map
+        end
+    end
+    -- Same C_Map fallback as Nav.lua: Forever often has yards without HBD zone pos.
+    if C_Map and C_Map.GetBestMapForUnit and C_Map.GetPlayerMapPosition then
+        local map = C_Map.GetBestMapForUnit("player")
+        if type(map) == "number" then
+            local ok, pos = pcall(C_Map.GetPlayerMapPosition, map, "player")
+            if ok and type(pos) == "table" then
+                local x = pos.GetXY and pos:GetXY() or pos.x
+                local y = pos.GetXY and select(2, pos:GetXY()) or pos.y
+                if type(x) == "number" and type(y) == "number" then
+                    return x, y, map
+                end
+            end
+        end
+    end
+end
+
+-- Aim bearing for tracker arrows. World-space bearing first (HBD / pin delta);
+-- zone-percent only when world angle is unavailable. Display yards stay on
+-- PinZoneDistance via rowPinDistance, not this path.
+local function aimAngle(hbd, instance, px, py, wp, place, facing)
+    local angle
+
+    if hbd and type(px) == "number" and wp and type(wp.wx) == "number" and type(hbd.GetWorldVector) == "function" then
+        local ok, a = pcall(hbd.GetWorldVector, hbd, instance or 0, px, py, wp.wx, wp.wy)
+        if ok and type(a) == "number" then
+            angle = a
+        end
+    end
+
+    if type(angle) ~= "number" and type(px) == "number" and wp and type(wp.wx) == "number" and type(wp.wy) == "number" then
+        angle = facingBearing(wp.wx - px, wp.wy - py)
+    end
+
+    if type(angle) ~= "number" and type(place) == "table" and type(place.x) == "number" and type(place.y) == "number" then
+        local pzx, pzy = playerZonePosForAim(hbd)
+        if type(pzx) == "number" then
+            if pzx > 1 then
+                pzx = pzx / 100
+            end
+            if type(pzy) == "number" and pzy > 1 then
+                pzy = pzy / 100
+            end
+            local dx = place.x > 1 and place.x / 100 or place.x
+            local dy = place.y > 1 and place.y / 100 or place.y
+            local ex, ey = dx - pzx, dy - pzy
+            if ex * ex + ey * ey > 1e-12 then
+                -- Zone y grows south; HBD world y grows north.
+                angle = facingBearing(ex, -ey)
+            elseif type(facing) == "number" then
+                angle = facing
+            end
+        end
+    end
+
+    return angle
+end
+
 -- Nav strip arrow shares the step-arrow aiming path (defined after tint helpers).
-nav.syncArrow = function(facing, hbd, px, py, instance, canAim)
-    local arrow = nav._arrow
-    local distText = nav._distText
+State.nav.syncArrow = function(facing, hbd, px, py, instance, canAim)
+    local arrow = State.nav._arrow
+    local distText = State.nav._distText
     if not arrow then
         return
     end
     local wp = arrow.__rxpbWp
-    local lastDist = nav._getLastDist and nav._getLastDist() or nil
+    local lastDist = State.nav._getLastDist and State.nav._getLastDist() or nil
     if not wp or not wp.wx or not wp.wy then
         if lastDist ~= "" then
-            if nav._setLastDist then
-                nav._setLastDist("")
+            if State.nav._setLastDist then
+                State.nav._setLastDist("")
             end
             if distText then
                 distText:SetText("")
             end
         end
-        arrow:SetAlpha(0.35)
+        setArrowAlpha(arrow, 0.35)
         return
     end
 
-    local tintR, tintG, tintB = arrowTint()
-    tintArrow(arrow, tintR, tintG, tintB, 1)
-
-    local angle, dist
-    if canAim and hbd and px and arrow.SetRotation then
-        angle, dist = hbd:GetWorldVector(instance, px, py, wp.wx, wp.wy)
-    elseif hbd and px and hbd.GetWorldVector then
-        -- Still resolve distance when facing is unavailable.
-        local ok
-        ok, angle, dist = pcall(hbd.GetWorldVector, hbd, instance, px, py, wp.wx, wp.wy)
-        if not ok then
-            angle, dist = nil, nil
-        end
+    local dest = ns.NavTarget and ns.NavTarget()
+    local angle = aimAngle(hbd, instance, px, py, wp, dest, facing)
+    local dist = ns.NavDistance and ns.NavDistance(dest) or nil
+    if type(dist) ~= "number" and dest and ns.PinZoneDistance and type(dest.x) == "number" then
+        dist = ns.PinZoneDistance(dest.map, dest.x, dest.y, dest.zone)
     end
 
     local distLabel = type(dist) == "number" and formatYards(dist) or ""
     if distLabel ~= lastDist then
-        if nav._setLastDist then
-            nav._setLastDist(distLabel)
+        if State.nav._setLastDist then
+            State.nav._setLastDist(distLabel)
         end
         if distText then
             distText:SetText(distLabel)
         end
     end
 
-    if angle and facing and arrow.SetRotation then
-        arrow:SetAlpha(1)
-        arrow:SetRotation(angle - facing)
+    if type(angle) == "number" and type(facing) == "number" and setArrowRotation(arrow, angle - facing) then
+        setArrowAlpha(arrow, 1)
     else
-        arrow:SetAlpha(0.35)
+        setArrowAlpha(arrow, 0.35)
     end
 end
 
@@ -3011,7 +2062,7 @@ local function waypointDistance(wp)
     if not wp or type(wp.wx) ~= "number" or type(wp.wy) ~= "number" then
         return nil
     end
-    local hbd = hereBeDragons()
+    local hbd = RG.hereBeDragons()
     if not hbd or not hbd.GetPlayerWorldPosition or not hbd.GetWorldVector then
         return nil
     end
@@ -3078,7 +2129,7 @@ local function openStepQuest(questID)
     if type(questID) ~= "number" then
         return
     end
-    if not playerOnQuest(questID) then
+    if not RG.playerOnQuest(questID) then
         return
     end
     if QuestLogFrame and SelectQuestLogEntry and GetQuestLogTitle then
@@ -3162,56 +2213,103 @@ local function bindStepTip(row, item)
     row.stepQuests = item.stepQuests
     row.place = item.place
     row.tipWaypoint = item.waypoint
-    row.tipTitle = plainText(item.headline)
+    row.tipTitle = RG.plainText(item.headline)
+end
+
+local function refreshRowWaypoint(row)
+    local place = row and row.place
+    if type(place) ~= "table" or type(place.x) ~= "number" or type(place.y) ~= "number" then
+        return row and row.arrow and row.arrow.__rxpbWp or nil
+    end
+    if ns.PinToPlayerWorld then
+        local wx, wy, inst = ns.PinToPlayerWorld(place.map, place.x, place.y, place.zone)
+        if type(wx) == "number" and type(wy) == "number" then
+            local wp = { wx = wx, wy = wy, instance = inst }
+            if row.arrow then
+                row.arrow.__rxpbWp = wp
+            end
+            row.tipWaypoint = wp
+            return wp
+        end
+    end
+    return row.arrow and row.arrow.__rxpbWp or nil
+end
+
+local function rowPinDistance(row, wp, hbd, x, y, instance)
+    -- Same-zone HBD/C_Map yards first. Synthetic PinToPlayerWorld coords can be
+    -- percent*4000 approximations whose world length is not real yards.
+    local place = row and row.place
+    if place and ns.PinZoneDistance then
+        local zoneDist = ns.PinZoneDistance(place.map, place.x, place.y, place.zone)
+        if type(zoneDist) == "number" then
+            return zoneDist
+        end
+    end
+    if wp and type(wp.wx) == "number" and hbd and type(x) == "number" then
+        if hbd.GetWorldDistance then
+            local ok, dist = pcall(hbd.GetWorldDistance, hbd, instance or 0, x, y, wp.wx, wp.wy)
+            if ok and type(dist) == "number" then
+                return dist
+            end
+        end
+        if hbd.GetWorldVector then
+            local ok, _, dist = pcall(hbd.GetWorldVector, hbd, instance or 0, x, y, wp.wx, wp.wy)
+            if ok and type(dist) == "number" then
+                return dist
+            end
+        end
+    end
+end
+
+local function playerFacing()
+    local facing = GetPlayerFacing and GetPlayerFacing()
+    if type(facing) ~= "number" then
+        return nil
+    end
+    -- Some clients return [-pi, pi]; HBD bearings are [0, 2pi).
+    if facing < 0 then
+        facing = facing + PI2
+    end
+    return facing
 end
 
 local function updateArrows()
     if not ns.db or not tracker:IsShown() or (not ns.db.standaloneGuide and not ns.db.replaceGuide) then
         return
     end
-    local facing = GetPlayerFacing and GetPlayerFacing()
-    local hbd = hereBeDragons()
+    local facing = playerFacing()
+    local hbd = RG.hereBeDragons()
     local x, y, instance
     if hbd and hbd.GetPlayerWorldPosition then
         x, y, instance = hbd:GetPlayerWorldPosition()
     end
     local canAim = facing and hbd and x
-    for _, row in ipairs(rows) do
+    for _, row in ipairs(State.rows) do
         local arrow = row.arrow
-        local wp = arrow and arrow.__rxpbWp
-        if arrow and arrow:IsShown() and wp and wp.wx and wp.wy then
-            local tintR, tintG, tintB = arrowTint()
-            tintArrow(arrow, tintR, tintG, tintB, 1)
-            if row.arrowShadow then
-                row.arrowShadow:SetDrawLayer("ARTWORK", 1)
+        if arrow and arrow:IsShown() then
+            local wp = refreshRowWaypoint(row)
+            local angle = aimAngle(hbd, instance, x, y, wp, row.place, facing)
+            local dist = rowPinDistance(row, wp, hbd, x, y, instance)
+
+            local distLabel = type(dist) == "number" and formatYards(dist) or ""
+            if row.distance and row.__rxpbDistLabel ~= distLabel then
+                row.__rxpbDistLabel = distLabel
+                row.distance:SetText(distLabel)
             end
-            arrow:SetDrawLayer("OVERLAY", 2)
-            if row.distance then
-                row.distance:SetTextColor(tintR, tintG, tintB)
-            end
-            local angle, dist
-            if canAim and arrow.SetRotation then
-                angle, dist = hbd:GetWorldVector(instance, x, y, wp.wx, wp.wy)
-            end
-            if angle then
-                arrow:SetAlpha(1)
-                arrow:SetRotation(angle - facing)
-                if row.arrowShadow and row.arrowShadow:IsShown() and row.arrowShadow.SetRotation then
-                    row.arrowShadow:SetRotation(angle - facing)
+
+            if type(angle) == "number" and type(facing) == "number" and setArrowRotation(arrow, angle - facing) then
+                setArrowAlpha(arrow, 1)
+                if row.arrowShadow and row.arrowShadow:IsShown() then
+                    setArrowRotation(row.arrowShadow, angle - facing)
+                    setArrowAlpha(row.arrowShadow, 0.9)
                 end
-                if row.distance then
-                    row.distance:SetText(formatYards(dist))
-                end
-            elseif canAim then
-                arrow:SetAlpha(0.35)
-                if row.distance then
-                    row.distance:SetText("")
-                end
+            else
+                setArrowAlpha(arrow, 0.35)
             end
         end
     end
-    if nav.syncArrow then
-        nav.syncArrow(facing, hbd, x, y, instance, canAim)
+    if State.nav.syncArrow then
+        State.nav.syncArrow(facing, hbd, x, y, instance, canAim)
     end
 end
 
@@ -3228,8 +2326,8 @@ local function setRowHover(row, on)
 end
 
 clearGuideTips = function()
-    for index = 1, #rows do
-        local row = rows[index]
+    for index = 1, #State.rows do
+        local row = State.rows[index]
         if row then
             row.tipShown = false
             row.__rxpbActionTip = 0
@@ -3287,7 +2385,7 @@ local function resumeRowStepTip(row)
 end
 
 local function acquireRow(index)
-    local row = rows[index]
+    local row = State.rows[index]
     if row then
         return row
     end
@@ -3372,7 +2470,7 @@ local function acquireRow(index)
     })
     row.badge.text = row.badge:CreateFontString(nil, "OVERLAY")
     row.badge.text:SetPoint("CENTER", 0, 0)
-    applyFont(row.badge.text, 12, "OUTLINE")
+    RG.applyFont(row.badge.text, 12, "OUTLINE")
     row.badge:EnableMouse(true)
     row.badge:SetFrameLevel(row:GetFrameLevel() + 8)
     row.badge:SetScript("OnEnter", function(self)
@@ -3423,31 +2521,31 @@ local function acquireRow(index)
             return
         end
         GameTooltip:Hide()
-        skipListedStep(self.stepIndex, self.sticky)
+        RG.skipListedStep(self.stepIndex, self.sticky)
     end)
 
     row.arrowShadow = row:CreateTexture(nil, "ARTWORK")
     row.arrowShadow:SetDrawLayer("ARTWORK", 1)
-    row.arrowShadow:SetTexture(ARROW_TEXTURE)
+    row.arrowShadow:SetTexture(UI.ARROW_TEXTURE)
     tintArrow(row.arrowShadow, 0, 0, 0, 0.8)
     row.arrowShadow:Hide()
 
     row.arrow = row:CreateTexture(nil, "OVERLAY")
     row.arrow:SetDrawLayer("OVERLAY", 2)
-    row.arrow:SetTexture(ARROW_TEXTURE)
+    row.arrow:SetTexture(UI.ARROW_TEXTURE)
     tintArrow(row.arrow, 1, 0.82, 0, 1)
     row.arrow:Hide()
 
     row.distance = row:CreateFontString(nil, "OVERLAY")
-    applyFont(row.distance, 10, "OUTLINE")
+    RG.applyFont(row.distance, 10, "OUTLINE")
     row.distance:SetJustifyH("CENTER")
     row.distance:SetJustifyV("TOP")
     row.distance:Hide()
 
     row.text = row:CreateFontString(nil, "OVERLAY")
-    paint(row.text, 13, 1, 1, 1)
+    RG.paint(row.text, 13, 1, 1, 1)
     row.details = row:CreateFontString(nil, "OVERLAY")
-    paint(row.details, 12, 0.82, 0.82, 0.82)
+    RG.paint(row.details, 12, 0.82, 0.82, 0.82)
     row.more = CreateFrame("Button", nil, row)
     row.more:SetHeight(14)
     row.more:EnableMouse(true)
@@ -3457,7 +2555,7 @@ local function acquireRow(index)
     row.more.text:SetAllPoints()
     row.more.text:SetJustifyH("LEFT")
     row.more.text:SetJustifyV("MIDDLE")
-    paint(row.more.text, 12, ns.Color("accent"))
+    RG.paint(row.more.text, 12, ns.Color("accent"))
     row.more:SetScript("OnEnter", function(self)
         local parent = self:GetParent()
         setRowHover(parent, true)
@@ -3468,7 +2566,7 @@ local function acquireRow(index)
         local tips = parent and parent.__rxpbTips
         local shown = 0
         for _, line in ipairs(tips or {}) do
-            local plain = plainText(line)
+            local plain = RG.plainText(line)
             if plain then
                 shown = shown + 1
                 if shown > 8 then
@@ -3498,12 +2596,52 @@ local function acquireRow(index)
             return
         end
         local key = item.stepIndex or item.number or 1
-        expandedTips[key] = not expandedTips[key]
+        State.expandedTips[key] = not State.expandedTips[key]
         if ns.RefreshTracker then
             ns.RefreshTracker(true)
         end
     end)
-    rows[index] = row
+    row.loadGuide = CreateFrame("Button", nil, row, "BackdropTemplate")
+    row.loadGuide:SetHeight(18)
+    row.loadGuide:EnableMouse(true)
+    row.loadGuide:RegisterForClicks("LeftButtonUp")
+    row.loadGuide:Hide()
+    row.loadGuide:SetBackdrop({
+        bgFile = "Interface\\BUTTONS\\WHITE8X8",
+        edgeFile = "Interface\\BUTTONS\\WHITE8X8",
+        edgeSize = 1,
+        insets = { left = 1, right = 1, top = 1, bottom = 1 },
+    })
+    row.loadGuide.label = row.loadGuide:CreateFontString(nil, "OVERLAY")
+    row.loadGuide.label:SetPoint("LEFT", 8, 0)
+    row.loadGuide.label:SetPoint("RIGHT", -8, 0)
+    row.loadGuide.label:SetJustifyH("CENTER")
+    row.loadGuide.label:SetJustifyV("MIDDLE")
+    RG.applyFont(row.loadGuide.label, 12, "OUTLINE")
+    row.loadGuide:SetScript("OnEnter", function(self)
+        local parent = self:GetParent()
+        setRowHover(parent, true)
+        pauseRowStepTip(parent)
+        local r, g, b = ns.Color("accent")
+        local target = self.guideName or "this guide"
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetText("Load guide", r, g, b)
+        GameTooltip:AddLine("Click to switch to " .. target .. ".", 1, 1, 1, true)
+        ns.FinishTooltip()
+        placeCursorTooltip(self)
+    end)
+    row.loadGuide:SetScript("OnLeave", function(self)
+        resumeRowStepTip(self:GetParent())
+    end)
+    row.loadGuide:SetScript("OnClick", function(self)
+        if type(self.guideId) ~= "string" or self.guideId == "" then
+            return
+        end
+        if ns.GuideSelect then
+            ns.GuideSelect(self.guideId)
+        end
+    end)
+    State.rows[index] = row
     return row
 end
 
@@ -3527,7 +2665,7 @@ local function applyPlace(button)
     if not place or not place.parent or InCombatLockdown() then
         return
     end
-    buttonBusy = true
+    State.buttonBusy = true
     button:SetParent(place.parent)
     button:ClearAllPoints()
     button:SetPoint("TOPLEFT", place.parent, "TOPLEFT", place.x, place.y)
@@ -3537,7 +2675,7 @@ local function applyPlace(button)
     button:SetAlpha(1)
     pcall(button.EnableMouse, button, true)
     button:Show()
-    buttonBusy = false
+    State.buttonBusy = false
 end
 
 local function hookAction(button)
@@ -3547,7 +2685,7 @@ local function hookAction(button)
     if not button.__rxpbHooked then
         button.__rxpbHooked = true
         hooksecurefunc(button, "SetPoint", function(self)
-            if buttonBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() or not self.__rxpbPlace then
+            if State.buttonBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() or not self.__rxpbPlace then
                 return
             end
             local place = self.__rxpbPlace
@@ -3578,18 +2716,18 @@ local function placeAction(button, parent, x, y)
     rememberHome(button)
     hookAction(button)
     button.__rxpbPlace = { parent = parent, x = x, y = y }
-    parked[button] = true
+    State.parked[button] = true
     applyPlace(button)
 end
 
 local function restoreAction(button)
     local home = button.__rxpbHome
     button.__rxpbPlace = nil
-    parked[button] = nil
+    State.parked[button] = nil
     if not home or InCombatLockdown() then
         return
     end
-    buttonBusy = true
+    State.buttonBusy = true
     if home.parent then
         button:SetParent(home.parent)
     end
@@ -3598,12 +2736,12 @@ local function restoreAction(button)
         button:SetPoint(home.point, home.relative, home.relativePoint or home.point, home.x or 0, home.y or 0)
     end
     button:SetSize(25, 25)
-    buttonBusy = false
+    State.buttonBusy = false
 end
 
 local function restoreAllActions()
     local held = {}
-    for button in pairs(parked) do
+    for button in pairs(State.parked) do
         held[#held + 1] = button
     end
     for _, button in ipairs(held) do
@@ -3615,7 +2753,7 @@ local function reassertActions()
     if InCombatLockdown() then
         return
     end
-    for button in pairs(parked) do
+    for button in pairs(State.parked) do
         local place = button.__rxpbPlace
         if place and place.parent then
             local _, relativeTo = button:GetPoint(1)
@@ -3638,6 +2776,38 @@ end
 
 local function colorCode(r, g, b)
     return "|cff" .. colorChannel(r) .. colorChannel(g) .. colorChannel(b)
+end
+
+-- Our guide text tags use |cRB_*| (Waynotes). Colors live on UI.GUIDE_TAG_COLORS.
+
+local function expandGuideTags(text)
+    if type(text) ~= "string" or text == "" then
+        return text
+    end
+    text = text:gsub("|T.-|t", "")
+    text = text:gsub("|H.-|h(.-)|h", "%1")
+    text = text:gsub("|n", "\n")
+
+    -- Innermost tags first so nested FRIENDLY/ENEMY inside WARN resolve.
+    local tags = { "FRIENDLY", "ENEMY", "LOOT", "PICK", "BUY", "QUEST", "WARN" }
+    for _ = 1, 8 do
+        local changed = false
+        for _, name in ipairs(tags) do
+            local key = "RB_" .. name .. "_"
+            local hex = UI.GUIDE_TAG_COLORS[key]
+            if hex then
+                local nextText, count = text:gsub("|c" .. key .. "(.-)|r", "|c" .. hex .. "%1|r")
+                if count > 0 then
+                    text = nextText
+                    changed = true
+                end
+            end
+        end
+        if not changed then
+            break
+        end
+    end
+    return text
 end
 
 local function spansOverlap(spans, first, last)
@@ -3737,7 +2907,7 @@ end
 
 local function findProgressNameSpans(plain)
     local spans = {}
-    local name = progressItemName(plain)
+    local name = RG.progressItemName(plain)
     if not name then
         return spans
     end
@@ -3781,7 +2951,10 @@ local function addSpans(spans, extra)
     end
 end
 
-local function presentPlain(plain, names, quests, highlightNames)
+local function accentPlain(plain, names, quests, highlightNames)
+    if type(plain) ~= "string" or plain == "" then
+        return plain or ""
+    end
     local spans = findBracketSpans(plain)
     addSpans(spans, findProgressNameSpans(plain))
     addSpans(spans, findNameSpans(plain, quests, false))
@@ -3791,19 +2964,46 @@ local function presentPlain(plain, names, quests, highlightNames)
     return colorSpans(plain, spans)
 end
 
-local function presentHeadline(item)
-    local plain = plainText(item.headline)
-    if not plain then
+-- Accent-color untagged spans; leave already-colored |cffRRGGBB|r segments alone.
+local function presentPlain(text, names, quests, highlightNames)
+    if type(text) ~= "string" or text == "" then
         return ""
     end
-    return presentPlain(plain, item.names, item.quests, true)
+    local expanded = expandGuideTags(text)
+    local out = {}
+    local cursor = 1
+    while true do
+        local first, last, hex, body = expanded:find("|c(%x%x%x%x%x%x%x%x)(.-)|r", cursor)
+        if not first then
+            out[#out + 1] = accentPlain(expanded:sub(cursor), names, quests, highlightNames)
+            break
+        end
+        if first > cursor then
+            out[#out + 1] = accentPlain(expanded:sub(cursor, first - 1), names, quests, highlightNames)
+        end
+        out[#out + 1] = "|c" .. hex .. body .. "|r"
+        cursor = last + 1
+    end
+    return table.concat(out)
+end
+
+local function presentHeadline(item)
+    local raw = item and item.headline
+    if type(raw) ~= "string" or raw == "" then
+        return ""
+    end
+    local presented = presentPlain(raw, item.names, item.quests, true)
+    if presented == "" then
+        return ""
+    end
+    return presented
 end
 
 local function isObjectiveDetail(text)
-    if isProgress(text) then
+    if RG.isProgress(text) then
         return true
     end
-    local plain = plainText(text)
+    local plain = RG.plainText(text)
     if not plain then
         return false
     end
@@ -3824,10 +3024,10 @@ local function isObjectiveDetail(text)
 end
 
 local function objectiveRank(text)
-    if isProgress(text) then
+    if RG.isProgress(text) then
         return 1
     end
-    local plain = plainText(text)
+    local plain = RG.plainText(text)
     local lower = plain and plain:lower() or ""
     if lower:match("^accept%s") or lower:match("^turn%s+in%s") or lower:match("^complete%s") then
         return 2
@@ -3882,9 +3082,12 @@ local function presentDetailLines(lines, item)
     local bullet = colorCode(accentR, accentG, accentB) .. "\226\128\162|r "
     local out = {}
     for _, line in ipairs(lines or {}) do
-        local plain = plainText(line)
-        if plain then
-            out[#out + 1] = bullet .. presentPlain(plain, item.names, item.quests, true)
+        if type(line) == "string" and strtrim(line) ~= "" then
+            local presented = presentPlain(line, item.names, item.quests, true)
+            local check = RG.plainText(presented)
+            if check and check ~= "" then
+                out[#out + 1] = bullet .. presented
+            end
         end
     end
     return table.concat(out, "\n")
@@ -3899,11 +3102,11 @@ local function visibleDetailLines(item, index)
     local details = item and item.details or {}
     local objectives, tips = splitDetails(details)
     -- Nest notes whenever objective lines are present, or when there are several notes alone.
-    local shouldNest = #tips >= 1 and (#objectives >= 1 or #tips >= MORE_TIP_THRESHOLD)
+    local shouldNest = #tips >= 1 and (#objectives >= 1 or #tips >= UI.MORE_TIP_THRESHOLD)
     if not shouldNest then
         return joinDetails(objectives, tips), false, false, #tips
     end
-    local expanded = expandedTips[tipKey(item, index)] and true or false
+    local expanded = State.expandedTips[tipKey(item, index)] and true or false
     if expanded then
         return joinDetails(objectives, tips), true, true, #tips
     end
@@ -3914,7 +3117,7 @@ local function applyRowText(row, item, index)
     row.__rxpbItem = item
     local main = index == 1
     local textR, textG, textB = ns.Color(main and "text" or "secondary")
-    paint(row.text, main and 16 or 13, textR, textG, textB)
+    RG.paint(row.text, main and 16 or 13, textR, textG, textB)
     row.text:SetText(presentHeadline(item))
     local _, tipLines = splitDetails(item and item.details)
     row.__rxpbTips = tipLines
@@ -3922,7 +3125,7 @@ local function applyRowText(row, item, index)
     row.__rxpbTipsExpanded = expanded and true or false
     if shown and #shown > 0 then
         local detailR, detailG, detailB = ns.Color("detail")
-        paint(row.details, main and 13 or 12, detailR, detailG, detailB)
+        RG.paint(row.details, main and 13 or 12, detailR, detailG, detailB)
         row.details:SetText(presentDetailLines(shown, item))
         row.details:Show()
     elseif row.details then
@@ -3932,11 +3135,29 @@ local function applyRowText(row, item, index)
     if row.more then
         if canToggle then
             local accentR, accentG, accentB = ns.Color("accent")
-            paint(row.more.text, main and 12 or 11, accentR, accentG, accentB)
+            RG.paint(row.more.text, main and 12 or 11, accentR, accentG, accentB)
             row.more.text:SetText(expanded and "- fewer notes" or "+ more notes")
             row.more:Show()
         else
             row.more:Hide()
+        end
+    end
+    if row.loadGuide then
+        local linked = item and item.loadGuide
+        if linked and type(linked.id) == "string" and linked.id ~= "" then
+            local accentR, accentG, accentB = ns.Color("accent")
+            local label = "Load: " .. (linked.name or linked.id)
+            RG.paint(row.loadGuide.label, main and 12 or 11, 1, 1, 1)
+            row.loadGuide.label:SetText(label)
+            row.loadGuide.guideId = linked.id
+            row.loadGuide.guideName = linked.name or linked.id
+            row.loadGuide:SetBackdropColor(accentR * 0.25, accentG * 0.25, accentB * 0.25, 0.92)
+            row.loadGuide:SetBackdropBorderColor(accentR, accentG, accentB, 0.9)
+            row.loadGuide:Show()
+        else
+            row.loadGuide.guideId = nil
+            row.loadGuide.guideName = nil
+            row.loadGuide:Hide()
         end
     end
 end
@@ -3946,22 +3167,17 @@ local function badgeLabel(item, index)
     return number, tostring(number)
 end
 
-local TRACKER_CHROME = 44
-local MIN_TRACKER_WIDTH = 220
-local MAX_TRACKER_WIDTH = 640
-local MIN_TRACKER_HEIGHT = 120
-local MAX_TRACKER_HEIGHT = 800
 
 local function readTrackerWidth()
-    local width = ns.db and ns.db.trackerWidth or TRACKER_WIDTH
+    local width = ns.db and ns.db.trackerWidth or UI.TRACKER_WIDTH
     if type(width) ~= "number" then
-        width = TRACKER_WIDTH
+        width = UI.TRACKER_WIDTH
     end
     width = math.floor(width + 0.5)
-    if width < MIN_TRACKER_WIDTH then
-        width = MIN_TRACKER_WIDTH
-    elseif width > MAX_TRACKER_WIDTH then
-        width = MAX_TRACKER_WIDTH
+    if width < UI.MIN_TRACKER_WIDTH then
+        width = UI.MIN_TRACKER_WIDTH
+    elseif width > UI.MAX_TRACKER_WIDTH then
+        width = UI.MAX_TRACKER_WIDTH
     end
     return width
 end
@@ -3975,10 +3191,10 @@ local function readTrackerHeight()
         height = 360
     end
     height = math.floor(height + 0.5)
-    if height < MIN_TRACKER_HEIGHT then
-        height = MIN_TRACKER_HEIGHT
-    elseif height > MAX_TRACKER_HEIGHT then
-        height = MAX_TRACKER_HEIGHT
+    if height < UI.MIN_TRACKER_HEIGHT then
+        height = UI.MIN_TRACKER_HEIGHT
+    elseif height > UI.MAX_TRACKER_HEIGHT then
+        height = UI.MAX_TRACKER_HEIGHT
     end
     return height
 end
@@ -4010,7 +3226,7 @@ local function updateScrollThumb(view, content, offset, maxScroll)
 end
 
 local function scrollRange()
-    local chrome = TRACKER_CHROME + (flight.chrome or 0) + (nav.chrome or 0)
+    local chrome = UI.TRACKER_CHROME + (State.flight.chrome or 0) + (State.nav.chrome or 0)
     local view = (tracker:GetHeight() or 0) - chrome
     local content = body:GetHeight() or 0
     if view < 1 then
@@ -4054,7 +3270,7 @@ local function applyTrackerBox(contentHeight, resetScroll)
     end
     body:SetWidth(inner)
     body:SetHeight(contentHeight)
-    local chrome = TRACKER_CHROME + (flight.chrome or 0) + (nav.chrome or 0)
+    local chrome = UI.TRACKER_CHROME + (State.flight.chrome or 0) + (State.nav.chrome or 0)
     local limit = readTrackerHeight()
     local height = chrome + contentHeight
     if limit then
@@ -4090,8 +3306,8 @@ local function badgeFontSize(main, number)
 end
 
 local function progressRatio(text)
-    local plain = plainText(text)
-    if not plain or not isProgress(plain) then
+    local plain = RG.plainText(text)
+    if not plain or not RG.isProgress(plain) then
         return nil
     end
     local done, total = plain:match("(%d+)%s*/%s*(%d+)")
@@ -4125,8 +3341,6 @@ local function stepRatios(item)
     return ratios
 end
 
-local PROGRESS_BAR_HEIGHT = 6
-local PROGRESS_BAR_GAP = 2
 
 local function ensureProgressBar(row, index)
     row.progressBars = row.progressBars or {}
@@ -4135,7 +3349,7 @@ local function ensureProgressBar(row, index)
         return holder
     end
     holder = CreateFrame("Frame", nil, row, "BackdropTemplate")
-    holder:SetHeight(PROGRESS_BAR_HEIGHT)
+    holder:SetHeight(UI.PROGRESS_BAR_HEIGHT)
     holder:SetBackdrop({
         bgFile = "Interface\\BUTTONS\\WHITE8X8",
         edgeFile = "Interface\\BUTTONS\\WHITE8X8",
@@ -4173,7 +3387,7 @@ local function syncProgressBars(row, item, textLeft, rightInset)
         local holder = ensureProgressBar(row, index)
         holder:Show()
         holder:ClearAllPoints()
-        local y = 1 + (#ratios - index) * (PROGRESS_BAR_HEIGHT + PROGRESS_BAR_GAP)
+        local y = 1 + (#ratios - index) * (UI.PROGRESS_BAR_HEIGHT + UI.PROGRESS_BAR_GAP)
         holder:SetPoint("BOTTOMLEFT", textLeft, y)
         holder:SetPoint("BOTTOMRIGHT", -rightInset, y)
         holder:SetBackdropColor(0, 0, 0, 0.6)
@@ -4189,7 +3403,7 @@ local function syncProgressBars(row, item, textLeft, rightInset)
     if #ratios == 0 then
         return 0
     end
-    return #ratios * PROGRESS_BAR_HEIGHT + (#ratios - 1) * PROGRESS_BAR_GAP + 4
+    return #ratios * UI.PROGRESS_BAR_HEIGHT + (#ratios - 1) * UI.PROGRESS_BAR_GAP + 4
 end
 
 local function layout(items, resetScroll)
@@ -4201,12 +3415,12 @@ local function layout(items, resetScroll)
     body:SetWidth(math.max(40, width - 16))
 
     if count == 0 then
-        for index = 1, #rows do
-            rows[index]:Hide()
+        for index = 1, #State.rows do
+            State.rows[index]:Hide()
         end
         empty:Show()
         divider:Hide()
-        local waiting = guideTitle() ~= "RestedXP"
+        local waiting = RG.guideTitle() ~= "RestedXP"
         empty:SetText(waiting and "Waiting for the next step" or "Right-click to choose a guide")
         applyTrackerBox(20, resetScroll)
         restoreAllActions()
@@ -4229,10 +3443,10 @@ local function layout(items, resetScroll)
 
         row.badge:ClearAllPoints()
         row.badge:SetSize(badgeSize, badgeSize)
-        row.badge:SetPoint("TOPLEFT", (COLUMN - badgeSize) / 2, main and -1 or 0)
+        row.badge:SetPoint("TOPLEFT", (UI.COLUMN - badgeSize) / 2, main and -1 or 0)
         styleBadge(row.badge, br, bg, bb)
         local badgeNumber, badgeText = badgeLabel(item, index)
-        applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
+        RG.applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
         row.badge.text:ClearAllPoints()
         row.badge.text:SetAllPoints(row.badge)
         row.badge.text:SetJustifyH("CENTER")
@@ -4248,18 +3462,25 @@ local function layout(items, resetScroll)
         row.badge.text:SetShadowColor(0, 0, 0, 1)
         row.badge.text:SetShadowOffset(0, 0)
 
-        local textLeft = COLUMN + 8
+        local textLeft = UI.COLUMN + 8
         local rightInset = 0
         local arrowSize = main and 20 or 15
-        if item.waypoint and row.arrow then
+        local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
+        if hasPin and row.arrow then
             local tintR, tintG, tintB = arrowTint()
-            local centerX = -2 - (ARROW_COLUMN / 2)
+            local centerX = -2 - (UI.ARROW_COLUMN / 2)
             tintArrow(row.arrow, tintR, tintG, tintB, 1)
             row.arrow:Show()
             row.arrow:ClearAllPoints()
             row.arrow:SetSize(arrowSize, arrowSize)
             row.arrow:SetPoint("CENTER", row, "TOPRIGHT", centerX, -arrowSize / 2)
+            -- Force aim path to re-apply texcoords after layout resize.
+            row.arrow.__rxpbRot = nil
             row.arrow.__rxpbWp = item.waypoint
+            row.place = item.place
+            if not row.arrow.__rxpbWp then
+                refreshRowWaypoint(row)
+            end
             if row.arrowShadow then
                 tintArrow(row.arrowShadow, 0, 0, 0, 0.9)
                 row.arrowShadow:Show()
@@ -4267,18 +3488,19 @@ local function layout(items, resetScroll)
                 row.arrowShadow:SetSize(arrowSize + 2, arrowSize + 2)
                 row.arrowShadow:SetPoint("CENTER", row, "TOPRIGHT", centerX, -arrowSize / 2)
                 row.arrowShadow:SetDrawLayer("ARTWORK", 1)
+                row.arrowShadow.__rxpbRot = nil
             end
             row.arrow:SetDrawLayer("OVERLAY", 2)
             if row.distance then
                 row.distance:Show()
                 row.distance:ClearAllPoints()
                 row.distance:SetPoint("TOPRIGHT", -2, -(arrowSize + 5))
-                row.distance:SetWidth(ARROW_COLUMN)
-                applyFont(row.distance, main and 10 or 9, "OUTLINE")
+                row.distance:SetWidth(UI.ARROW_COLUMN)
+                RG.applyFont(row.distance, main and 10 or 9, "OUTLINE")
                 row.distance:SetJustifyH("CENTER")
                 row.distance:SetTextColor(tintR, tintG, tintB)
             end
-            rightInset = ARROW_COLUMN + 6
+            rightInset = UI.ARROW_COLUMN + 6
         elseif row.arrow then
             row.arrow:Hide()
             row.arrow.__rxpbWp = nil
@@ -4330,13 +3552,27 @@ local function layout(items, resetScroll)
             row.more:Hide()
         end
 
+        local loadHeight = 0
+        if row.loadGuide and row.loadGuide:IsShown() then
+            local label = row.loadGuide.label:GetText() or "Load guide"
+            local labelWidth = row.loadGuide.label:GetStringWidth() or 80
+            local buttonWidth = math.min(math.max(labelWidth + 20, 120), math.max(80, width - 24 - textLeft - rightInset))
+            row.loadGuide:ClearAllPoints()
+            row.loadGuide:SetPoint("TOPLEFT", textLeft, -(textHeight + detailHeight + moreHeight + 4))
+            row.loadGuide:SetSize(buttonWidth, 18)
+            row.loadGuide.label:SetText(label)
+            loadHeight = 22
+        elseif row.loadGuide then
+            row.loadGuide:Hide()
+        end
+
         local actionHeight = 0
         local actions = item.actions or {}
         if #actions > 0 then
             local stride = 26
             local avail = width - 24 - textLeft - rightInset
             local perRow = math.max(1, math.floor(avail / stride))
-            local yBase = textHeight + detailHeight + moreHeight + 4
+            local yBase = textHeight + detailHeight + moreHeight + loadHeight + 4
             for actionIndex, button in ipairs(actions) do
                 local col = (actionIndex - 1) % perRow
                 local line = math.floor((actionIndex - 1) / perRow)
@@ -4346,19 +3582,19 @@ local function layout(items, resetScroll)
             actionHeight = (math.floor((#actions - 1) / perRow) + 1) * stride + 2
         end
 
-        local navHeight = item.waypoint and (arrowSize + 17) or 0
+        local navHeight = hasPin and (arrowSize + 17) or 0
         local barHeight = syncProgressBars(row, item, textLeft, rightInset)
-        local blockHeight = math.max(badgeSize, textHeight + detailHeight + moreHeight + actionHeight, navHeight) + barHeight
+        local blockHeight = math.max(badgeSize, textHeight + detailHeight + moreHeight + loadHeight + actionHeight, navHeight) + barHeight
         row:SetHeight(blockHeight)
         y = y + blockHeight + (main and 10 or 6)
     end
 
-    for index = count + 1, #rows do
-        rows[index]:Hide()
+    for index = count + 1, #State.rows do
+        State.rows[index]:Hide()
     end
 
     local stale = {}
-    for button in pairs(parked) do
+    for button in pairs(State.parked) do
         if not seenActions[button] then
             stale[#stale + 1] = button
         end
@@ -4368,9 +3604,9 @@ local function layout(items, resetScroll)
     end
 
     if count > 1 then
-        local mainRow = rows[1]
+        local mainRow = State.rows[1]
         divider:ClearAllPoints()
-        divider:SetPoint("TOPLEFT", body, "TOPLEFT", COLUMN + 8, -(mainRow:GetHeight() + 4))
+        divider:SetPoint("TOPLEFT", body, "TOPLEFT", UI.COLUMN + 8, -(mainRow:GetHeight() + 4))
         divider:SetPoint("TOPRIGHT", body, "TOPRIGHT", 0, -(mainRow:GetHeight() + 4))
         divider:Show()
     else
@@ -4382,7 +3618,7 @@ local function layout(items, resetScroll)
 end
 
 local function paintRowColors()
-    for index, row in ipairs(rows) do
+    for index, row in ipairs(State.rows) do
         if row:IsShown() and row.badge then
             local r, g, b = ns.BadgeColor(index)
             styleBadge(row.badge, r, g, b)
@@ -4402,12 +3638,276 @@ local function paintRowColors()
     end
 end
 
+do
+    local PIN_REF = addonName .. "-step-pins"
+    local SHOW_WORLD = (rawget(_G, "HBD_PINS_WORLDMAP_SHOW_WORLD")) or 3
+    local BADGE = {
+        bgFile = "Interface\\BUTTONS\\WHITE8X8",
+        edgeFile = "Interface\\BUTTONS\\WHITE8X8",
+        edgeSize = 1,
+        insets = { left = 1, right = 1, top = 1, bottom = 1 },
+    }
+
+    local function pinsLib()
+        if not LibStub then
+            return nil
+        end
+        local ok, lib = pcall(LibStub, "HereBeDragons-Pins-2.0")
+        if ok then
+            return lib
+        end
+    end
+
+    local function clearStepMapPins()
+        local pins = pinsLib()
+        if pins then
+            if pins.RemoveAllWorldMapIcons then
+                pins:RemoveAllWorldMapIcons(PIN_REF)
+            end
+            if pins.RemoveAllMinimapIcons then
+                pins:RemoveAllMinimapIcons(PIN_REF)
+            end
+        end
+        for _, frame in ipairs(State.mapPins.frames) do
+            frame:Hide()
+            frame:ClearAllPoints()
+            frame:SetParent(UIParent)
+        end
+        State.mapPins.signature = nil
+    end
+
+    local function acquireStepMapPin(index)
+        local frame = State.mapPins.frames[index]
+        if frame then
+            return frame
+        end
+        frame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+        frame:SetSize(22, 22)
+        frame:SetBackdrop(BADGE)
+        frame.ring = frame:CreateTexture(nil, "BORDER")
+        setCircleTexture(frame.ring)
+        frame.ring:SetPoint("TOPLEFT", -1, 1)
+        frame.ring:SetPoint("BOTTOMRIGHT", 1, -1)
+        frame.circle = frame:CreateTexture(nil, "ARTWORK")
+        setCircleTexture(frame.circle)
+        frame.circle:SetPoint("TOPLEFT", 1, -1)
+        frame.circle:SetPoint("BOTTOMRIGHT", -1, 1)
+        frame.text = frame:CreateFontString(nil, "OVERLAY")
+        frame.text:SetAllPoints()
+        frame.text:SetJustifyH("CENTER")
+        frame.text:SetJustifyV("MIDDLE")
+        RG.applyFont(frame.text, 12, "OUTLINE")
+        frame.text:SetTextColor(1, 1, 1)
+        frame:EnableMouse(true)
+        frame:SetScript("OnEnter", function(self)
+            if not self.tipTitle then
+                return
+            end
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:AddLine(self.tipTitle, 1, 0.82, 0)
+            if self.tipPlace then
+                GameTooltip:AddLine(self.tipPlace, 0.9, 0.9, 0.9, true)
+            end
+            if self.tipWorld then
+                GameTooltip:AddLine(self.tipWorld, 0.75, 0.75, 0.75, true)
+            end
+            GameTooltip:Show()
+        end)
+        frame:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+        State.mapPins.frames[index] = frame
+        return frame
+    end
+
+    local function paintStepMapPin(frame, index, badgeText)
+        local r, g, b = ns.BadgeColor(index)
+        local rounded = ns.db and ns.db.roundBadges
+        if rounded then
+            frame:SetBackdropColor(0, 0, 0, 0)
+            frame:SetBackdropBorderColor(0, 0, 0, 0)
+            frame.ring:SetVertexColor(0, 0, 0, 0.7)
+            frame.ring:Show()
+            frame.circle:SetVertexColor(r, g, b, 1)
+            frame.circle:Show()
+        else
+            frame.ring:Hide()
+            frame.circle:Hide()
+            frame:SetBackdropColor(r, g, b, 1)
+            frame:SetBackdropBorderColor(0, 0, 0, 0.45)
+        end
+        frame.text:SetText(badgeText)
+        local size = index == 1 and 22 or 18
+        frame:SetSize(size, size)
+        RG.applyFont(frame.text, index == 1 and 12 or 10, "OUTLINE")
+    end
+
+    local function fraction(value)
+        if type(value) ~= "number" then
+            return nil
+        end
+        if value > 1 then
+            return value / 100
+        end
+        return value
+    end
+
+    local function sameZoneAsPlayer(place)
+        if type(place) ~= "table" then
+            return false
+        end
+        local pmap = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+        if type(place.map) == "number" and type(pmap) == "number" and place.map == pmap then
+            return true, pmap
+        end
+        local pinZone = place.zone or (place.map and ns.MapName and ns.MapName(place.map))
+        local pzone = GetRealZoneText and GetRealZoneText()
+        if type(pinZone) == "string" and type(pzone) == "string" then
+            local a = pinZone:lower():gsub("^the%s+", "")
+            local b = pzone:lower():gsub("^the%s+", "")
+            if a ~= "" and b ~= "" and (a == b or a:find(b, 1, true) or b:find(a, 1, true)) then
+                return true, pmap
+            end
+        end
+        return false, pmap
+    end
+
+    local function placePin(pins, frame, item, index)
+        local place = item.place
+        local wp = item.waypoint
+        if (not wp or type(wp.wx) ~= "number") and place and ns.PinToPlayerWorld then
+            local wx, wy, inst = ns.PinToPlayerWorld(place.map, place.x, place.y, place.zone)
+            if type(wx) == "number" then
+                wp = { wx = wx, wy = wy, instance = inst }
+            end
+        end
+
+        local zx = place and fraction(place.x)
+        local zy = place and fraction(place.y)
+        local placed = false
+
+        -- Prefer authored zone percents on a map HBD can show (live map when
+        -- Forever remaps classic ids).
+        if type(zx) == "number" and type(zy) == "number" then
+            local same, pmap = sameZoneAsPlayer(place)
+            local maps = {}
+            if same and type(pmap) == "number" then
+                maps[#maps + 1] = pmap
+            end
+            if type(place.map) == "number" then
+                maps[#maps + 1] = place.map
+            end
+            for _, mapId in ipairs(maps) do
+                pins:AddWorldMapIconMap(PIN_REF, frame, mapId, zx, zy, SHOW_WORLD)
+                if pins.AddMinimapIconMap then
+                    pins:AddMinimapIconMap(PIN_REF, frame, mapId, zx, zy, true, true)
+                end
+                -- HBD silently no-ops when zone→world fails; detect via registry.
+                if pins.worldmapPinRegistry and pins.worldmapPinRegistry[PIN_REF] and pins.worldmapPinRegistry[PIN_REF][frame] then
+                    placed = true
+                    break
+                end
+                if pins.RemoveWorldMapIcon then
+                    pins:RemoveWorldMapIcon(PIN_REF, frame)
+                end
+                if pins.RemoveMinimapIcon then
+                    pins:RemoveMinimapIcon(PIN_REF, frame)
+                end
+            end
+        end
+
+        if not placed and wp and type(wp.wx) == "number" and type(wp.wy) == "number" then
+            pins:AddWorldMapIconWorld(PIN_REF, frame, wp.instance or 0, wp.wx, wp.wy, SHOW_WORLD)
+            if pins.AddMinimapIconWorld then
+                pins:AddMinimapIconWorld(PIN_REF, frame, wp.instance or 0, wp.wx, wp.wy, true)
+            end
+            placed = true
+        end
+
+        if not placed then
+            return false
+        end
+
+        local _, badgeText = badgeLabel(item, index)
+        paintStepMapPin(frame, index, badgeText)
+        frame.tipTitle = string.format("Step %s", badgeText)
+        if place and type(place.x) == "number" then
+            local mapLabel = place.zone or (place.map and tostring(place.map)) or "?"
+            frame.tipPlace = string.format("%s  %.1f, %.1f", mapLabel, place.x > 1 and place.x or place.x * 100, place.y > 1 and place.y or place.y * 100)
+        else
+            frame.tipPlace = nil
+        end
+        if wp and type(wp.wx) == "number" then
+            frame.tipWorld = string.format("world %.0f, %.0f  i%s", wp.wx, wp.wy, tostring(wp.instance or "?"))
+        else
+            frame.tipWorld = nil
+        end
+        frame:Show()
+        return true
+    end
+
+    function State.syncStepMapPins(items)
+        local pins = pinsLib()
+        if not pins or not pins.AddWorldMapIconMap then
+            return
+        end
+        if type(items) ~= "table" or not tracker:IsShown() then
+            clearStepMapPins()
+            return
+        end
+        if not ns.db or (not ns.db.standaloneGuide and not ns.db.replaceGuide) then
+            clearStepMapPins()
+            return
+        end
+
+        local parts = {}
+        for index, item in ipairs(items) do
+            local place = item.place
+            local wp = item.waypoint
+            local px = place and place.x or "-"
+            local py = place and place.y or "-"
+            local pm = place and place.map or "-"
+            local wx = wp and wp.wx or "-"
+            local wy = wp and wp.wy or "-"
+            parts[index] = tostring(item.number or index) .. ":" .. tostring(pm) .. ":" .. tostring(px) .. ":" .. tostring(py) .. ":" .. tostring(wx) .. ":" .. tostring(wy)
+        end
+        local signature = table.concat(parts, "|")
+        if signature == State.mapPins.signature then
+            return
+        end
+
+        clearStepMapPins()
+        State.mapPins.signature = signature
+
+        local used = 0
+        for index, item in ipairs(items) do
+            local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
+            if hasPin then
+                used = used + 1
+                local frame = acquireStepMapPin(used)
+                if not placePin(pins, frame, item, index) then
+                    frame:Hide()
+                    used = used - 1
+                end
+            end
+        end
+        for index = used + 1, #State.mapPins.frames do
+            State.mapPins.frames[index]:Hide()
+        end
+    end
+
+    State.clearStepMapPins = clearStepMapPins
+end
+
 function ns.RefreshTracker(force)
     if not ns.db or not tracker:IsShown() or (not ns.db.standaloneGuide and not ns.db.replaceGuide) then
+        if State.clearStepMapPins then
+            State.clearStepMapPins()
+        end
         return
     end
 
-    local items = collectObjectives()
+    local items = RG.collectObjectives()
     local parts = {}
     for index, item in ipairs(items) do
         local actionNames = {}
@@ -4420,9 +3920,9 @@ function ns.RefreshTracker(force)
         parts[index] = tostring(item.number) .. "\t" .. item.headline .. "\t" .. table.concat(item.details or {}, "|") .. "\t" .. table.concat(item.names or {}, ",") .. "\t" .. table.concat(item.quests or {}, ",") .. "\t" .. table.concat(actionNames, ",") .. "\t" .. wpText
     end
     local percentLabel = guidePercentLabel() or ""
-    local signature = guideTitle() .. "\n" .. percentLabel .. "\n" .. table.concat(parts, "\n")
+    local signature = RG.guideTitle() .. "\n" .. percentLabel .. "\n" .. table.concat(parts, "\n")
 
-    header:SetText(guideTitle())
+    header:SetText(RG.guideTitle())
     placeGuidePercent()
 
     local scale = ns.db.trackerScale or 1.2
@@ -4430,14 +3930,14 @@ function ns.RefreshTracker(force)
         tracker:SetScale(scale)
     end
 
-    if InCombatLockdown() and next(parked) then
+    if InCombatLockdown() and next(State.parked) then
         for index, item in ipairs(items) do
-            local row = rows[index]
+            local row = State.rows[index]
             if row and row.text then
                 local main = index == 1
                 if row.badge and row.badge.text then
                     local badgeNumber, badgeText = badgeLabel(item, index)
-                    applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
+                    RG.applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
                     row.badge.text:SetText(badgeText)
                     row.badge.stepIndex = item.stepIndex
                     row.badge.sticky = item.sticky
@@ -4452,44 +3952,50 @@ function ns.RefreshTracker(force)
         paintRowColors()
         styleTracker()
         styleStepButtons()
+        if State.syncStepMapPins then
+            State.syncStepMapPins(items)
+        end
         return
     end
 
     local sizeNow = readTrackerWidth() .. ":" .. (readTrackerHeight() or 0)
-    local sizeChanged = sizeNow ~= sizeKey
-    sizeKey = sizeNow
-    local contentChanged = signature ~= lastSignature
-    if force or contentChanged or sizeChanged or remeasure then
+    local sizeChanged = sizeNow ~= State.sizeKey
+    State.sizeKey = sizeNow
+    local contentChanged = signature ~= State.lastSignature
+    if force or contentChanged or sizeChanged or State.remeasure then
         if layout(items, contentChanged) then
-            lastSignature = signature
-            remeasure = sizeChanged
+            State.lastSignature = signature
+            State.remeasure = sizeChanged
         else
-            remeasure = true
+            State.remeasure = true
         end
     end
     styleTracker()
     paintRowColors()
     styleStepButtons()
     reassertActions()
+    if State.syncStepMapPins then
+        State.syncStepMapPins(items)
+    end
 end
 
 local function hookMouse(frame)
-    if not frame or hookedMouse[frame] or not frame.EnableMouse or not frame.GetObjectType then
+    if not frame or State.hookedMouse[frame] or not frame.EnableMouse or not frame.GetObjectType then
         return
     end
     if frame.IsForbidden and frame:IsForbidden() then
         return
     end
 
-    hookedMouse[frame] = true
+    State.hookedMouse[frame] = true
     hooksecurefunc(frame, "EnableMouse", function(self, enabled)
-        if mouseBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
+        if State.mouseBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
             return
         end
         if enabled then
-            mouseBusy = true
+            State.mouseBusy = true
             pcall(self.EnableMouse, self, false)
-            mouseBusy = false
+            State.mouseBusy = false
         end
     end)
 end
@@ -4521,12 +4027,12 @@ local function walkMouse(frame, depth)
         return
     end
 
-    local unseen = not hookedMouse[frame]
+    local unseen = not State.hookedMouse[frame]
     hookMouse(frame)
     if unseen and ns.ReplacingGuide() and frame.EnableMouse then
-        mouseBusy = true
+        State.mouseBusy = true
         pcall(frame.EnableMouse, frame, false)
-        mouseBusy = false
+        State.mouseBusy = false
     end
 
     if frame.GetNumChildren then
@@ -4535,8 +4041,6 @@ local function walkMouse(frame, depth)
         end
     end
 end
-
-local chromeHooked = {}
 
 local function chromeFrames(rxp)
     return {
@@ -4547,26 +4051,35 @@ local function chromeFrames(rxp)
     }
 end
 
+local function satelliteFrames()
+    local frames = {}
+    if _G.RXPTargetFrame then
+        frames[#frames + 1] = _G.RXPTargetFrame
+    end
+    local items = RG.itemWindow and RG.itemWindow()
+    if items then
+        frames[#frames + 1] = items
+    end
+    return frames
+end
+
 local function hookChromeAlpha(frame)
-    if not frame or chromeHooked[frame] or not frame.SetAlpha then
+    if not frame or State.chromeHooked[frame] or not frame.SetAlpha then
         return
     end
-    chromeHooked[frame] = true
+    State.chromeHooked[frame] = true
     hooksecurefunc(frame, "SetAlpha", function(self, alpha)
-        if alphaBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
+        if State.alphaBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
             return
         end
         if (alpha or 1) > 0 then
-            alphaBusy = true
+            State.alphaBusy = true
             self:SetAlpha(0)
-            alphaBusy = false
+            State.alphaBusy = false
         end
     end)
 end
 
-local cogBusy = false
-local cogHome
-local satelliteHooked = {}
 
 local function guideCog()
     local rxp = _G.RXPFrame
@@ -4574,11 +4087,11 @@ local function guideCog()
 end
 
 local function rememberCog(cog)
-    if cogHome or not cog then
+    if State.cogHome or not cog then
         return
     end
     local point, relative, relativePoint, x, y = cog:GetPoint(1)
-    cogHome = {
+    State.cogHome = {
         parent = cog:GetParent(),
         point = point,
         relative = relative,
@@ -4597,22 +4110,22 @@ local function placeCog()
     if not cog.__rxpbHooked then
         cog.__rxpbHooked = true
         hooksecurefunc(cog, "SetPoint", function(self)
-            if cogBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
+            if State.cogBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
                 return
             end
             local _, relativeTo = self:GetPoint(1)
             if relativeTo == tracker then
                 return
             end
-            cogBusy = true
+            State.cogBusy = true
             self:SetParent(tracker)
             self:ClearAllPoints()
             self:SetPoint("TOPRIGHT", tracker, "TOPRIGHT", -4, -4)
-            cogBusy = false
+            State.cogBusy = false
         end)
     end
 
-    cogBusy = true
+    State.cogBusy = true
     cog:SetParent(tracker)
     cog:SetFrameStrata(tracker:GetFrameStrata())
     cog:SetFrameLevel(tracker:GetFrameLevel() + 20)
@@ -4621,67 +4134,55 @@ local function placeCog()
     cog:SetAlpha(1)
     cog:EnableMouse(true)
     cog:Show()
-    cogBusy = false
+    State.cogBusy = false
 end
 
 ns.PlaceGuideCog = placeCog
 
 local function restoreCog()
     local cog = guideCog()
-    if not cog or not cogHome then
+    if not cog or not State.cogHome then
         return
     end
-    cogBusy = true
-    if cogHome.parent then
-        cog:SetParent(cogHome.parent)
+    State.cogBusy = true
+    if State.cogHome.parent then
+        cog:SetParent(State.cogHome.parent)
     end
     cog:ClearAllPoints()
-    if cogHome.point and cogHome.relative then
-        cog:SetPoint(cogHome.point, cogHome.relative, cogHome.relativePoint or cogHome.point, cogHome.x or 0, cogHome.y or 0)
+    if State.cogHome.point and State.cogHome.relative then
+        cog:SetPoint(State.cogHome.point, State.cogHome.relative, State.cogHome.relativePoint or State.cogHome.point, State.cogHome.x or 0, State.cogHome.y or 0)
     end
-    cogBusy = false
-end
-
-local function satelliteFrames()
-    local frames = {}
-    if _G.RXPTargetFrame then
-        frames[#frames + 1] = _G.RXPTargetFrame
-    end
-    local items = itemWindow()
-    if items then
-        frames[#frames + 1] = items
-    end
-    return frames
+    State.cogBusy = false
 end
 
 local function concealSatellite(frame)
     if not frame then
         return
     end
-    if not satelliteHooked[frame] and frame.SetAlpha then
-        satelliteHooked[frame] = true
+    if not State.satelliteHooked[frame] and frame.SetAlpha then
+        State.satelliteHooked[frame] = true
         hooksecurefunc(frame, "SetAlpha", function(self, alpha)
-            if alphaBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
+            if State.alphaBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
                 return
             end
             if (alpha or 1) > 0 then
-                alphaBusy = true
+                State.alphaBusy = true
                 self:SetAlpha(0)
-                alphaBusy = false
+                State.alphaBusy = false
             end
         end)
         if frame.Show then
             hooksecurefunc(frame, "Show", function(self)
-                if alphaBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
+                if State.alphaBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
                     return
                 end
                 self.__rxpbWasShown = true
-                alphaBusy = true
+                State.alphaBusy = true
                 self:SetAlpha(0)
                 if not InCombatLockdown() then
                     pcall(self.Hide, self)
                 end
-                alphaBusy = false
+                State.alphaBusy = false
             end)
         end
     end
@@ -4689,12 +4190,12 @@ local function concealSatellite(frame)
     if frame.IsShown and frame:IsShown() then
         frame.__rxpbWasShown = true
     end
-    alphaBusy = true
+    State.alphaBusy = true
     frame:SetAlpha(0)
     if not InCombatLockdown() then
         pcall(frame.Hide, frame)
     end
-    alphaBusy = false
+    State.alphaBusy = false
     walkMouse(frame, 0)
 end
 
@@ -4704,34 +4205,34 @@ local function revealSatellite(frame)
     end
     local showAgain = frame.__rxpbWasShown
     frame.__rxpbWasShown = nil
-    alphaBusy = true
+    State.alphaBusy = true
     frame:SetAlpha(1)
     if showAgain and frame.Show and not InCombatLockdown() then
         pcall(frame.Show, frame)
     end
-    alphaBusy = false
+    State.alphaBusy = false
 end
 
 local function concealGuide(rxp)
-    alphaBusy = true
+    State.alphaBusy = true
     rxp:SetAlpha(1)
-    alphaBusy = false
+    State.alphaBusy = false
 
     for _, frame in ipairs(chromeFrames(rxp)) do
         if frame then
             hookChromeAlpha(frame)
-            alphaBusy = true
+            State.alphaBusy = true
             frame:SetAlpha(0)
-            alphaBusy = false
+            State.alphaBusy = false
             walkMouse(frame, 0)
         end
     end
 
     hookMouse(rxp)
     if rxp.EnableMouse then
-        mouseBusy = true
+        State.mouseBusy = true
         rxp:EnableMouse(false)
-        mouseBusy = false
+        State.mouseBusy = false
     end
 
     for _, frame in ipairs(satelliteFrames()) do
@@ -4741,21 +4242,21 @@ local function concealGuide(rxp)
 end
 
 local function revealGuide(rxp)
-    alphaBusy = true
+    State.alphaBusy = true
     for _, frame in ipairs(chromeFrames(rxp)) do
         if frame and frame.SetAlpha then
             frame:SetAlpha(1)
         end
     end
-    alphaBusy = false
+    State.alphaBusy = false
 
-    mouseBusy = true
-    for frame in pairs(hookedMouse) do
+    State.mouseBusy = true
+    for frame in pairs(State.hookedMouse) do
         if frame.EnableMouse then
             frame:EnableMouse(true)
         end
     end
-    mouseBusy = false
+    State.mouseBusy = false
 
     for _, frame in ipairs(satelliteFrames()) do
         revealSatellite(frame)
@@ -4775,8 +4276,6 @@ local function hookStepText()
     end)
 end
 
-local standaloneWas = false
-local hardcoreWas = false
 
 function ns.OnGuideScan()
     local rxp = _G.RXPFrame
@@ -4805,18 +4304,18 @@ function ns.SyncReplacement()
         ns.HideGuideMenu()
     end
     local hardcore = ns.db.hardcoreGuide and true or false
-    if ns.db.standaloneGuide and not standaloneWas then
+    if ns.db.standaloneGuide and not State.standaloneWas then
         if ns.GuideEnsure then
             ns.GuideEnsure()
         end
         if ns.GuideCatchUp then
             ns.GuideCatchUp()
         end
-    elseif ns.db.standaloneGuide and hardcore ~= hardcoreWas and ns.GuideCatchUp then
+    elseif ns.db.standaloneGuide and hardcore ~= State.hardcoreWas and ns.GuideCatchUp then
         ns.GuideCatchUp()
     end
-    standaloneWas = ns.db.standaloneGuide and true or false
-    hardcoreWas = hardcore
+    State.standaloneWas = ns.db.standaloneGuide and true or false
+    State.hardcoreWas = hardcore
 
     local rxp = _G.RXPFrame
     local showTracker = ns.db.standaloneGuide or (ns.db.replaceGuide and rxp)
@@ -4828,23 +4327,22 @@ function ns.SyncReplacement()
         elseif rxp then
             concealGuide(rxp)
         end
-        if not pointRestored then
+        if not State.pointRestored then
             restorePoint()
-            pointRestored = true
+            State.pointRestored = true
         end
         tracker:SetScale(ns.db.trackerScale or 1.2)
         tracker:Show()
         ns.RefreshTracker(true)
     else
         tracker:Hide()
-        lastSignature = nil
+        State.lastSignature = nil
         if rxp then
             revealGuide(rxp)
         end
     end
 end
 
-local elapsed = 0
 tracker:SetScript("OnUpdate", function(self, delta)
     if not self:IsMouseOver() then
         clearGuideTips()
@@ -4855,18 +4353,18 @@ tracker:SetScript("OnUpdate", function(self, delta)
     pcall(updateFlightStrip)
     pcall(updateNavStrip)
     if not (ns.db and ns.db.standaloneGuide) then
-        pcall(maintainReview)
+        pcall(RG.maintainReview)
     end
-    elapsed = elapsed + delta
-    if elapsed < 0.2 then
+    State.elapsed = State.elapsed + delta
+    if State.elapsed < 0.2 then
         return
     end
-    elapsed = 0
+    State.elapsed = 0
     ns.RefreshTracker()
 end)
 
 tracker:SetScript("OnShow", function()
-    lastSignature = nil
+    State.lastSignature = nil
     ns.RefreshTracker(true)
     pcall(updateFlightStrip)
     pcall(updateNavStrip)
@@ -4875,11 +4373,14 @@ end)
 tracker:SetScript("OnHide", function()
     clearGuideTips()
     shadowHost:Hide()
-    if flight.strip then
-        flight.strip:Hide()
+    if State.flight.strip then
+        State.flight.strip:Hide()
     end
-    if nav.strip then
-        nav.strip:Hide()
+    if State.nav.strip then
+        State.nav.strip:Hide()
+    end
+    if State.clearStepMapPins then
+        State.clearStepMapPins()
     end
     if ns.HideNavMenu then
         ns.HideNavMenu()

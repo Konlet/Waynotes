@@ -1,0 +1,706 @@
+[
+  {
+    "name": "Mailbox",
+    "objectId": 164840,
+    "faction": "Horde",
+    "position": {
+      "zone": "Arathi Highlands",
+      "mapId": 1417,
+      "x": 73.86,
+      "y": 33.11
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142117,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 36.33,
+      "y": 50.22
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 178864,
+    "faction": "Horde",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 73.63,
+      "y": 60.89
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 163313,
+    "faction": "Horde",
+    "position": {
+      "zone": "Badlands",
+      "mapId": 1418,
+      "x": 3.83,
+      "y": 47.3
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 164618,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Blasted Lands",
+      "mapId": 1419,
+      "x": 64.06,
+      "y": 19.22
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142111,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darkshore",
+      "mapId": 1439,
+      "x": 37.32,
+      "y": 43.73
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142110,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 41.63,
+      "y": 41.85
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 188123,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 67.18,
+      "y": 16.47
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 179896,
+    "faction": "Horde",
+    "position": {
+      "zone": "Desolace",
+      "mapId": 1443,
+      "x": 24.79,
+      "y": 68.76
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 176319,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Desolace",
+      "mapId": 1443,
+      "x": 65.43,
+      "y": 6.8
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142102,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 47.02,
+      "y": 52.58
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143981,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 51.9,
+      "y": 42.15
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142089,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Duskwood",
+      "mapId": 1431,
+      "x": 73.73,
+      "y": 46.1
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142095,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 65.96,
+      "y": 45.29
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 181236,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 71.18,
+      "y": 48.91
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142075,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 42.92,
+      "y": 65.52
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 187260,
+    "faction": "Both",
+    "position": {
+      "zone": "Felwood",
+      "mapId": 1448,
+      "x": 34.82,
+      "y": 52.95
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142119,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 31.26,
+      "y": 43.8
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143986,
+    "faction": "Horde",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 74.88,
+      "y": 44.0
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143987,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "mapId": 1424,
+      "x": 50.42,
+      "y": 58.7
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143988,
+    "faction": "Horde",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "mapId": 1424,
+      "x": 62.38,
+      "y": 19.71
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 32349,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 20.96,
+      "y": 52.41
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 171699,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 33.22,
+      "y": 64.66
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 171556,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 71.31,
+      "y": 72.13
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 171752,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 72.28,
+      "y": 49.1
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142103,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 34.82,
+      "y": 47.73
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": null,
+    "position": {
+      "zone": "Mount Hyjal",
+      "mapId": 2482,
+      "x": 69.0,
+      "y": 47.6
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": null,
+    "position": {
+      "zone": "Mount Hyjal",
+      "mapId": 2482,
+      "x": 70.8,
+      "y": 49.8
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143984,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 46.25,
+      "y": 63.5
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 173221,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 50.69,
+      "y": 70.37
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 173047,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 62.26,
+      "y": 40.51
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142093,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 21.32,
+      "y": 46.51
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": "Horde",
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 58.8,
+      "y": 45.4
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 64.6,
+      "y": 83.6
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": "Both",
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 78.6,
+      "y": 53.8
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 180451,
+    "faction": "Both",
+    "position": {
+      "zone": "Silithus",
+      "mapId": 1451,
+      "x": 51.75,
+      "y": 37.97
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143989,
+    "faction": "Horde",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 43.41,
+      "y": 41.52
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 181639,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "mapId": 1442,
+      "x": 36.02,
+      "y": 7.21
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143983,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "mapId": 1442,
+      "x": 48.01,
+      "y": 61.14
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142075,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 36.8,
+      "y": 69.17
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144129,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 50.58,
+      "y": 89.74
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144131,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 61.64,
+      "y": 76.07
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144128,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 74.54,
+      "y": 55.39
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144126,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 26.7,
+      "y": 76.36
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144127,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 27.28,
+      "y": 77.41
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 163645,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 32.52,
+      "y": 28.65
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 157637,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 45.44,
+      "y": 55.14
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144112,
+    "faction": "Both",
+    "position": {
+      "zone": "Tanaris",
+      "mapId": 1446,
+      "x": 52.33,
+      "y": 27.81
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142109,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.12,
+      "y": 58.43
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 153578,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 45.08,
+      "y": 58.67
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143982,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 52.03,
+      "y": 30.43
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144125,
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 62.16,
+      "y": 39.19
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 144011,
+    "faction": "Alliance",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 14.04,
+      "y": 45.7
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 179895,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 78.84,
+      "y": 80.5
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 176324,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thousand Needles",
+      "mapId": 1441,
+      "x": 45.85,
+      "y": 51.06
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143985,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 45.23,
+      "y": 59.4
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 143990,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 61.5,
+      "y": 53.08
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 177044,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 68.16,
+      "y": 38.26
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 153716,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Westfall",
+      "mapId": 1436,
+      "x": 53.1,
+      "y": 53.34
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 142094,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 10.86,
+      "y": 59.72
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": 176404,
+    "faction": "Both",
+    "position": {
+      "zone": "Winterspring",
+      "mapId": 1452,
+      "x": 61.28,
+      "y": 38.62
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.3,
+      "y": 44.2
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 58.2,
+      "y": 76.5
+    }
+  },
+  {
+    "name": "Mailbox",
+    "objectId": null,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 62.3,
+      "y": 73.8
+    }
+  }
+]

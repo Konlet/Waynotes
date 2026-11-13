@@ -53,6 +53,8 @@ ns.defaults = {
     showFlightTimer = true,
     standaloneGuide = false,
     hardcoreGuide = false,
+    promptOffStepJump = true,
+    showIrrelevantGuides = false,
     theme = "rested",
 }
 
@@ -395,7 +397,7 @@ end
 
 local function profileMessage(text)
     if DEFAULT_CHAT_FRAME then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r " .. text)
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r " .. text)
     end
 end
 
@@ -528,6 +530,7 @@ local boolKeys = {
     showFlightTimer = true,
     standaloneGuide = true,
     hardcoreGuide = true,
+    promptOffStepJump = true,
 }
 
 function ns.Visuals()
@@ -543,14 +546,18 @@ function ns.ReplacingGuide()
 end
 
 function ns.InitDB()
-    if type(RestedXPBetterDB) ~= "table" then
-        RestedXPBetterDB = {}
+    if type(WaynotesDB) ~= "table" then
+        if type(RestedXPBetterDB) == "table" then
+            WaynotesDB = RestedXPBetterDB
+        else
+            WaynotesDB = {}
+        end
     end
-    if ns.db == RestedXPBetterDB then
+    if ns.db == WaynotesDB then
         return ns.db
     end
 
-    local db = RestedXPBetterDB
+    local db = WaynotesDB
 
     for key, value in pairs(ns.defaults) do
         if db[key] == nil then
@@ -625,7 +632,7 @@ local function call(fn)
     busy = busy - 1
     if not ok and not reportedCall then
         reportedCall = true
-        DEFAULT_CHAT_FRAME:AddMessage("|cffff8080RestedXP Better:|r " .. tostring(err))
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff8080Waynotes:|r " .. tostring(err))
     end
 end
 
@@ -1046,7 +1053,7 @@ local function safe(fn)
     local ok, err = pcall(fn)
     if not ok and not reported then
         reported = true
-        DEFAULT_CHAT_FRAME:AddMessage("|cffff8080RestedXP Better:|r " .. tostring(err))
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff8080Waynotes:|r " .. tostring(err))
     end
 end
 
@@ -1108,7 +1115,7 @@ local function boot()
     ns.InitDB()
     if not greeted and not ns.db.acknowledged and DEFAULT_CHAT_FRAME then
         greeted = true
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r loaded. Type |cffffffff/rxpb|r to open options.")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r loaded. Type |cffffffff/waynotes|r to open options.")
     end
     safe(ns.Scan)
     safe(ns.Apply)
@@ -1123,7 +1130,7 @@ events:SetScript("OnEvent", function(_, event, name)
             return
         end
         started = true
-        if type(RestedXPBetterDB) == "table" then
+        if type(WaynotesDB) == "table" or type(RestedXPBetterDB) == "table" then
             boot()
         end
         return

@@ -21,13 +21,17 @@ local function isNumber(value)
 end
 
 local function charDB()
-    if type(RestedXPBetterCharDB) ~= "table" then
-        RestedXPBetterCharDB = {}
+    if type(WaynotesCharDB) ~= "table" then
+        if type(RestedXPBetterCharDB) == "table" then
+            WaynotesCharDB = RestedXPBetterCharDB
+        else
+            WaynotesCharDB = {}
+        end
     end
-    if type(RestedXPBetterCharDB.flightPaths) ~= "table" then
-        RestedXPBetterCharDB.flightPaths = {}
+    if type(WaynotesCharDB.flightPaths) ~= "table" then
+        WaynotesCharDB.flightPaths = {}
     end
-    return RestedXPBetterCharDB
+    return WaynotesCharDB
 end
 
 local function playerFaction()
@@ -35,6 +39,13 @@ local function playerFaction()
     if faction == "Horde" or faction == "Alliance" then
         return faction
     end
+end
+
+local function factionUsable(entryFaction, playerFac)
+    if not playerFac or not entryFaction or entryFaction == "Both" then
+        return true
+    end
+    return entryFaction == playerFac
 end
 
 local function normalizeName(name)
@@ -113,7 +124,19 @@ local function worldDistance(instance, ax, ay, bx, by)
     return math.sqrt(dx * dx + dy * dy)
 end
 
-local function zoneWorld(map, x, y)
+local function zoneWorld(map, x, y, zone)
+    if ns.PinToPlayerWorld then
+        local wx, wy, instance = ns.PinToPlayerWorld(map, x, y, zone)
+        if isNumber(wx) and isNumber(wy) then
+            return wx, wy, instance
+        end
+    end
+    if ns.ZoneToWorld then
+        local wx, wy, instance = ns.ZoneToWorld(map, x, y)
+        if isNumber(wx) and isNumber(wy) then
+            return wx, wy, instance
+        end
+    end
     if not isNumber(map) or not isNumber(x) or not isNumber(y) then
         return nil
     end
@@ -142,7 +165,7 @@ end
 local function fillMissingInnCoords()
     for _, place in pairs(placeIndex) do
         if type(place) == "table" and place.kind == "inn" and not isNumber(place.wx) then
-            local wx, wy, instance = zoneWorld(place.map, place.x, place.y)
+            local wx, wy, instance = zoneWorld(place.map, place.x, place.y, place.zone)
             if wx then
                 place.wx, place.wy, place.instance = wx, wy, instance
             end
@@ -221,7 +244,7 @@ local function ensureGraph()
         for index = 1, #inns do
             local entry = inns[index]
             if type(entry) == "table" and type(entry.name) == "string" then
-                local wx, wy, instance = zoneWorld(entry.map, entry.x, entry.y)
+                local wx, wy, instance = zoneWorld(entry.map, entry.x, entry.y, entry.zone)
                 local place = {
                     kind = "inn",
                     name = entry.zone or entry.name,
@@ -353,7 +376,7 @@ function ns.TravelRememberNearestFlight()
     local faction = playerFaction()
     local bestId, bestDist
     for nodeId, node in pairs(nodesById) do
-        if (not faction or not node.faction or node.faction == faction) and (not isNumber(node.instance) or node.instance == instance) then
+        if factionUsable(node.faction, faction) and (not isNumber(node.instance) or node.instance == instance) then
             local dist = worldDistance(instance, px, py, node.wx, node.wy)
             if dist and (not bestDist or dist < bestDist) then
                 bestDist = dist
@@ -510,7 +533,7 @@ local function destinationFromStep(step)
             }
         end
         if isNumber(step.travel.map) and isNumber(step.travel.x) and isNumber(step.travel.y) then
-            local wx, wy, instance = zoneWorld(step.travel.map, step.travel.x, step.travel.y)
+            local wx, wy, instance = zoneWorld(step.travel.map, step.travel.x, step.travel.y, step.travel.zone)
             return {
                 name = step.travel.name or step.travel.zone or "destination",
                 zone = step.travel.zone,
@@ -564,12 +587,14 @@ local function destinationFromStep(step)
     end
 
     if isNumber(step.map) and isNumber(step.x) and isNumber(step.y) then
-        local wx, wy, instance = zoneWorld(step.map, step.x, step.y)
+        local zone = ns.MapName and ns.MapName(step.map) or nil
+        local wx, wy, instance = zoneWorld(step.map, step.x, step.y, zone)
         return {
-            name = (ns.MapName and ns.MapName(step.map)) or "destination",
+            name = zone or "destination",
             map = step.map,
             x = step.x,
             y = step.y,
+            zone = zone,
             wx = wx,
             wy = wy,
             instance = instance,
@@ -595,7 +620,7 @@ local function flightPathSeconds(fromId, toId, unlocked, faction)
         if edges then
             for index = 1, #edges do
                 local edge = edges[index]
-                if unlocked[edge.to] and (not edge.faction or not faction or edge.faction == faction) then
+                if unlocked[edge.to] and factionUsable(edge.faction, faction) then
                     local nextCost = currentCost + edge.seconds
                     if not best[edge.to] or nextCost < best[edge.to] then
                         best[edge.to] = nextCost
@@ -628,7 +653,7 @@ end
 local function nearestUnlockedFlight(wx, wy, instance, unlocked, faction, sameContinentOnly)
     local bestId, bestDist
     for nodeId, node in pairs(nodesById) do
-        if unlocked[nodeId] and (not faction or not node.faction or node.faction == faction) then
+        if unlocked[nodeId] and factionUsable(node.faction, faction) then
             if not sameContinentOnly or not isNumber(node.instance) or not isNumber(instance) or node.instance == instance then
                 local dist = worldDistance(instance or node.instance, wx, wy, node.wx, node.wy)
                 if dist and (not bestDist or dist < bestDist) then
@@ -899,8 +924,10 @@ function ns.TravelApplyToItem(item, step)
 
     -- Authored pins win for destination coordinates when present.
     if isNumber(step.map) and isNumber(step.x) and isNumber(step.y) and not isNumber(dest.wx) then
-        local wx, wy, instance = zoneWorld(step.map, step.x, step.y)
+        local zone = ns.MapName and ns.MapName(step.map) or dest.zone
+        local wx, wy, instance = zoneWorld(step.map, step.x, step.y, zone)
         dest.map, dest.x, dest.y = step.map, step.x, step.y
+        dest.zone = zone or dest.zone
         dest.wx, dest.wy, dest.instance = wx, wy, instance
     end
 

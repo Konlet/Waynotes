@@ -26,7 +26,7 @@ local function createSlider(parent, text, tooltip, key, isEnabled, range)
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     valueText:SetPoint("TOPRIGHT", 0, 0)
 
-    local slider = CreateFrame("Slider", "RestedXPBetterSlider" .. sliderCount, holder, "UISliderTemplate")
+    local slider = CreateFrame("Slider", "WaynotesSlider" .. sliderCount, holder, "UISliderTemplate")
     slider:SetPoint("TOPLEFT", 4, -20)
     slider:SetPoint("TOPRIGHT", -4, -20)
     slider:SetHeight(16)
@@ -120,7 +120,7 @@ local checkCount = 0
 
 local function createCheck(parent, text, tooltip, key)
     checkCount = checkCount + 1
-    local name = "RestedXPBetterCheck" .. checkCount
+    local name = "WaynotesCheck" .. checkCount
     local box = CreateFrame("CheckButton", name, parent, "UICheckButtonTemplate")
     local fs = _G[name .. "Text"]
     if fs then
@@ -187,7 +187,7 @@ local function createLayers(parent)
     local buttons = {}
     local positions = { 0, 130, 200, 290 }
     for index, info in ipairs(ns.layers) do
-        local name = "RestedXPBetterLayer" .. index
+        local name = "WaynotesLayer" .. index
         local radio = CreateFrame("CheckButton", name, holder, "UIRadioButtonTemplate")
         radio:SetPoint("TOPLEFT", positions[index] or 0, -16)
         local fs = _G[name .. "Text"]
@@ -416,7 +416,7 @@ local function createProfiles(parent)
     hint:SetJustifyH("LEFT")
     hint:SetText("Save the current colors and tracker background. Choose a saved theme from the menu.")
 
-    local edit = CreateFrame("EditBox", "RestedXPBetterProfileName", holder, "InputBoxTemplate")
+    local edit = CreateFrame("EditBox", "WaynotesProfileName", holder, "InputBoxTemplate")
     edit:SetSize(200, 20)
     edit:SetPoint("TOPLEFT", 8, -36)
     edit:SetAutoFocus(false)
@@ -443,7 +443,7 @@ local function createProfiles(parent)
         save:Click()
     end)
 
-    local dropdown = CreateFrame("Frame", "RestedXPBetterProfileMenu", holder, "UIDropDownMenuTemplate")
+    local dropdown = CreateFrame("Frame", "WaynotesProfileMenu", holder, "UIDropDownMenuTemplate")
     dropdown:SetPoint("TOPLEFT", -14, -60)
     UIDropDownMenu_SetWidth(dropdown, 184)
     UIDropDownMenu_JustifyText(dropdown, "LEFT")
@@ -481,7 +481,7 @@ local function createProfiles(parent)
             return
         end
         if StaticPopup_Show then
-            StaticPopup_Show("RestedXPBetterDeleteProfile", name, nil, name)
+            StaticPopup_Show("WaynotesDeleteProfile", name, nil, name)
         else
             ns.DeleteProfile(name)
             if ns.RefreshOptions then
@@ -504,8 +504,8 @@ local function createProfiles(parent)
     return holder
 end
 
-if not StaticPopupDialogs["RestedXPBetterDeleteProfile"] then
-    StaticPopupDialogs["RestedXPBetterDeleteProfile"] = {
+if not StaticPopupDialogs["WaynotesDeleteProfile"] then
+    StaticPopupDialogs["WaynotesDeleteProfile"] = {
         text = "Delete the saved theme \"%s\"?",
         button1 = "Delete",
         button2 = "Cancel",
@@ -579,6 +579,14 @@ local function build(parent)
 
     local hardcore = createCheck(parent, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
     hardcore:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 28
+
+    local offStep = createCheck(parent, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
+    offStep:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 28
+
+    local allGuides = createCheck(parent, "Show unrelated guides", "Lists class, race, and faction guides that do not match this character in the right-click guide menu. Leave off to only show guides relevant to you.", "showIrrelevantGuides")
+    allGuides:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 28
 
     local guideStatus = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -793,14 +801,14 @@ local function build(parent)
     parent:SetHeight(math.abs(y) + 48)
 end
 
-local canvas = CreateFrame("Frame", "RestedXPBetterOptions")
-canvas.name = "RestedXP Better"
+local canvas = CreateFrame("Frame", "WaynotesOptions")
+canvas.name = "Waynotes"
 canvas:SetSize(520, 400)
 if canvas.SetClipsChildren then
     canvas:SetClipsChildren(true)
 end
 
-local scroll = CreateFrame("ScrollFrame", "RestedXPBetterOptionsScroll", canvas, "UIPanelScrollFrameTemplate")
+local scroll = CreateFrame("ScrollFrame", "WaynotesOptionsScroll", canvas, "UIPanelScrollFrameTemplate")
 scroll:SetPoint("TOPLEFT", 0, -4)
 scroll:SetPoint("BOTTOMRIGHT", -28, 4)
 
@@ -877,16 +885,15 @@ registrar:SetScript("OnEvent", function()
     registrar:UnregisterAllEvents()
 end)
 
-SLASH_RESTEDXPBETTER1 = "/rxpb"
-SLASH_RESTEDXPBETTER2 = "/rxpbetter"
-SLASH_RESTEDXPBETTER3 = "/restedxpb"
-SlashCmdList.RESTEDXPBETTER = function(message)
+SLASH_WAYNOTES1 = "/waynotes"
+SLASH_WAYNOTES2 = "/wn"
+SlashCmdList.WAYNOTES = function(message)
     ns.InitDB()
     local text = strtrim(message or "")
     local command = string.lower(text)
     if command == "reset" then
         ns.Reset()
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r options reset.")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r options reset.")
         return
     end
     if command == "guides" or command == "guide" then
@@ -901,7 +908,7 @@ SlashCmdList.RESTEDXPBETTER = function(message)
         end
         local guide = ns.RecommendedGuide()
         if not guide then
-            DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r No recommended guide for this character.")
+            DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r No recommended guide for this character.")
             return
         end
         if ns.GuideSelect then
@@ -934,7 +941,7 @@ SlashCmdList.RESTEDXPBETTER = function(message)
         return
     end
     if command == "help" then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffRestedXP Better|r /rxpb guides, /rxpb recommend, /rxpb guide <id>, /rxpb step <n>, /rxpb next, /rxpb back")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r /waynotes guides, /waynotes recommend, /waynotes guide <id>, /waynotes step <n>, /waynotes next, /waynotes back")
         return
     end
     ns.OpenOptions()
