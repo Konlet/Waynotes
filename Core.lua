@@ -51,9 +51,10 @@ ns.defaults = {
     trackerShadow = false,
     showGuidePercent = true,
     showFlightTimer = true,
-    standaloneGuide = false,
+    standaloneGuide = true,
     hardcoreGuide = false,
     promptOffStepJump = true,
+    promptDungeonGuide = true,
     showIrrelevantGuides = false,
     theme = "rested",
 }
@@ -531,6 +532,7 @@ local boolKeys = {
     standaloneGuide = true,
     hardcoreGuide = true,
     promptOffStepJump = true,
+    promptDungeonGuide = true,
 }
 
 function ns.Visuals()
@@ -612,6 +614,12 @@ function ns.InitDB()
         elseif key == "theme" and db[key] ~= "custom" and not ns.themesById[db[key]] then
             db[key] = value
         end
+    end
+
+    -- Replace RestedXP now means custom guides entirely. Flip once for older saves.
+    if db.replaceRestedXPDefault == nil then
+        db.standaloneGuide = true
+        db.replaceRestedXPDefault = true
     end
 
     ns.SanitizeColors(db)

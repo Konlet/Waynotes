@@ -9,12 +9,15 @@ local scroll
 local content
 local rows = {}
 local declinedOffStep = {}
+local declinedDungeon = {}
+local lastDungeonPromptKey
 
 local stepApplies
 local progressCounts
 local neighbor
 local inferLevels
 local inferRaces
+local inferDungeon
 
 local function say(text)
     if DEFAULT_CHAT_FRAME then
@@ -351,6 +354,19 @@ function ns.RegisterGuide(guide)
     if nextId == "" then
         nextId = nil
     end
+    local dungeon = type(guide.dungeon) == "string" and strtrim(guide.dungeon) or nil
+    if dungeon == "" then
+        dungeon = nil
+    end
+    if not dungeon then
+        dungeon = inferDungeon(name, id, group)
+    end
+    local listed
+    if guide.listed ~= nil then
+        listed = guide.listed and true or false
+    else
+        listed = dungeon ~= nil
+    end
     byId[id] = {
         id = id,
         name = name,
@@ -362,7 +378,9 @@ function ns.RegisterGuide(guide)
         classes = classes,
         excludeRaces = excludeRaces,
         excludeClasses = excludeClasses,
-        listed = guide.listed and true or false,
+        listed = listed,
+        dungeon = dungeon,
+        starter = guide.starter and true or false,
         next = nextId,
         steps = steps,
     }
@@ -1037,6 +1055,101 @@ inferRaces = function(name, id)
     end
 end
 
+inferDungeon = function(name, id, group)
+    local haystack = ((group or "") .. " " .. (id or "") .. " " .. (name or "")):lower()
+    if not haystack:find("dungeon", 1, true) then
+        return nil
+    end
+    local label = name or ""
+    label = label:gsub("%s*%(%d+%s*%-%s*%d+%)%s*$", "")
+    label = label:gsub("%s*%(%d+%)%s*$", "")
+    label = label:gsub("%s+Raid%s+Quests%s*$", "")
+    label = label:gsub("%s+Quests%s*$", "")
+    label = label:gsub("%s+Attunement%s*$", "")
+    label = label:gsub("%s+Raid%s*$", "")
+    label = label:gsub("%s+Tribute%s*$", "")
+    label = strtrim(label)
+    if label == "" then
+        return nil
+    end
+    return label
+end
+
+local function normalizeDungeonKey(text)
+    if type(text) ~= "string" then
+        return ""
+    end
+    local key = text:lower()
+    key = key:gsub("^the%s+", "")
+    key = key:gsub("[^%a%d]+", "")
+    return key
+end
+
+local function dungeonMatchScore(instanceName, guide)
+    if type(guide) ~= "table" or type(guide.dungeon) ~= "string" then
+        return 0
+    end
+    local inst = normalizeDungeonKey(instanceName)
+    local key = normalizeDungeonKey(guide.dungeon)
+    if inst == "" or key == "" then
+        return 0
+    end
+    if key == inst then
+        return 100
+    end
+    if key:find(inst, 1, true) then
+        return 70 + math.min(20, #inst)
+    end
+    if inst:find(key, 1, true) then
+        return 50 + math.min(20, #key)
+    end
+    return 0
+end
+
+local function dungeonGuideBonus(guide)
+    local score = 0
+    local id = (guide.id or ""):lower()
+    local name = (guide.name or ""):lower()
+    if id:find("attunement", 1, true) or name:find("attunement", 1, true) then
+        score = score - 120
+    end
+    if id:find("raid", 1, true) or name:find("raid", 1, true) then
+        score = score - 50
+    end
+    if id:find("quests", 1, true) or name:find("quests", 1, true) then
+        score = score - 25
+    end
+    if type(guide.minLevel) == "number" and type(guide.maxLevel) == "number" then
+        score = score + 25
+    end
+    return score
+end
+
+function ns.RecommendedDungeonGuide(instanceName)
+    if type(instanceName) ~= "string" or instanceName == "" then
+        return nil
+    end
+    local best
+    local bestScore
+    for _, id in ipairs(order) do
+        local guide = byId[id]
+        if guide and guide.dungeon then
+            local match = dungeonMatchScore(instanceName, guide)
+            if match > 0 then
+                local relevance = ns.GuideScore(guide)
+                if relevance > -500 then
+                    local score = match * 10 + relevance + dungeonGuideBonus(guide)
+                    if not best or score > bestScore or (score == bestScore and guide.name < best.name) then
+                        best = guide
+                        bestScore = score
+                    end
+                end
+            end
+        end
+    end
+    return best, bestScore
+end
+
 local function playerFaction()
     if not UnitFactionGroup then
         return nil
@@ -1118,9 +1231,15 @@ function ns.RecommendGuides()
     local list = ns.GuideList()
     local ranked = {}
     for _, guide in ipairs(list) do
-        local score = ns.GuideScore(guide)
-        if score > -500 then
-            ranked[#ranked + 1] = { guide = guide, score = score }
+        -- Class side guides stay selectable, but never auto-recommend over the route.
+        if not guide.classes or #guide.classes == 0 then
+            local score = ns.GuideScore(guide)
+            if guide.starter then
+                score = score + 80
+            end
+            if score > -500 then
+                ranked[#ranked + 1] = { guide = guide, score = score }
+            end
         end
     end
     table.sort(ranked, function(a, b)
@@ -1141,11 +1260,43 @@ function ns.RecommendedGuide()
     return best.guide, best.score
 end
 
+function ns.StarterGuide()
+    local best
+    local bestScore
+    for _, id in ipairs(order) do
+        local guide = byId[id]
+        if guide and guide.starter and guide.listed ~= false then
+            local score = ns.GuideScore(guide)
+            if score > -500 then
+                score = score + 80
+                if not best or score > bestScore or (score == bestScore and guide.name < best.name) then
+                    best = guide
+                    bestScore = score
+                end
+            end
+        end
+    end
+    return best, bestScore
+end
+
 function ns.GuideEnsure()
     if activeGuide() then
         return false
     end
-    local guide = ns.RecommendedGuide()
+    local guide
+    local level = playerLevel()
+    local usedStarter = false
+    -- New characters: lock onto the curated starting-zone guide for their race.
+    if level <= 1 then
+        local starter, starterScore = ns.StarterGuide()
+        if starter and starterScore and starterScore >= 20 then
+            guide = starter
+            usedStarter = true
+        end
+    end
+    if not guide then
+        guide = ns.RecommendedGuide()
+    end
     if not guide then
         local list = ns.GuideList()
         guide = list[1]
@@ -1160,6 +1311,9 @@ function ns.GuideEnsure()
         entry.step = #guide.steps
     end
     ns.GuideCatchUp()
+    if usedStarter then
+        say("Loaded " .. guide.name .. " for your starting zone.")
+    end
     return true
 end
 
@@ -1180,7 +1334,7 @@ function ns.GuideSelect(id)
     ns.GuideCatchUp()
     refresh()
     if not ns.db or not ns.db.standaloneGuide then
-        say("Selected " .. guide.name .. ". Turn on Use our guide to show it.")
+        say("Selected " .. guide.name .. ". Turn on Replace RestedXP to show it.")
         return
     end
     say(guide.name .. ", step " .. progress(guide.id).step .. ".")
@@ -1978,10 +2132,13 @@ local objectiveSnap
 local objectiveSnapReady = false
 local pendingOffStepCheck = false
 local promptedOffStepAt = 0
+local promptedDungeonAt = 0
+local dungeonCheckAt = 0
 
 watcher:RegisterEvent("ADDON_LOADED")
 watcher:RegisterEvent("PLAYER_LOGIN")
 watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+watcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 watcher:RegisterEvent("QUEST_ACCEPTED")
 watcher:RegisterEvent("QUEST_TURNED_IN")
 watcher:RegisterEvent("QUEST_REMOVED")
@@ -2189,6 +2346,101 @@ if not StaticPopupDialogs["WaynotesOffStepJump"] then
     }
 end
 
+if not StaticPopupDialogs["WaynotesDungeonGuide"] then
+    StaticPopupDialogs["WaynotesDungeonGuide"] = {
+        text = "Load the dungeon guide|n|cffffffff%s|r?",
+        button1 = "Yes",
+        button2 = "No",
+        button3 = "Don't Ask Again",
+        OnAccept = function(self, data)
+            local guideId = type(data) == "table" and data.guideId or (self and type(self.data) == "table" and self.data.guideId)
+            if type(guideId) == "string" then
+                ns.GuideSelect(guideId)
+            end
+        end,
+        OnCancel = function(self, data)
+            local info = data or (self and self.data)
+            local key = type(info) == "table" and info.instance
+            if type(key) == "string" and key ~= "" then
+                declinedDungeon[key] = true
+            end
+        end,
+        OnAlt = function(self)
+            if ns.db then
+                ns.db.promptDungeonGuide = false
+            end
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
+            end
+            say("Dungeon guide suggestions off. Re-enable them in options.")
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+        exclusive = true,
+    }
+end
+
+local function promptDungeonGuide(guide, instanceName)
+    if type(guide) ~= "table" or type(guide.id) ~= "string" or not StaticPopup_Show then
+        return
+    end
+    if StaticPopup_Visible and StaticPopup_Visible("WaynotesDungeonGuide") then
+        return
+    end
+    local now = GetTime()
+    if now - promptedDungeonAt < 2 then
+        return
+    end
+    promptedDungeonAt = now
+    lastDungeonPromptKey = instanceName
+    StaticPopup_Show("WaynotesDungeonGuide", guide.name, nil, {
+        guideId = guide.id,
+        instance = instanceName,
+    })
+end
+
+local function considerDungeonGuide()
+    if not ns.db or not ns.db.promptDungeonGuide then
+        return
+    end
+    if not ns.UsingStandalone or not ns.UsingStandalone() then
+        return
+    end
+    if not IsInInstance or not GetInstanceInfo then
+        return
+    end
+    local inInstance, instanceType = IsInInstance()
+    if not inInstance or instanceType ~= "party" then
+        lastDungeonPromptKey = nil
+        return
+    end
+    local name = GetInstanceInfo()
+    if type(name) ~= "string" or name == "" then
+        return
+    end
+    if declinedDungeon[name] or lastDungeonPromptKey == name then
+        return
+    end
+    local guide = ns.RecommendedDungeonGuide(name)
+    if not guide then
+        return
+    end
+    local active = activeGuide()
+    if active then
+        if active.id == guide.id then
+            lastDungeonPromptKey = name
+            return
+        end
+        if dungeonMatchScore(name, active) > 0 then
+            lastDungeonPromptKey = name
+            return
+        end
+    end
+    promptDungeonGuide(guide, name)
+end
+
 local function promptOffStepJump(index)
     if type(index) ~= "number" or not StaticPopup_Show then
         return
@@ -2266,6 +2518,32 @@ local function runCatchUp()
     return moved
 end
 
+local function pumpWatcher()
+    watcher:SetScript("OnUpdate", function(self)
+        local now = GetTime()
+        local dueCatchUp = catchUpAt > 0 and now >= catchUpAt
+        local dueDungeon = dungeonCheckAt > 0 and now >= dungeonCheckAt
+        if not dueCatchUp and not dueDungeon then
+            return
+        end
+        if dueCatchUp then
+            catchUpAt = 0
+        end
+        if dueDungeon then
+            dungeonCheckAt = 0
+        end
+        if catchUpAt <= 0 and dungeonCheckAt <= 0 then
+            self:SetScript("OnUpdate", nil)
+        end
+        if dueCatchUp then
+            runCatchUp()
+        end
+        if dueDungeon then
+            considerDungeonGuide()
+        end
+    end)
+end
+
 local function queueCatchUp(delay, checkOffStep)
     if checkOffStep then
         pendingOffStepCheck = true
@@ -2274,14 +2552,15 @@ local function queueCatchUp(delay, checkOffStep)
     if when > catchUpAt then
         catchUpAt = when
     end
-    watcher:SetScript("OnUpdate", function(self)
-        if GetTime() < catchUpAt then
-            return
-        end
-        self:SetScript("OnUpdate", nil)
-        catchUpAt = 0
-        runCatchUp()
-    end)
+    pumpWatcher()
+end
+
+local function queueDungeonCheck(delay)
+    local when = GetTime() + (delay or 0.5)
+    if when > dungeonCheckAt then
+        dungeonCheckAt = when
+    end
+    pumpWatcher()
 end
 
 watcher:SetScript("OnEvent", function(_, event, name)
@@ -2292,11 +2571,36 @@ watcher:SetScript("OnEvent", function(_, event, name)
         charDB()
         return
     end
-    if event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
+    if event == "PLAYER_LOGIN" then
         charDB()
+        if ns.InitDB then
+            ns.InitDB()
+        end
         objectiveSnapReady = false
         declinedOffStep = {}
+        declinedDungeon = {}
+        lastDungeonPromptKey = nil
+        if ns.UsingStandalone and ns.UsingStandalone() then
+            ns.GuideEnsure()
+        end
         queueCatchUp(0.5, false)
+        queueDungeonCheck(0.75)
+        return
+    end
+    if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
+        charDB()
+        if event == "PLAYER_ENTERING_WORLD" then
+            objectiveSnapReady = false
+            declinedOffStep = {}
+            if ns.InitDB then
+                ns.InitDB()
+            end
+            if ns.UsingStandalone and ns.UsingStandalone() then
+                ns.GuideEnsure()
+            end
+            queueCatchUp(0.5, false)
+        end
+        queueDungeonCheck(0.75)
         return
     end
     if event == "UNIT_QUEST_LOG_CHANGED" and name ~= "player" then

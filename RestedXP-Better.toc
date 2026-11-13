@@ -29,6 +29,12 @@ Guides/Forever/Curated/Horde_Stonetalon_Curated.lua
 Guides/Forever/Curated/Horde_Ashenvale_Curated.lua
 Guides/Forever/Curated/Horde_Hillsbrad_Curated.lua
 Guides/Forever/Horde_Durotar_ClassQuests.lua
+Guides/Forever/Zygor/Dungeons/Horde_01-30.lua
+Guides/Forever/Zygor/Dungeons/Horde_30-45.lua
+Guides/Forever/Zygor/Dungeons/Horde_45-60.lua
+Guides/Forever/Zygor/Dungeons/Alliance_01-30.lua
+Guides/Forever/Zygor/Dungeons/Alliance_30-45.lua
+Guides/Forever/Zygor/Dungeons/Alliance_45-60.lua
 ReplaceGuide.lua
 Replace.lua
 Options.lua

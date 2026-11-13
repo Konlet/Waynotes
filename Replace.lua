@@ -4291,6 +4291,7 @@ function ns.OnGuideScan()
         concealGuide(rxp)
         ns.RefreshTracker()
     elseif ns.db and ns.db.standaloneGuide then
+        concealGuide(rxp)
         ns.RefreshTracker()
     end
 end
@@ -4320,11 +4321,7 @@ function ns.SyncReplacement()
     local rxp = _G.RXPFrame
     local showTracker = ns.db.standaloneGuide or (ns.db.replaceGuide and rxp)
     if showTracker then
-        if ns.db.standaloneGuide then
-            if rxp then
-                revealGuide(rxp)
-            end
-        elseif rxp then
+        if rxp then
             concealGuide(rxp)
         end
         if not State.pointRestored then
