@@ -3,6 +3,7 @@ local _, ns = ...
 -- Horde The Barrens.
 -- Crossroads opener, Ratchet loop, then the western Barrens lead-in to Stonetalon.
 -- Orc/Troll entry assumes Conscript of the Horde from Durotar.
+-- Tauren entry assumes Journey to the Crossroads from Camp Taurajo (Mulgore curated).
 
 ns.RegisterGuide({
     id = "horde-barrens-12-16",
@@ -67,7 +68,19 @@ ns.RegisterGuide({
             },
         },
         {
-            excludeRaces = { "Orc", "Troll" },
+            races = { "Tauren" },
+            text = "Talk to |cRB_FRIENDLY_Sergra Darkthorn|r. Turn in |cRB_QUEST_Sergra Darkthorn|r if you have it. Accept |cRB_QUEST_Plainstrider Menace|r.",
+            quest = 844,
+            when = "accepted",
+            map = 1413,
+            x = 52.2,
+            y = 31.0,
+            details = {
+                "Turn in |cRB_QUEST_Sergra Darkthorn|r",
+            },
+        },
+        {
+            excludeRaces = { "Orc", "Troll", "Tauren" },
             text = "Talk to |cRB_FRIENDLY_Sergra Darkthorn|r. Accept |cRB_QUEST_Plainstrider Menace|r.",
             quest = 844,
             when = "accepted",
@@ -84,6 +97,20 @@ ns.RegisterGuide({
             y = 30.3,
         },
         {
+            classes = { "Druid" },
+            races = { "Tauren" },
+            text = "Talk to |cRB_FRIENDLY_Tonga Runetotem|r. Turn in |cRB_QUEST_The Barrens Oases|r. Accept |cRB_QUEST_The Forgotten Pools|r.",
+            quest = 870,
+            when = "accepted",
+            map = 1413,
+            x = 52.3,
+            y = 31.9,
+            details = {
+                "Turn in |cRB_QUEST_The Barrens Oases|r",
+            },
+        },
+        {
+            excludeClasses = { "Druid" },
             text = "Talk to |cRB_FRIENDLY_Tonga Runetotem|r. Accept |cRB_QUEST_The Forgotten Pools|r.",
             quest = 870,
             when = "accepted",
@@ -92,6 +119,29 @@ ns.RegisterGuide({
             y = 31.9,
         },
         {
+            classes = { "Druid" },
+            excludeRaces = { "Tauren" },
+            text = "Talk to |cRB_FRIENDLY_Tonga Runetotem|r. Accept |cRB_QUEST_The Forgotten Pools|r.",
+            quest = 870,
+            when = "accepted",
+            map = 1413,
+            x = 52.3,
+            y = 31.9,
+        },
+        {
+            races = { "Tauren" },
+            text = "Talk to |cRB_FRIENDLY_Thork|r. Turn in |cRB_QUEST_Journey to the Crossroads|r. Accept |cRB_QUEST_Disrupt the Attacks|r and |cRB_QUEST_Supplies for the Crossroads|r.",
+            quests = { 871, 5041 },
+            when = "accepted",
+            map = 1413,
+            x = 51.5,
+            y = 30.9,
+            details = {
+                "Turn in |cRB_QUEST_Journey to the Crossroads|r",
+            },
+        },
+        {
+            excludeRaces = { "Tauren" },
             text = "Talk to |cRB_FRIENDLY_Thork|r. Accept |cRB_QUEST_Disrupt the Attacks|r and |cRB_QUEST_Supplies for the Crossroads|r.",
             quests = { 871, 5041 },
             when = "accepted",

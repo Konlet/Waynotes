@@ -12,6 +12,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    next = "horde-ashenvale-21-22",
     minLevel = 17,
     maxLevel = 26,
     steps = {
