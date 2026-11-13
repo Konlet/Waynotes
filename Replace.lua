@@ -850,7 +850,7 @@ local function stepWaypoint(step)
     if hbd then
         px, py, instance = hbd:GetPlayerWorldPosition()
     end
-    local best, bestDist, bestLow
+    local best, bestDist, bestLow, bestRoute
     for _, element in ipairs(step.elements or {}) do
         if arrowElementUsable(element) then
             local wx, wy, inst = elementWorld(element, hbd)
@@ -861,6 +861,32 @@ local function stepWaypoint(step)
                     local _, yards = hbd:GetWorldVector(instance, px, py, wx, wy)
                     dist = yards
                 end
+                local route
+                local aim = { wx = wx, wy = wy, instance = inst }
+                if ns.TravelBestPath and (element.tag == "goto" or element.tag == "fly" or element.tag == "hs" or element.arrow) then
+                    local prefer
+                    if element.tag == "hs" then
+                        prefer = "hearth"
+                    elseif element.tag == "fly" then
+                        prefer = "fly"
+                    end
+                    route = ns.TravelBestPath({
+                        name = element.zone,
+                        zone = element.zone,
+                        wx = wx,
+                        wy = wy,
+                        instance = inst,
+                        prefer = prefer,
+                    }, { prefer = prefer })
+                    if route then
+                        if route.waypoint then
+                            aim = route.waypoint
+                        end
+                        if type(route.seconds) == "number" then
+                            dist = route.seconds * 10
+                        end
+                    end
+                end
                 local replace = not best
                 if best then
                     if bestLow and not low then
@@ -870,12 +896,16 @@ local function stepWaypoint(step)
                     end
                 end
                 if replace then
-                    best = { wx = wx, wy = wy, instance = inst }
+                    best = aim
                     bestDist = dist
                     bestLow = low
+                    bestRoute = route
                 end
             end
         end
+    end
+    if best and bestRoute and bestRoute.waypoint then
+        return bestRoute.waypoint
     end
     return best
 end
