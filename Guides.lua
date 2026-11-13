@@ -238,6 +238,9 @@ local function cleanStep(step)
     copy.map = tonumber(step.map)
     copy.x = tonumber(step.x)
     copy.y = tonumber(step.y)
+    if type(step.travel) == "table" or type(step.travel) == "string" or step.travel == true then
+        copy.travel = step.travel
+    end
     local quests = {}
     local seen = {}
     local function add(id)
@@ -1232,6 +1235,9 @@ local function buildItem(step, full)
                 zone = pin.zone,
             }
             item.waypoint = worldPoint(pin)
+        end
+        if ns.TravelApplyToItem then
+            item = ns.TravelApplyToItem(item, step) or item
         end
     end
     return item
