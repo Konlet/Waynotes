@@ -13,6 +13,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    starter = true,
     next = "horde-tirisfal-6-10-curated",
     races = { "Undead" },
     minLevel = 1,

@@ -12,6 +12,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    starter = true,
     next = "horde-mulgore-6-10-curated",
     races = { "Tauren" },
     minLevel = 1,

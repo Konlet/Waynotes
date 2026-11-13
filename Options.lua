@@ -566,14 +566,14 @@ local function build(parent)
     desc:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
     desc:SetJustifyH("LEFT")
     desc:SetJustifyV("TOP")
-    desc:SetText("Tracker style and colors. Use our guide for steps you write, or replace the RestedXP window.")
+    desc:SetText("Tracker style and colors. Replace RestedXP runs your custom guides and hides the RestedXP window.")
     y = y - 36
 
-    local ourHeader = createHeader(parent, "Our guide")
+    local ourHeader = createHeader(parent, "Replace RestedXP")
     place(ourHeader, parent, y)
     y = y - 28
 
-    local standalone = createCheck(parent, "Use our guide", "Shows a guide from the Guides folder in this tracker. Quest names, givers, and pins come from QuestieDB when it is installed. RestedXP stays on screen.", "standaloneGuide")
+    local standalone = createCheck(parent, "Replace RestedXP", "Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", "standaloneGuide")
     standalone:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 28
 
@@ -583,6 +583,10 @@ local function build(parent)
 
     local offStep = createCheck(parent, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
     offStep:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 28
+
+    local dungeonGuide = createCheck(parent, "Suggest dungeon guide on enter", "When you enter a dungeon, asks if you want to load the matching dungeon guide. Turn this back on after choosing Don't Ask Again.", "promptDungeonGuide")
+    dungeonGuide:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 28
 
     local allGuides = createCheck(parent, "Show unrelated guides", "Lists class, race, and faction guides that do not match this character in the right-click guide menu. Leave off to only show guides relevant to you.", "showIrrelevantGuides")
@@ -599,7 +603,7 @@ local function build(parent)
     place(guideStatus, parent, y)
     function guideStatus:Refresh()
         if not ns.db or not ns.db.standaloneGuide then
-            self:SetText("Our guide is off. The tracker follows RestedXP while Replace the guide window is on.")
+            self:SetText("Replace RestedXP is off. The tracker follows RestedXP while Replace the guide window is on.")
             self:SetTextColor(0.7, 0.7, 0.7)
             return
         end
@@ -630,7 +634,7 @@ local function build(parent)
     place(replaceHeader, parent, y)
     y = y - 28
 
-    local replace = createCheck(parent, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Use our guide is on, this stays paused and RestedXP stays visible.", "replaceGuide")
+    local replace = createCheck(parent, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Replace RestedXP is on, this stays paused and RestedXP stays hidden.", "replaceGuide")
     replace:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 

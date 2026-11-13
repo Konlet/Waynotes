@@ -13,6 +13,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    starter = true,
     next = "horde-durotar-6-10-curated",
     races = { "Orc", "Troll" },
     minLevel = 1,
