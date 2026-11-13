@@ -1,42 +1,29 @@
 ## Interface: 16001
-## Title: RestedXP Better
+## Title: Waynotes
 ## Notes: A WoW-style tracker, and a standalone questing guide for WoW Forever.
-## Author: RestedXP Better
+## Author: Waynotes
 ## Version: 1.4.0
 ## Category: Quests
 ## AllowLoadGameType: forever, camelot
-## OptionalDeps: RXPGuides, QuestieDB
-## SavedVariables: RestedXPBetterDB
-## SavedVariablesPerCharacter: RestedXPBetterCharDB
+## OptionalDeps: RXPGuides, QuestieDB, HereBeDragons
+## SavedVariables: WaynotesDB
+## SavedVariablesPerCharacter: WaynotesCharDB
 
 Core.lua
 Database.lua
 Data/Innkeepers.lua
 Data/FlightMasters.lua
+Data/Banks.lua
+Data/AuctionHouses.lua
+Data/Mailboxes.lua
+Data/ClassTrainers.lua
 Nav.lua
 Travel.lua
 Guides.lua
-Guides/Example.lua
-Guides/Forever/Horde_01-12_Durotar.lua
-Guides/Forever/Horde_Durotar_Curated.lua
+Guides/Forever/Curated/Horde_Durotar_Curated.lua
+Guides/Forever/Curated/Horde_Barrens_Curated.lua
+Guides/Forever/Curated/Horde_Stonetalon_Curated.lua
 Guides/Forever/Horde_Durotar_ClassQuests.lua
-Guides/Forever/Horde_01-12_Mulgore.lua
-Guides/Forever/Horde_12-22_Barrens.lua
-Guides/Forever/Zygor/Horde_01-13_Starters.lua
-Guides/Forever/Zygor/Horde_13-30.lua
-Guides/Forever/Zygor/Horde_30-40.lua
-Guides/Forever/Zygor/Horde_40-50.lua
-Guides/Forever/Zygor/Horde_50-60.lua
-Guides/Forever/Zygor/Horde_Optional.lua
-Guides/Forever/Zygor/Dungeons/Horde_01-30.lua
-Guides/Forever/Zygor/Dungeons/Horde_30-45.lua
-Guides/Forever/Zygor/Dungeons/Horde_45-60.lua
-Guides/Forever/Zygor/Dungeons/Horde_Quests.lua
-Guides/Forever/Zygor/Dungeons/Horde_Raids.lua
-Guides/Forever/Zygor/Dungeons/Alliance_01-30.lua
-Guides/Forever/Zygor/Dungeons/Alliance_30-45.lua
-Guides/Forever/Zygor/Dungeons/Alliance_45-60.lua
-Guides/Forever/Zygor/Dungeons/Alliance_Quests.lua
-Guides/Forever/Zygor/Dungeons/Alliance_Raids.lua
+ReplaceGuide.lua
 Replace.lua
 Options.lua

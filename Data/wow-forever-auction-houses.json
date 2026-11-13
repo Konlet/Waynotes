@@ -1,0 +1,290 @@
+[
+  {
+    "name": "Auctioneer Cazarez",
+    "npcId": 15679,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 56.36,
+      "y": 52.98
+    },
+    "additionalNpcs": [
+      {
+        "name": "Auctioneer Golothas",
+        "npcId": 8723
+      },
+      {
+        "name": "Auctioneer Silva'las",
+        "npcId": 15678
+      },
+      {
+        "name": "Auctioneer Tolon",
+        "npcId": 8669
+      }
+    ]
+  },
+  {
+    "name": "Auctioneer Buckler",
+    "npcId": 8671,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 24.45,
+      "y": 72.1
+    }
+  },
+  {
+    "name": "Auctioneer Lympkin",
+    "npcId": 9859,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 25.07,
+      "y": 74.51
+    },
+    "additionalNpcs": [
+      {
+        "name": "Auctioneer Redmuse",
+        "npcId": 8720
+      }
+    ]
+  },
+  {
+    "name": "Auctioneer Grimful",
+    "npcId": 9856,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 55.2,
+      "y": 62.55
+    },
+    "additionalNpcs": [
+      {
+        "name": "Auctioneer Thathung",
+        "npcId": 8673
+      }
+    ]
+  },
+  {
+    "name": "Auctioneer Wabang",
+    "npcId": 8724,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 55.5,
+      "y": 64.7
+    }
+  },
+  {
+    "name": "Auctioneer Quickcoin",
+    "npcId": 258878,
+    "faction": null,
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 9.5,
+      "y": 71.8
+    }
+  },
+  {
+    "name": "Auctioneer Chilton",
+    "npcId": 8670,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 60.93,
+      "y": 70.93
+    },
+    "additionalNpcs": [
+      {
+        "name": "Auctioneer Fitch",
+        "npcId": 8719
+      },
+      {
+        "name": "Auctioneer Jaxon",
+        "npcId": 15659
+      }
+    ]
+  },
+  {
+    "name": "Auctioneer Graves",
+    "npcId": 15677,
+    "faction": null,
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 27.6,
+      "y": 76.4
+    },
+    "additionalNpcs": [
+      {
+        "name": "Auctioneer Kresky",
+        "npcId": 9858
+      },
+      {
+        "name": "Auctioneer O'reely",
+        "npcId": 15681
+      }
+    ]
+  },
+  {
+    "name": "Auctioneer Beardo",
+    "npcId": 8661,
+    "faction": null,
+    "position": {
+      "zone": "Tanaris",
+      "mapId": 1446,
+      "x": 52.0,
+      "y": 29.5
+    }
+  },
+  {
+    "name": "Auctioneer Quickcoin",
+    "npcId": 258878,
+    "faction": null,
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 49.8,
+      "y": 29.4
+    }
+  },
+  {
+    "name": "Auctioneer Gullem",
+    "npcId": 8722,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 38.73,
+      "y": 50.53
+    }
+  },
+  {
+    "name": "Auctioneer Stampi",
+    "npcId": 8674,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 40.5,
+      "y": 52.6
+    }
+  },
+  {
+    "name": "Auctioneer Cain",
+    "npcId": 15682,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 68.2,
+      "y": 36.2
+    }
+  },
+  {
+    "name": "Auctioneer Epitwee",
+    "npcId": 8721,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 63.93,
+      "y": 52.2
+    }
+  },
+  {
+    "name": "Auctioneer Leeka",
+    "npcId": 8672,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 67.6,
+      "y": 52.33
+    }
+  },
+  {
+    "name": "Auctioneer Naxxremis",
+    "npcId": 15683,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 63.8,
+      "y": 36.1
+    }
+  },
+  {
+    "name": "Auctioneer Rhyker",
+    "npcId": 15686,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 60.56,
+      "y": 46.84
+    }
+  },
+  {
+    "name": "Auctioneer Stockton",
+    "npcId": 15675,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 71.36,
+      "y": 46.92
+    }
+  },
+  {
+    "name": "Auctioneer Tricket",
+    "npcId": 15684,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 60.56,
+      "y": 41.24
+    }
+  },
+  {
+    "name": "Auctioneer Yarly",
+    "npcId": 15676,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 71.44,
+      "y": 41.28
+    }
+  },
+  {
+    "name": "Auctioneer Grizzlin",
+    "npcId": 9857,
+    "faction": null,
+    "position": {
+      "zone": "Winterspring",
+      "mapId": 1452,
+      "x": 61.4,
+      "y": 37.2
+    }
+  },
+  {
+    "name": "Zelena Favorbreeze",
+    "npcId": 257037,
+    "faction": null,
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 57.8,
+      "y": 77.0
+    }
+  }
+]

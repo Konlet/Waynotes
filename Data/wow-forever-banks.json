@@ -1,0 +1,355 @@
+[
+  {
+    "name": "Paymaster Alstein",
+    "npcId": 275216,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 22.7,
+      "y": 65.35
+    },
+    "additionalNpcs": [
+      {
+        "name": "Teller Althiellis",
+        "npcId": 275214
+      }
+    ]
+  },
+  {
+    "name": "Paymaster Amadi",
+    "npcId": 275252,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 10.6,
+      "y": 68.7
+    },
+    "additionalNpcs": [
+      {
+        "name": "Teller Almeida",
+        "npcId": 275240
+      }
+    ]
+  },
+  {
+    "name": "Paymaster Chang",
+    "npcId": 275251,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 10.57,
+      "y": 68.57
+    },
+    "additionalNpcs": [
+      {
+        "name": "Teller Gee",
+        "npcId": 275243
+      },
+      {
+        "name": "Teller Plushner",
+        "npcId": 275253
+      }
+    ]
+  },
+  {
+    "name": "Teller Hanners",
+    "npcId": 275212,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 22.9,
+      "y": 64.75
+    },
+    "additionalNpcs": [
+      {
+        "name": "Teller Rames",
+        "npcId": 275210
+      }
+    ]
+  },
+  {
+    "name": "Garryeth",
+    "npcId": 4209,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 39.93,
+      "y": 42.17
+    },
+    "additionalNpcs": [
+      {
+        "name": "Idriana",
+        "npcId": 4155
+      },
+      {
+        "name": "Lairn",
+        "npcId": 4208
+      }
+    ]
+  },
+  {
+    "name": "Scarlet Stash",
+    "npcId": 241862,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 98.5,
+      "y": 82.5
+    }
+  },
+  {
+    "name": "Bailey Stonemantle",
+    "npcId": 2461,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 35.5,
+      "y": 60.5
+    }
+  },
+  {
+    "name": "Barnum Stonemantle",
+    "npcId": 2460,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 34.6,
+      "y": 59.24
+    }
+  },
+  {
+    "name": "Soleil Stonemantle",
+    "npcId": 5099,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 36.55,
+      "y": 62.1
+    }
+  },
+  {
+    "name": "Karus",
+    "npcId": 3309,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 49.62,
+      "y": 69.4
+    },
+    "additionalNpcs": [
+      {
+        "name": "Koma",
+        "npcId": 3318
+      },
+      {
+        "name": "Soran",
+        "npcId": 3320
+      }
+    ]
+  },
+  {
+    "name": "Uninspected Shipment",
+    "npcId": 258880,
+    "faction": null,
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 9.5,
+      "y": 71.81
+    }
+  },
+  {
+    "name": "Brakkit",
+    "npcId": 257292,
+    "faction": null,
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 76.67,
+      "y": 54.2
+    },
+    "additionalNpcs": [
+      {
+        "name": "Lizi Pinchwhistle",
+        "npcId": 257294
+      },
+      {
+        "name": "Mizzy",
+        "npcId": 260543
+      }
+    ]
+  },
+  {
+    "name": "John Burnside",
+    "npcId": 2457,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 56.4,
+      "y": 73.2
+    }
+  },
+  {
+    "name": "Newton Burnside",
+    "npcId": 2456,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 64.0,
+      "y": 80.6
+    },
+    "additionalNpcs": [
+      {
+        "name": "Olivia Burnside",
+        "npcId": 2455
+      }
+    ]
+  },
+  {
+    "name": "Rickle Goldgrubber",
+    "npcId": 8123,
+    "faction": null,
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 26.55,
+      "y": 76.45
+    },
+    "additionalNpcs": [
+      {
+        "name": "Viznik Goldgrubber",
+        "npcId": 2625
+      }
+    ]
+  },
+  {
+    "name": "Gimblethorn",
+    "npcId": 7799,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Tanaris",
+      "mapId": 1446,
+      "x": 52.2,
+      "y": 28.8
+    }
+  },
+  {
+    "name": "Qizzik",
+    "npcId": 8124,
+    "faction": null,
+    "position": {
+      "zone": "Tanaris",
+      "mapId": 1446,
+      "x": 52.4,
+      "y": 28.8
+    }
+  },
+  {
+    "name": "Fuzruckle",
+    "npcId": 3496,
+    "faction": null,
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 62.6,
+      "y": 37.4
+    },
+    "additionalNpcs": [
+      {
+        "name": "Zikkel",
+        "npcId": 8119
+      }
+    ]
+  },
+  {
+    "name": "Uninspected Shipment",
+    "npcId": 258880,
+    "faction": null,
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 49.8,
+      "y": 29.41
+    }
+  },
+  {
+    "name": "Atepa",
+    "npcId": 8357,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 46.91,
+      "y": 58.62
+    },
+    "additionalNpcs": [
+      {
+        "name": "Chesmu",
+        "npcId": 8356
+      },
+      {
+        "name": "Torn",
+        "npcId": 2996
+      }
+    ]
+  },
+  {
+    "name": "Mortimer Montague",
+    "npcId": 2459,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 65.9,
+      "y": 43.64
+    },
+    "additionalNpcs": [
+      {
+        "name": "Ophelia Montague",
+        "npcId": 4550
+      },
+      {
+        "name": "Randolph Montague",
+        "npcId": 2458
+      },
+      {
+        "name": "William Montague",
+        "npcId": 4549
+      }
+    ]
+  },
+  {
+    "name": "Izzy Coppergrab",
+    "npcId": 13917,
+    "faction": null,
+    "position": {
+      "zone": "Winterspring",
+      "mapId": 1452,
+      "x": 61.4,
+      "y": 37.0
+    }
+  },
+  {
+    "name": "Baelann Favorbreeze",
+    "npcId": 257036,
+    "faction": null,
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 57.6,
+      "y": 77.0
+    }
+  }
+]

@@ -1,0 +1,28 @@
+## Interface: 16001
+## Title: Waynotes
+## Notes: A WoW-style tracker, and a standalone questing guide for WoW Forever.
+## Author: Waynotes
+## Version: 1.4.0
+## Category: Quests
+## AllowLoadGameType: forever, camelot
+## OptionalDeps: RXPGuides, QuestieDB
+## SavedVariables: WaynotesDB
+## SavedVariablesPerCharacter: WaynotesCharDB
+
+Core.lua
+Database.lua
+Data/Innkeepers.lua
+Data/FlightMasters.lua
+Data/Banks.lua
+Data/AuctionHouses.lua
+Data/Mailboxes.lua
+Data/ClassTrainers.lua
+Nav.lua
+Travel.lua
+Guides.lua
+Guides/Forever/Curated/Horde_Durotar_Curated.lua
+Guides/Forever/Curated/Horde_Barrens_Curated.lua
+Guides/Forever/Curated/Horde_Stonetalon_Curated.lua
+Guides/Forever/Horde_Durotar_ClassQuests.lua
+Replace.lua
+Options.lua
