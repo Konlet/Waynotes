@@ -4,6 +4,7 @@
 ## Author: Waynotes
 ## Version: 1.4.0
 ## Category: Quests
+## IconTexture: Interface\AddOns\Waynotes\logo
 ## AllowLoadGameType: forever, camelot
 ## OptionalDeps: RXPGuides, QuestieDB
 ## SavedVariables: WaynotesDB
@@ -26,6 +27,9 @@ Guides/Forever/Curated/Skyborne_Zephras_Curated.lua
 Guides/Forever/Curated/Horde_Barrens_Curated.lua
 Guides/Forever/Curated/Horde_Stonetalon_Curated.lua
 Guides/Forever/Curated/Horde_Ashenvale_Curated.lua
+Guides/Forever/Curated/Professions_Gathering_Curated.lua
+Guides/Forever/Curated/Professions_Crafting_Curated.lua
+Guides/Forever/Curated/Professions_Secondary_Curated.lua
 Guides/Forever/Horde_Durotar_ClassQuests.lua
 Replace.lua
 Options.lua

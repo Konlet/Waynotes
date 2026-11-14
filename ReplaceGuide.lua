@@ -457,6 +457,10 @@ local function isProgress(text)
     if plain:match("%d+%s*/%s*%d+%s*$") then
         return true
     end
+    -- Authored gather counts: "Durotar Tiger Fur (4)".
+    if plain:match("%S.+%(%d+%)%s*$") then
+        return true
+    end
     return false
 end
 

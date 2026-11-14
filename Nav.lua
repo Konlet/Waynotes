@@ -425,19 +425,49 @@ function ns.MapZoneName(map)
     return mapName(map)
 end
 
+-- Classic HereBeDragons builds map axes from GetWorldPosFromMapPos():GetXY()
+-- assigned as (top, left). Zone→world X/Y then come out swapped against
+-- UnitPosition. Standing on Kaltunk (Durotar 43.3, 68.5) that swap is ~5150 yd:
+-- map world (-4252, -606) versus unit position (-607, -4251).
+local AXIS_MATCH_YARDS = 1500
+
+local function axesAreCrossed(map, zx, zy, px, py)
+    if not isNumber(map) or not isNumber(zx) or not isNumber(zy) or not isNumber(px) or not isNumber(py) then
+        return false
+    end
+    local mx, my = pinWorld(map, zx, zy)
+    if not mx or not my then
+        return false
+    end
+    local direct = (mx - px) * (mx - px) + (my - py) * (my - py)
+    local crossed = (my - px) * (my - px) + (mx - py) * (mx - py)
+    return crossed < direct and crossed < (AXIS_MATCH_YARDS * AXIS_MATCH_YARDS)
+end
+
+local function alignMapWorld(mx, my, map, zx, zy, px, py)
+    if axesAreCrossed(map, zx, zy, px, py) then
+        return my, mx
+    end
+    return mx, my
+end
+
 -- Forever: UnitPosition (player world) and UiMap zone→world can disagree by
--- hundreds of yards. Build the waypoint in UnitPosition space by applying the
--- zone-space delta between the player and the pin.
+-- an axis swap or a few hundred yards of origin. Build the waypoint in
+-- UnitPosition space by applying the zone-space delta between the player and the pin.
 local function pinWorldFromZoneDelta(map, pinX, pinY, pzx, pzy, px, py, pinstance)
-    if not isNumber(map) or not isNumber(pinX) or not isNumber(pzx) or not isNumber(px) then
+    if not isNumber(map) or not isNumber(pinX) or not isNumber(pzx) or not isNumber(px) or not isNumber(py) then
         return nil
     end
-    local playerWx, playerWy = pinWorld(map, pzx * 100, pzy * 100)
-    local pinWx, pinWy, pinInstance = pinWorld(map, pinX, pinY)
-    if not playerWx or not pinWx then
+    -- worldPoint accepts 0-1 or 0-100. Do not pre-multiply: a percent value
+    -- times 100 is converted as thousands of percent and the delta explodes.
+    local playerMx, playerMy = pinWorld(map, pzx, pzy)
+    local pinMx, pinMy, pinInstance = pinWorld(map, pinX, pinY)
+    if not playerMx or not pinMx then
         return nil
     end
-    return px + (pinWx - playerWx), py + (pinWy - playerWy), pinstance or pinInstance
+    playerMx, playerMy = alignMapWorld(playerMx, playerMy, map, pzx, pzy, px, py)
+    pinMx, pinMy = alignMapWorld(pinMx, pinMy, map, pzx, pzy, px, py)
+    return px + (pinMx - playerMx), py + (pinMy - playerMy), pinstance or pinInstance
 end
 
 -- When HBD cannot convert a map at all, approximate the pin in UnitPosition
@@ -445,7 +475,8 @@ end
 local function pinWorldFromPercent(pzx, pzy, pinX, pinY, px, py, pinstance)
     local dx = toFraction(pinX)
     local dy = toFraction(pinY)
-    if not isNumber(pzx) or not isNumber(dx) or not isNumber(px) then
+    pzx, pzy = toFraction(pzx), toFraction(pzy)
+    if not isNumber(pzx) or not isNumber(pzy) or not isNumber(dx) or not isNumber(dy) or not isNumber(px) or not isNumber(py) then
         return nil
     end
     local SCALE = 4000
@@ -487,7 +518,12 @@ function ns.PinToPlayerWorld(map, x, y, zone)
         end
 
         if isNumber(map) and hbd and type(hbd.GetZoneCoordinatesFromWorld) == "function" then
-            local ok, zx, zy = pcall(hbd.GetZoneCoordinatesFromWorld, hbd, px, py, pinstance or 0, map, true)
+            -- Map data may store X/Y swapped versus UnitPosition. Feed it map-world order.
+            local worldX, worldY = px, py
+            if isNumber(pmap) and isNumber(pzx) and axesAreCrossed(pmap, pzx, pzy, px, py) then
+                worldX, worldY = py, px
+            end
+            local ok, zx, zy = pcall(hbd.GetZoneCoordinatesFromWorld, hbd, worldX, worldY, map, true)
             if ok and isNumber(zx) and isNumber(zy) then
                 local wx, wy, instance = deltaOn(map, zx, zy)
                 if wx then
@@ -517,7 +553,11 @@ function ns.PinToPlayerWorld(map, x, y, zone)
         end
     end
 
-    return worldPoint(map, x, y)
+    local wx, wy, instance = worldPoint(map, x, y)
+    if wx and isNumber(map) and isNumber(px) and isNumber(py) and isNumber(pzx) and isNumber(pzy) then
+        wx, wy = alignMapWorld(wx, wy, map, pzx, pzy, px, py)
+    end
+    return wx, wy, instance
 end
 
 -- Zone yards for UI when a world waypoint cannot be built yet.
@@ -983,22 +1023,28 @@ local menuRows = {}
 local subRows = {}
 local trainerRow
 
-local function styleFrame(frame)
+local function styleNavFrame(frame)
+    if ns.StylePopupFrame then
+        ns.StylePopupFrame(frame)
+        return
+    end
     frame:SetBackdrop({
         bgFile = "Interface\\BUTTONS\\WHITE8X8",
         edgeFile = "Interface\\BUTTONS\\WHITE8X8",
         edgeSize = 1,
     })
-    frame:SetBackdropColor(0.04, 0.04, 0.04, 0.96)
-    frame:SetBackdropBorderColor(1, 0.82, 0, 0.85)
-end
-
-local function applyAccent(frame)
-    local r, g, b = 1, 0.82, 0
+    local panelR, panelG, panelB = 0.04, 0.04, 0.04
+    local edgeR, edgeG, edgeB = 1, 0.82, 0
+    local background = 0.96
     if ns.Color then
-        r, g, b = ns.Color("accent")
+        panelR, panelG, panelB = ns.Color("background")
+        edgeR, edgeG, edgeB = ns.Color("accent")
     end
-    frame:SetBackdropBorderColor(r, g, b, 0.9)
+    if ns.db and type(ns.db.trackerBackground) == "number" then
+        background = ns.db.trackerBackground
+    end
+    frame:SetBackdropColor(panelR, panelG, panelB, background)
+    frame:SetBackdropBorderColor(edgeR, edgeG, edgeB, 0.9)
 end
 
 local function hideMenus()
@@ -1068,6 +1114,7 @@ local function presentSubMenu()
         subRows[extra].className = nil
     end
     subMenu:SetHeight(#entries * ROW_HEIGHT + PAD * 2)
+    styleNavFrame(subMenu)
 end
 
 local function openSubMenu()
@@ -1075,7 +1122,6 @@ local function openSubMenu()
         return
     end
     presentSubMenu()
-    applyAccent(subMenu)
     subMenu:ClearAllPoints()
     subMenu:SetPoint("TOPLEFT", trainerRow, "TOPRIGHT", PAD + 2, PAD)
     subMenu:Show()
@@ -1130,6 +1176,7 @@ local function presentMenu()
         menuRows[extra]:SetScript("OnClick", nil)
     end
     menu:SetSize(MENU_WIDTH, #items * ROW_HEIGHT + PAD * 2)
+    styleNavFrame(menu)
 end
 
 local function buildMenu()
@@ -1148,10 +1195,9 @@ local function buildMenu()
     menu:SetClampedToScreen(true)
     menu:EnableMouse(true)
     menu:Hide()
-    styleFrame(menu)
     menu:SetScript("OnShow", function(self)
         catcher:Show()
-        applyAccent(self)
+        styleNavFrame(self)
     end)
     menu:SetScript("OnHide", function()
         catcher:Hide()
@@ -1167,7 +1213,9 @@ local function buildMenu()
     subMenu:SetClampedToScreen(true)
     subMenu:EnableMouse(true)
     subMenu:Hide()
-    styleFrame(subMenu)
+    subMenu:SetScript("OnShow", function(self)
+        styleNavFrame(self)
+    end)
 end
 
 buildMenu()

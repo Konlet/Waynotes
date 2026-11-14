@@ -283,6 +283,60 @@ end
 
 ns.TOOLTIP_MAX_WIDTH = 280
 
+local function paintTooltipBackground(tip)
+    if not tip then
+        return
+    end
+    local r, g, b = 0.02, 0.02, 0.02
+    if ns.Color then
+        r, g, b = ns.Color("background")
+    end
+    -- Near-opaque so guide/options tip text stays readable on bright world UI.
+    local alpha = 0.94
+    if tip.SetBackdropColor then
+        pcall(tip.SetBackdropColor, tip, r, g, b, alpha)
+    end
+    if tip.NineSlice then
+        local slice = tip.NineSlice
+        if slice.SetCenterColor then
+            pcall(slice.SetCenterColor, slice, r, g, b, alpha)
+        end
+        if slice.Center and slice.Center.SetVertexColor then
+            pcall(slice.Center.SetVertexColor, slice.Center, r, g, b, alpha)
+        end
+        if slice.Center and slice.Center.SetColorTexture then
+            pcall(slice.Center.SetColorTexture, slice.Center, r, g, b, alpha)
+        end
+    end
+    local bg = tip.__waynotesBg
+    if not bg then
+        bg = tip:CreateTexture(nil, "BACKGROUND", nil, -8)
+        tip.__waynotesBg = bg
+        tip:HookScript("OnHide", function(self)
+            if self.__waynotesBg then
+                self.__waynotesBg:Hide()
+            end
+        end)
+    end
+    bg:ClearAllPoints()
+    bg:SetPoint("TOPLEFT", tip, "TOPLEFT", 1, -1)
+    bg:SetPoint("BOTTOMRIGHT", tip, "BOTTOMRIGHT", -1, 1)
+    if bg.SetColorTexture then
+        bg:SetColorTexture(r, g, b, alpha)
+    else
+        bg:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+        bg:SetVertexColor(r, g, b, alpha)
+    end
+    bg:Show()
+    local edgeR, edgeG, edgeB = 1, 0.82, 0
+    if ns.Color then
+        edgeR, edgeG, edgeB = ns.Color("accent")
+    end
+    if tip.SetBackdropBorderColor then
+        pcall(tip.SetBackdropBorderColor, tip, edgeR, edgeG, edgeB, 0.85)
+    end
+end
+
 function ns.FinishTooltip(maxWidth)
     maxWidth = maxWidth or ns.TOOLTIP_MAX_WIDTH
     if type(maxWidth) ~= "number" or maxWidth < 120 then
@@ -290,6 +344,7 @@ function ns.FinishTooltip(maxWidth)
     end
     local tip = GameTooltip
     tip:Show()
+    paintTooltipBackground(tip)
     local textWidth = maxWidth - 24
     if textWidth < 80 then
         textWidth = 80
@@ -311,6 +366,7 @@ function ns.FinishTooltip(maxWidth)
     end
     if changed then
         tip:Show()
+        paintTooltipBackground(tip)
     end
 end
 
@@ -543,6 +599,59 @@ function ns.UsingStandalone()
     return ns.db and ns.db.standaloneGuide and true or false
 end
 
+function ns.RestedXP()
+    local rxp = _G.RXP
+    if type(rxp) == "table" and type(rxp.guideList) == "table" and type(rxp.LoadGuide) == "function" then
+        return rxp
+    end
+end
+
+function ns.RestedXPActive()
+    if ns.RestedXP() then
+        return true
+    end
+    local loaded = false
+    if C_AddOns and C_AddOns.IsAddOnLoaded then
+        loaded = C_AddOns.IsAddOnLoaded("RXPGuides") and true or false
+    elseif IsAddOnLoaded then
+        loaded = IsAddOnLoaded("RXPGuides") and true or false
+    end
+    return loaded
+end
+
+-- While RestedXP is loaded, keep Replace RestedXP off and show its guides
+-- in this tracker. The previous choice is restored once RestedXP is gone.
+function ns.ApplyRestedXPMode()
+    local db = ns.db
+    if not db then
+        return
+    end
+    if ns.RestedXPActive() then
+        if not db.restedXPMode then
+            db.savedStandaloneGuide = db.standaloneGuide and true or false
+            db.savedReplaceGuide = db.replaceGuide and true or false
+            db.restedXPMode = true
+        end
+        db.standaloneGuide = false
+        db.replaceGuide = true
+        db.restedXPGuides = ns.RestedXP() and true or false
+        return
+    end
+    if not db.restedXPMode then
+        return
+    end
+    if db.savedStandaloneGuide ~= nil then
+        db.standaloneGuide = db.savedStandaloneGuide and true or false
+    end
+    if db.savedReplaceGuide ~= nil then
+        db.replaceGuide = db.savedReplaceGuide and true or false
+    end
+    db.savedStandaloneGuide = nil
+    db.savedReplaceGuide = nil
+    db.restedXPMode = nil
+    db.restedXPGuides = false
+end
+
 function ns.ReplacingGuide()
     return ns.db and ns.db.replaceGuide and not ns.db.standaloneGuide and true or false
 end
@@ -556,6 +665,7 @@ function ns.InitDB()
         end
     end
     if ns.db == WaynotesDB then
+        ns.ApplyRestedXPMode()
         return ns.db
     end
 
@@ -625,6 +735,7 @@ function ns.InitDB()
     ns.SanitizeColors(db)
     ns.SanitizeProfiles(db)
     ns.db = db
+    ns.ApplyRestedXPMode()
     return db
 end
 
@@ -1134,6 +1245,14 @@ end
 
 events:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" then
+        if name == "RXPGuides" and ns.db then
+            ns.ApplyRestedXPMode()
+            safe(ns.Apply)
+            if ns.RefreshOptions then
+                ns.RefreshOptions()
+            end
+            return
+        end
         if name ~= addonName then
             return
         end

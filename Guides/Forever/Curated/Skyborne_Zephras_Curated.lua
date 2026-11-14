@@ -50,15 +50,27 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Kill |cRB_ENEMY_Juvenile Vuldren|r and |cRB_ENEMY_Pesky Cirrusflies|r around Thendal Grove. Prioritize the Cirrusflies.",
+            sticky = true,
+            text = "Kill |cRB_ENEMY_Juvenile Vuldren|r around Thendal Grove.",
             map = 2521,
             x = 45.3,
             y = 27.0,
-            quests = { 92461, 92462 },
+            quest = 92461,
+            when = "objectives",
+            details = {
+                "|cRB_ENEMY_Juvenile Vuldren|r (8)",
+            },
+            note = "Spots near 44-47, 26-28 have the highest density.",
+        },
+        {
+            text = "Kill |cRB_ENEMY_Pesky Cirrusflies|r around Thendal Grove. Prioritize the Cirrusflies.",
+            map = 2521,
+            x = 45.3,
+            y = 27.0,
+            quest = 92462,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Pesky Cirrusfly|r (8)",
-                "|cRB_ENEMY_Juvenile Vuldren|r (8)",
             },
             note = "Spots near 44-47, 26-28 have the highest density.",
         },
@@ -138,7 +150,6 @@ ns.RegisterGuide({
             y = 23.48,
             quest = 92474,
             when = "complete",
-            note = "Skip if you did not finish Walk on Air yet. Turn it in when you pass Rorian later.",
         },
         {
             classes = { "Druid" },
@@ -267,7 +278,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 42.76,
             y = 23.65,
-            note = "Skip the Hearthstone if you are close to the village.",
         },
         {
             text = "Finish clicking |cRB_PICK_Windstone Clusters|r around Thendal Grove.",
@@ -287,7 +297,6 @@ ns.RegisterGuide({
             y = 23.99,
             quest = 93552,
             when = "complete",
-            note = "Camping 101 profession side quests are optional and skipped in this guide.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Elatrell Featherlight|r. Turn in |cRB_QUEST_The Cirrusfly Queen|r.",
@@ -415,7 +424,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 35.57,
             y = 33.84,
-            note = "Optional. Press Next.",
         },
         {
             text = "Climb to the upper level of the temple. Kill |cRB_ENEMY_Malduko Cloudcrush|r.",
@@ -556,7 +564,7 @@ ns.RegisterGuide({
             y = 45.86,
             quest = 93318,
             when = "accepted",
-            note = "Vulgara is a level 8 elite. Group up or skip it.",
+            note = "Vulgara is a level 8 elite. Group up if needed.",
         },
         {
             classes = { "Warrior" },
@@ -564,7 +572,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 44.95,
             y = 45.1,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Hunter" },
@@ -572,7 +579,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 45.26,
             y = 44.24,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Druid" },
@@ -580,7 +586,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 45.15,
             y = 44.22,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Rogue" },
@@ -588,7 +593,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 43.16,
             y = 43.26,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Mage" },
@@ -596,7 +600,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 45.1,
             y = 45.87,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Raan Wildwind|r at the campfire. Turn in |cRB_QUEST_The Adventurer|r. Accept |cRB_QUEST_The Great Outdoors|r.",
@@ -608,7 +611,6 @@ ns.RegisterGuide({
             details = {
                 "Turn in |cRB_QUEST_The Adventurer|r",
             },
-            note = "Camping 101 profession quests are optional and skipped.",
         },
         {
             text = "Type /sit at the campfire and do not move or jump for about a minute to gain the Boosted Rest buff.",
@@ -632,29 +634,53 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Head to the bandit cave. Kill |cRB_ENEMY_Prideclaws|r for |cRB_LOOT_Prideclaw Pelts|r and |cRB_ENEMY_Galestriders|r for |cRB_LOOT_Strider Meat and Small Eggs|r along the way.",
+            sticky = true,
+            text = "On the way to the bandit cave, kill |cRB_ENEMY_Prideclaws|r for |cRB_LOOT_Prideclaw Pelts|r.",
             map = 2521,
             x = 49.5,
             y = 36.5,
-            quests = { 92515, 92553 },
+            quest = 92515,
             when = "objectives",
             details = {
                 "|cRB_LOOT_Prideclaw Pelt|r (10)",
+            },
+            note = "You will return to the cave area, so you do not have to finish these here.",
+        },
+        {
+            sticky = true,
+            text = "On the way to the bandit cave, kill |cRB_ENEMY_Galestriders|r for |cRB_LOOT_Strider Meat and Small Eggs|r.",
+            map = 2521,
+            x = 49.5,
+            y = 36.5,
+            quest = 92553,
+            when = "objectives",
+            details = {
                 "|cRB_LOOT_Strider Meat|r (8)",
                 "|cRB_LOOT_Small Egg|r (3)",
             },
             note = "You will return to the cave area, so you do not have to finish these here.",
         },
         {
-            text = "Enter the cave at about 49.5, 34.3. Kill |cRB_ENEMY_Highlands Bandits|r. Loot |cRB_LOOT_Pilfered Windstones|r.",
+            sticky = true,
+            text = "Inside the cave, loot |cRB_LOOT_Pilfered Windstones|r from the bandits.",
             map = 2521,
             x = 49.8,
             y = 35.5,
-            quests = { 92517, 93319 },
+            quest = 93319,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Pilfered Windstone|r (10)",
+            },
+        },
+        {
+            text = "Enter the cave at about 49.5, 34.3. Kill |cRB_ENEMY_Highlands Bandits|r.",
+            map = 2521,
+            x = 49.8,
+            y = 35.5,
+            quest = 92517,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Highlands Bandit|r (10)",
-                "|cRB_LOOT_Pilfered Windstone|r (10)",
             },
         },
         {
@@ -675,7 +701,6 @@ ns.RegisterGuide({
             y = 37.0,
             quests = { 92515, 92553, 92517, 93319 },
             when = "objectives",
-            note = "Skip if everything is already done.",
         },
         {
             text = "Kill |cRB_ENEMY_Windshaper Novice Seers|r west of Shen'dar. Use |cRB_WARN_Read Ley Line|r first for the regeneration buff.",
@@ -693,20 +718,30 @@ ns.RegisterGuide({
             map = 2521,
             x = 36.44,
             y = 50.93,
-            note = "Optional. Press Next.",
         },
         {
-            text = "Kill |cRB_ENEMY_Hippogryph Youths|r, |cRB_ENEMY_Protectors|r and the |cRB_ENEMY_Hippogryph Matriarch|r. Click |cRB_PICK_Hippogryph Downs|r on the ground.",
+            sticky = true,
+            text = "Click |cRB_PICK_Hippogryph Downs|r on the ground around the nests.",
             map = 2521,
             x = 36.0,
             y = 54.5,
-            quests = { 92516, 93951 },
+            quest = 93951,
+            when = "objectives",
+            details = {
+                "|cRB_PICK_Hippogryph Down|r (8)",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Hippogryph Youths|r, |cRB_ENEMY_Protectors|r and the |cRB_ENEMY_Hippogryph Matriarch|r.",
+            map = 2521,
+            x = 36.0,
+            y = 54.5,
+            quest = 92516,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Hippogryph Youth|r (8)",
                 "|cRB_ENEMY_Hippogryph Protector|r (6)",
                 "|cRB_ENEMY_Hippogryph Matriarch|r (1)",
-                "|cRB_PICK_Hippogryph Down|r (8)",
             },
             note = "Hippogryphs are very fast. Do not rely on outrunning them. Prioritize the Matriarch.",
         },
@@ -720,7 +755,7 @@ ns.RegisterGuide({
             details = {
                 "|cRB_LOOT_Vulgara's Head|r (1)",
             },
-            note = "Level 8 elite with long respawns. Group up or skip it.",
+            note = "Level 8 elite with long respawns. Group up if needed.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Teeri Wellwind|r. Turn in |cRB_QUEST_Hippogryph Harassment|r and |cRB_QUEST_Pilfered Windstones|r.",
@@ -749,7 +784,6 @@ ns.RegisterGuide({
             y = 44.53,
             quest = 92515,
             when = "complete",
-            note = "Skip if you still need pelts. You can finish them on the Highlands trip.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Zerril Softbreeze|r. Turn in |cRB_QUEST_Restocking the Larders|r.",
@@ -758,7 +792,6 @@ ns.RegisterGuide({
             y = 43.84,
             quest = 92553,
             when = "complete",
-            note = "Skip if you still need meat or eggs. You can finish them on the Highlands trip.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Rathiril Sunlance|r. Turn in |cRB_QUEST_A Magical Affront|r.",
@@ -775,7 +808,6 @@ ns.RegisterGuide({
             y = 45.19,
             quest = 93318,
             when = "complete",
-            note = "Skip if you did not kill Vulgara.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Constable Aonda|r. Turn in |cRB_QUEST_The Criminal Element|r. Accept |cRB_QUEST_Infiltrating the Cult|r.",
@@ -883,16 +915,27 @@ ns.RegisterGuide({
             note = "Keep one bag slot free.",
         },
         {
+            sticky = true,
+            text = "At the Highlands camp, loot |cRB_PICK_Supply Caches|r for |cRB_LOOT_Stolen Shen'dar Supplies|r.",
+            map = 2521,
+            x = 49.8,
+            y = 55.5,
+            quest = 92551,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Stolen Shen'dar Supplies|r (10) from |cRB_PICK_Supply Caches|r",
+            },
+        },
+        {
             text = "Travel north-east to the Highlands camp. Jump from the tower and use Walk on Air toward 50.3, 57.0 if you like. Kill |cRB_ENEMY_Al'Aketh Stormcallers|r and |cRB_ENEMY_Living Lightning|r.",
             map = 2521,
             x = 49.8,
             y = 55.5,
-            quests = { 92550, 92551 },
+            quest = 92550,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Al'Aketh Stormcaller|r (6)",
                 "|cRB_ENEMY_Living Lightning|r (4)",
-                "|cRB_LOOT_Stolen Shen'dar Supplies|r (10) from |cRB_PICK_Supply Caches|r",
             },
             note = "Stormcallers cast Lightning Cloud, so step out of it. Living Lightning hits very hard with a Thunder Clap style attack.",
         },
@@ -914,7 +957,6 @@ ns.RegisterGuide({
             y = 52.0,
             quests = { 92515, 92553 },
             when = "objectives",
-            note = "Skip if both are already turned in.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Zerril Softbreeze|r. Turn in |cRB_QUEST_Restocking the Larders|r.",
@@ -923,7 +965,6 @@ ns.RegisterGuide({
             y = 43.84,
             quest = 92553,
             when = "complete",
-            note = "Skip if already turned in.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Indari Sunseam|r. Turn in |cRB_QUEST_The Problem With Prideclaws|r.",
@@ -932,7 +973,6 @@ ns.RegisterGuide({
             y = 44.53,
             quest = 92515,
             when = "complete",
-            note = "Skip if already turned in.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Danarii Bellowveil|r. Turn in |cRB_QUEST_Stolen Supplies|r.",
@@ -982,7 +1022,6 @@ ns.RegisterGuide({
             y = 45.5,
             quests = { 92701, 93948 },
             when = "accepted",
-            note = "Skip if already accepted.",
         },
         {
             text = "Travel east to Valanaar. Optional deathskip: die at the marker, then talk to the |cRB_FRIENDLY_Spirit Healer|r.",
@@ -1009,7 +1048,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 62.18,
             y = 72.62,
-            note = "Press Next after binding.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Alvarion Windfield|r on the second floor. Accept |cRB_QUEST_Blood Tithe|r.",
@@ -1261,7 +1299,6 @@ ns.RegisterGuide({
                 "Jump off the cliff",
                 "Talk to the |cRB_FRIENDLY_Spirit Healer|r at 54.99, 68.14",
             },
-            note = "Optional deathskip. Press Next if you walk instead.",
         },
         {
             text = "Click the |cRB_PICK_Bloodstained Satchel|r. Turn in |cRB_QUEST_The Missing Scholar|r. Accept |cRB_QUEST_The Missing Scholar|r.",
@@ -1355,17 +1392,29 @@ ns.RegisterGuide({
             note = "Hunters: Hunter's Mark helps you spot and fight them from range.",
         },
         {
-            text = "Kill |cRB_ENEMY_Ornery Galestriders|r for |cRB_LOOT_Tenderloins|r. Use the |cRB_WARN_Flutterfly Swatter|r on |cRB_ENEMY_Flutterflies|r and click |cRB_PICK_Flutterfly Dust|r.",
+            sticky = true,
+            text = "Use the |cRB_WARN_Flutterfly Swatter|r on |cRB_ENEMY_Flutterflies|r and click |cRB_PICK_Flutterfly Dust|r.",
             map = 2521,
             x = 50.0,
             y = 80.5,
-            quests = { 92684, 92683 },
+            quest = 92683,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Flutterfly Dust|r (5)",
+            },
+            note = "Mages can Polymorph and Druids can root a Flutterfly, then swat it again for extra dust.",
+        },
+        {
+            text = "Kill |cRB_ENEMY_Ornery Galestriders|r for |cRB_LOOT_Tenderloins|r.",
+            map = 2521,
+            x = 50.0,
+            y = 80.5,
+            quest = 92684,
             when = "objectives",
             details = {
                 "|cRB_LOOT_Lowlands Galestrider Tenderloin|r (7)",
-                "|cRB_LOOT_Flutterfly Dust|r (5)",
             },
-            note = "Galestriders use Dust Cloud. Mages can Polymorph and Druids can root a Flutterfly, then swat it again for extra dust.",
+            note = "Galestriders use Dust Cloud.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Aamelia Windfield|r. Turn in |cRB_QUEST_Make Yourself Useful|r, |cRB_QUEST_Ornery Ornery Galestriders|r, |cRB_QUEST_What Is My Purpose?|r and |cRB_QUEST_Flutterfly Dust|r. Accept |cRB_QUEST_The Hills Have Eyes|r.",
@@ -1476,7 +1525,6 @@ ns.RegisterGuide({
             details = {
                 "Turn in |cRB_QUEST_Catching Wind|r",
             },
-            note = "A Grand Adventure is optional and skipped.",
         },
         {
             text = "Climb the tower. Talk to |cRB_FRIENDLY_Valennia Stormfist|r. Turn in |cRB_QUEST_In Service of Zephras|r and |cRB_QUEST_Bugged|r. Accept |cRB_QUEST_Tower Defense|r.",
@@ -1510,16 +1558,27 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill |cRB_ENEMY_Al'Aketh Brawlers|r, |cRB_ENEMY_Preachers|r and |cRB_ENEMY_Pillagers|r. Loot |cRB_LOOT_Al'Aketh Windstone Charms|r.",
+            sticky = true,
+            text = "Loot |cRB_LOOT_Al'Aketh Windstone Charms|r from the cultists.",
             map = 2521,
             x = 65.4,
             y = 65.8,
-            quests = { 92642, 92834 },
+            quest = 92834,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Al'Aketh Windstone Charm|r (10)",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Al'Aketh Brawlers|r, |cRB_ENEMY_Preachers|r and |cRB_ENEMY_Pillagers|r.",
+            map = 2521,
+            x = 65.4,
+            y = 65.8,
+            quest = 92642,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Al'Aketh Healer|r (4)",
                 "|cRB_ENEMY_Al'Aketh Brawler|r (8)",
-                "|cRB_LOOT_Al'Aketh Windstone Charm|r (10)",
             },
             note = "Healers heal themselves or others. Stun or interrupt their heals.",
         },
@@ -1644,7 +1703,7 @@ ns.RegisterGuide({
                 "Accept |cRB_QUEST_The Forest's Bounty|r",
                 "Accept |cRB_QUEST_Free the Hollows|r",
             },
-            note = "The Camping 101 Engineering quest here is optional and skipped. Go around the mountains or use a Tornado if one is near.",
+            note = "Go around the mountains or use a Tornado if one is near.",
         },
         {
             text = "Kill |cRB_ENEMY_Shadowgale Shrieklings|r and loot |cRB_LOOT_Shriekling Talons|r (Shriekling Talons). Take your time, you will pick up more as you work through the forest.",
@@ -1656,22 +1715,55 @@ ns.RegisterGuide({
             details = {
                 "|cRB_LOOT_Shriekling Talon|r (8)",
             },
-            note = "Finish later if you want to move on. Press Next on this step if needed.",
+            note = "Finish later if you want to move on.",
         },
         {
-            text = "Work the Zephyrseeds, Wind Hollows and refugee crates around the forest camp.",
+            sticky = true,
+            text = "Click |cRB_PICK_Zephyrseeds|r near the trees around the forest camp.",
             map = 2521,
             x = 58.0,
             y = 31.5,
-            quests = { 93160, 93172, 94896, 94897 },
+            quest = 93160,
             when = "objectives",
             details = {
                 "|cRB_PICK_Zephyrseed|r (8), click them near trees",
-                "|cRB_ENEMY_Wind Hollow|r (10)",
+            },
+        },
+        {
+            sticky = true,
+            text = "Click |cRB_PICK_Abandoned Belongings|r (refugee crates) around the forest camp.",
+            map = 2521,
+            x = 58.0,
+            y = 31.5,
+            quest = 94896,
+            when = "objectives",
+            details = {
                 "|cRB_PICK_Abandoned Belongings|r (8)",
-                "Click |cRB_PICK_Resaan Nimbuswalker|r (57.0, 29.4) for |cRB_LOOT_Resaan's Heirloom|r",
             },
             note = "Abandoned Belongings is optional if the crates are crowded.",
+        },
+        {
+            sticky = true,
+            text = "Click |cRB_PICK_Resaan Nimbuswalker|r for |cRB_LOOT_Resaan's Heirloom|r.",
+            map = 2521,
+            x = 57.0,
+            y = 29.4,
+            quest = 94897,
+            when = "objectives",
+            details = {
+                "Click |cRB_PICK_Resaan Nimbuswalker|r (57.0, 29.4) for |cRB_LOOT_Resaan's Heirloom|r",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Wind Hollows|r around the forest camp.",
+            map = 2521,
+            x = 58.0,
+            y = 31.5,
+            quest = 93172,
+            when = "objectives",
+            details = {
+                "|cRB_ENEMY_Wind Hollow|r (10)",
+            },
         },
         {
             text = "Talk to |cRB_FRIENDLY_Elegael Thornpaw|r. Turn in |cRB_QUEST_Unnerving Silence|r. Accept |cRB_QUEST_Tears of the Lady|r, |cRB_QUEST_Feathers for Binding|r and |cRB_QUEST_Unwanted and Unworthy|r.",
@@ -1693,27 +1785,60 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Kill |cRB_ENEMY_Al'Aketh Footsoldiers|r and |cRB_ENEMY_Al'Aketh Stormchasers|r around the cult camp.",
+            sticky = true,
+            text = "Loot |cRB_LOOT_Al'Aketh Windstone Charms|r from the |cRB_ENEMY_Al'Aketh|r around the cult camp.",
             map = 2521,
             x = 63.4,
             y = 37.8,
-            quests = { 94487, 92834, 93165 },
+            quest = 92834,
             when = "objectives",
             details = {
-                "|cRB_LOOT_Bloody Heirloom|r (10)",
                 "|cRB_LOOT_Al'Aketh Windstone Charm|r (10)",
+            },
+        },
+        {
+            sticky = true,
+            text = "Loot |cRB_LOOT_Al'Aketh Cultist's Ears|r from the |cRB_ENEMY_Al'Aketh|r around the cult camp.",
+            map = 2521,
+            x = 63.4,
+            y = 37.8,
+            quest = 93165,
+            when = "objectives",
+            details = {
                 "|cRB_LOOT_Al'Aketh Cultist's Ear|r (10)",
             },
         },
         {
-            text = "Click the |cRB_PICK_Tear Moss|r on trees and kill |cRB_ENEMY_Shadowgale Shrieklings|r through the forest.",
+            text = "Kill |cRB_ENEMY_Al'Aketh Footsoldiers|r and |cRB_ENEMY_Al'Aketh Stormchasers|r around the cult camp.",
+            map = 2521,
+            x = 63.4,
+            y = 37.8,
+            quest = 94487,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Bloody Heirloom|r (10)",
+            },
+        },
+        {
+            sticky = true,
+            text = "Click the |cRB_PICK_Tear Moss|r on trees through the forest.",
             map = 2521,
             x = 58.5,
             y = 38.5,
-            quests = { 94485, 94486 },
+            quest = 94485,
             when = "objectives",
             details = {
                 "|cRB_PICK_Lady's Tear Moss|r (8)",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Shadowgale Shrieklings|r through the forest for |cRB_LOOT_Pristine Shriekling Feathers|r and |cRB_LOOT_Shriekling Talons|r.",
+            map = 2521,
+            x = 58.5,
+            y = 38.5,
+            quest = 94486,
+            when = "objectives",
+            details = {
                 "|cRB_LOOT_Pristine Shriekling Feathers|r (20)",
                 "|cRB_LOOT_Shriekling Talon|r (8)",
             },
@@ -1778,7 +1903,6 @@ ns.RegisterGuide({
             y = 36.0,
             quest = 93165,
             when = "complete",
-            note = "Skip if you did not finish it. Horde can abandon it.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Elegael Thornpaw|r. Turn in |cRB_QUEST_The Wounds of Betrayal|r, |cRB_QUEST_Ripped Missive|r and |cRB_QUEST_The Ties That Bind|r. Accept |cRB_QUEST_The Fate of the Den|r.",
@@ -1816,7 +1940,6 @@ ns.RegisterGuide({
             y = 72.66,
             quest = 93317,
             when = "complete",
-            note = "Skip if you did not finish the crabs.",
         },
         {
             text = "Climb the tower. Talk to |cRB_FRIENDLY_Talaanis Shadowsong|r. Turn in |cRB_QUEST_Unfortunate News|r. Accept |cRB_QUEST_The Cult's True Plans|r.",
@@ -1915,7 +2038,6 @@ ns.RegisterGuide({
             text = "Druids: talk to |cRB_FRIENDLY_Archmage Ansirem Runeweaver|r in Dalaran. Accept |cRB_QUEST_Child of Nature|r.",
             quest = 94912,
             when = "accepted",
-            note = "Skip if you already have it.",
         },
         {
             classes = { "Druid" },
@@ -1985,15 +2107,27 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Kill |cRB_ENEMY_Juvenile Vuldren|r and |cRB_ENEMY_Pesky Cirrusflies|r around Thendal Grove. Prioritize the Cirrusflies.",
+            sticky = true,
+            text = "Kill |cRB_ENEMY_Juvenile Vuldren|r around Thendal Grove.",
             map = 2521,
             x = 45.3,
             y = 27.0,
-            quests = { 92461, 92462 },
+            quest = 92461,
+            when = "objectives",
+            details = {
+                "|cRB_ENEMY_Juvenile Vuldren|r (8)",
+            },
+            note = "Spots near 44-47, 26-28 have the highest density.",
+        },
+        {
+            text = "Kill |cRB_ENEMY_Pesky Cirrusflies|r around Thendal Grove. Prioritize the Cirrusflies.",
+            map = 2521,
+            x = 45.3,
+            y = 27.0,
+            quest = 92462,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Pesky Cirrusfly|r (8)",
-                "|cRB_ENEMY_Juvenile Vuldren|r (8)",
             },
             note = "Spots near 44-47, 26-28 have the highest density.",
         },
@@ -2003,7 +2137,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 45.3,
             y = 27.0,
-            note = "Press Next when you have the XP.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Elatrell Featherlight|r. Turn in |cRB_QUEST_Infestation Investigation|r. Accept |cRB_QUEST_The Cirrusfly Queen|r.",
@@ -2082,7 +2215,6 @@ ns.RegisterGuide({
             y = 23.48,
             quest = 92474,
             when = "complete",
-            note = "Skip if you did not finish Walk on Air yet. Turn it in when you pass Rorian later.",
         },
         {
             classes = { "Druid" },
@@ -2096,7 +2228,6 @@ ns.RegisterGuide({
         {
             classes = { "Mage" },
             text = "Horde Mages: you have no intro quest here. Your trainer is in Shen'dar Village later, so keep questing.",
-            note = "Press Next.",
         },
         {
             classes = { "Shaman" },
@@ -2232,7 +2363,7 @@ ns.RegisterGuide({
             map = 2521,
             x = 42.76,
             y = 23.65,
-            note = "Skip the Hearthstone if you are close to the village. Shamans: turn in Call of Earth at Boro before leaving for the Queen.",
+            note = "Shamans: turn in Call of Earth at Boro before leaving for the Queen.",
         },
         {
             classes = { "Shaman" },
@@ -2289,7 +2420,6 @@ ns.RegisterGuide({
             y = 23.99,
             quest = 93552,
             when = "complete",
-            note = "Camping 101 profession side quests are optional and skipped in this guide.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Elatrell Featherlight|r. Turn in |cRB_QUEST_The Cirrusfly Queen|r.",
@@ -2426,7 +2556,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 35.91,
             y = 33.61,
-            note = "Optional. Press Next.",
         },
         {
             text = "Climb to the upper level of the temple. Kill |cRB_ENEMY_Malduko Cloudcrush|r.",
@@ -2567,7 +2696,7 @@ ns.RegisterGuide({
             y = 45.86,
             quest = 93318,
             when = "accepted",
-            note = "Vulgara is a level 8 elite. Group up or skip it.",
+            note = "Vulgara is a level 8 elite. Group up if needed.",
         },
         {
             classes = { "Warrior" },
@@ -2575,7 +2704,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 44.95,
             y = 45.1,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Hunter" },
@@ -2583,7 +2711,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 45.26,
             y = 44.24,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Druid" },
@@ -2591,7 +2718,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 45.15,
             y = 44.22,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Rogue" },
@@ -2599,7 +2725,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 43.16,
             y = 43.26,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Mage" },
@@ -2607,7 +2732,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 45.1,
             y = 45.87,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             classes = { "Shaman" },
@@ -2615,7 +2739,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 43.45,
             y = 44.87,
-            note = "Optional if you are low on money. Press Next.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Raan Wildwind|r at the campfire. Turn in |cRB_QUEST_The Adventurer|r. Accept |cRB_QUEST_The Great Outdoors|r.",
@@ -2627,7 +2750,6 @@ ns.RegisterGuide({
             details = {
                 "Turn in |cRB_QUEST_The Adventurer|r",
             },
-            note = "Camping 101 profession quests are optional and skipped.",
         },
         {
             text = "Type /sit at the campfire and do not move or jump for about a minute to gain the Boosted Rest buff.",
@@ -2663,29 +2785,53 @@ ns.RegisterGuide({
             note = "Use Skysight for a 10% speed buff while you travel.",
         },
         {
-            text = "Head to the bandit cave. Kill |cRB_ENEMY_Prideclaws|r for |cRB_LOOT_Prideclaw Pelts|r and |cRB_ENEMY_Galestriders|r for |cRB_LOOT_Strider Meat and Small Eggs|r along the way.",
+            sticky = true,
+            text = "On the way to the bandit cave, kill |cRB_ENEMY_Prideclaws|r for |cRB_LOOT_Prideclaw Pelts|r.",
             map = 2521,
             x = 49.5,
             y = 36.5,
-            quests = { 92515, 92553 },
+            quest = 92515,
             when = "objectives",
             details = {
                 "|cRB_LOOT_Prideclaw Pelt|r (10)",
+            },
+            note = "You will return to the cave area, so you do not have to finish these here.",
+        },
+        {
+            sticky = true,
+            text = "On the way to the bandit cave, kill |cRB_ENEMY_Galestriders|r for |cRB_LOOT_Strider Meat and Small Eggs|r.",
+            map = 2521,
+            x = 49.5,
+            y = 36.5,
+            quest = 92553,
+            when = "objectives",
+            details = {
                 "|cRB_LOOT_Strider Meat|r (8)",
                 "|cRB_LOOT_Small Egg|r (3)",
             },
             note = "You will return to the cave area, so you do not have to finish these here.",
         },
         {
-            text = "Enter the cave at about 49.5, 34.3. Kill |cRB_ENEMY_Highlands Bandits|r. Loot |cRB_LOOT_Pilfered Windstones|r.",
+            sticky = true,
+            text = "Inside the cave, loot |cRB_LOOT_Pilfered Windstones|r from the bandits.",
             map = 2521,
             x = 49.8,
             y = 35.5,
-            quests = { 92517, 93319 },
+            quest = 93319,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Pilfered Windstone|r (10)",
+            },
+        },
+        {
+            text = "Enter the cave at about 49.5, 34.3. Kill |cRB_ENEMY_Highlands Bandits|r.",
+            map = 2521,
+            x = 49.8,
+            y = 35.5,
+            quest = 92517,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Highlands Bandit|r (10)",
-                "|cRB_LOOT_Pilfered Windstone|r (10)",
             },
         },
         {
@@ -2706,27 +2852,36 @@ ns.RegisterGuide({
             y = 37.0,
             quests = { 92515, 92553, 92517, 93319 },
             when = "objectives",
-            note = "Skip if everything is already done.",
         },
         {
             text = "Jump from the ridge near 36.4, 50.9 and use |cRB_WARN_Walk on Air|r toward the hippogryph nests. Two gryphons patrol the landing area.",
             map = 2521,
             x = 36.44,
             y = 50.93,
-            note = "Optional. Press Next.",
         },
         {
-            text = "Kill |cRB_ENEMY_Hippogryph Youths|r, |cRB_ENEMY_Protectors|r and the |cRB_ENEMY_Hippogryph Matriarch|r. Click |cRB_PICK_Hippogryph Downs|r on the ground.",
+            sticky = true,
+            text = "Click |cRB_PICK_Hippogryph Downs|r on the ground around the nests.",
             map = 2521,
             x = 36.0,
             y = 54.5,
-            quests = { 92516, 93951 },
+            quest = 93951,
+            when = "objectives",
+            details = {
+                "|cRB_PICK_Hippogryph Down|r (8)",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Hippogryph Youths|r, |cRB_ENEMY_Protectors|r and the |cRB_ENEMY_Hippogryph Matriarch|r.",
+            map = 2521,
+            x = 36.0,
+            y = 54.5,
+            quest = 92516,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Hippogryph Youth|r (8)",
                 "|cRB_ENEMY_Hippogryph Protector|r (6)",
                 "|cRB_ENEMY_Hippogryph Matriarch|r (1)",
-                "|cRB_PICK_Hippogryph Down|r (8)",
             },
             note = "Hippogryphs are very fast. Do not rely on outrunning them. Prioritize the Matriarch.",
         },
@@ -2740,7 +2895,7 @@ ns.RegisterGuide({
             details = {
                 "|cRB_LOOT_Vulgara's Head|r (1)",
             },
-            note = "Level 8 elite with long respawns. Group up or skip it.",
+            note = "Level 8 elite with long respawns. Group up if needed.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Teeri Wellwind|r. Turn in |cRB_QUEST_Hippogryph Harassment|r and |cRB_QUEST_Pilfered Windstones|r.",
@@ -2769,7 +2924,6 @@ ns.RegisterGuide({
             y = 44.53,
             quest = 92515,
             when = "complete",
-            note = "Skip if you still need pelts. You can finish them on the Highlands trip.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Zerril Softbreeze|r. Turn in |cRB_QUEST_Restocking the Larders|r.",
@@ -2778,7 +2932,6 @@ ns.RegisterGuide({
             y = 43.84,
             quest = 92553,
             when = "complete",
-            note = "Skip if you still need meat or eggs. You can finish them on the Highlands trip.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Illaya Amberwind|r. Turn in |cRB_QUEST_Meddlesome Mages|r.",
@@ -2795,7 +2948,6 @@ ns.RegisterGuide({
             y = 45.19,
             quest = 93318,
             when = "complete",
-            note = "Skip if you did not kill Vulgara.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Constable Aonda|r. Turn in |cRB_QUEST_The Criminal Element|r. Accept |cRB_QUEST_Infiltrating the Cult|r.",
@@ -2903,16 +3055,27 @@ ns.RegisterGuide({
             note = "Keep one bag slot free.",
         },
         {
+            sticky = true,
+            text = "At the Highlands camp, loot |cRB_PICK_Supply Caches|r for |cRB_LOOT_Stolen Shen'dar Supplies|r.",
+            map = 2521,
+            x = 49.8,
+            y = 55.5,
+            quest = 92551,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Stolen Shen'dar Supplies|r (10) from |cRB_PICK_Supply Caches|r",
+            },
+        },
+        {
             text = "Travel north-east to the Highlands camp. Jump from the tower and use Walk on Air toward 50.3, 57.0 if you like. Kill |cRB_ENEMY_Al'Aketh Stormcallers|r and |cRB_ENEMY_Living Lightning|r.",
             map = 2521,
             x = 49.8,
             y = 55.5,
-            quests = { 92550, 92551 },
+            quest = 92550,
             when = "objectives",
             details = {
                 "|cRB_ENEMY_Al'Aketh Stormcaller|r (6)",
                 "|cRB_ENEMY_Living Lightning|r (4)",
-                "|cRB_LOOT_Stolen Shen'dar Supplies|r (10) from |cRB_PICK_Supply Caches|r",
             },
             note = "Stormcallers cast Lightning Cloud, so step out of it. Living Lightning hits very hard with a Thunder Clap style attack.",
         },
@@ -2934,7 +3097,6 @@ ns.RegisterGuide({
             y = 52.0,
             quests = { 92515, 92553 },
             when = "objectives",
-            note = "Skip if both are already turned in.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Zerril Softbreeze|r. Turn in |cRB_QUEST_Restocking the Larders|r.",
@@ -2943,7 +3105,6 @@ ns.RegisterGuide({
             y = 43.84,
             quest = 92553,
             when = "complete",
-            note = "Skip if already turned in.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Indari Sunseam|r. Turn in |cRB_QUEST_The Problem With Prideclaws|r.",
@@ -2952,7 +3113,6 @@ ns.RegisterGuide({
             y = 44.53,
             quest = 92515,
             when = "complete",
-            note = "Skip if already turned in.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Danarii Bellowveil|r. Turn in |cRB_QUEST_Stolen Supplies|r.",
@@ -3002,7 +3162,6 @@ ns.RegisterGuide({
             y = 45.5,
             quests = { 92579, 93948 },
             when = "accepted",
-            note = "Skip if already accepted.",
         },
         {
             text = "Travel east to Valanaar. Optional deathskip: die at the marker, then talk to the |cRB_FRIENDLY_Spirit Healer|r.",
@@ -3029,7 +3188,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 62.18,
             y = 72.62,
-            note = "Press Next after binding.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Alvarion Windfield|r on the second floor. Accept |cRB_QUEST_Blood Tithe|r.",
@@ -3288,7 +3446,6 @@ ns.RegisterGuide({
             details = {
                 "Obtain Crystallized Lightning from the Shriekling Cave",
             },
-            note = "The cave entrance is at 51.4, 68.6. Optional. Press Next to skip.",
         },
         {
             text = "Find |cRB_FRIENDLY_Aamelia Windfield|r in the orchard.",
@@ -3328,17 +3485,29 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill |cRB_ENEMY_Ornery Galestriders|r for |cRB_LOOT_Tenderloins|r. Use the |cRB_WARN_Flutterfly Swatter|r on |cRB_ENEMY_Flutterflies|r and click |cRB_PICK_Flutterfly Dust|r.",
+            sticky = true,
+            text = "Use the |cRB_WARN_Flutterfly Swatter|r on |cRB_ENEMY_Flutterflies|r and click |cRB_PICK_Flutterfly Dust|r.",
             map = 2521,
             x = 50.0,
             y = 80.5,
-            quests = { 92684, 92683 },
+            quest = 92683,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Flutterfly Dust|r (5)",
+            },
+            note = "Mages can Polymorph and Druids can root a Flutterfly, then swat it again for extra dust.",
+        },
+        {
+            text = "Kill |cRB_ENEMY_Ornery Galestriders|r for |cRB_LOOT_Tenderloins|r.",
+            map = 2521,
+            x = 50.0,
+            y = 80.5,
+            quest = 92684,
             when = "objectives",
             details = {
                 "|cRB_LOOT_Lowlands Galestrider Tenderloin|r (7)",
-                "|cRB_LOOT_Flutterfly Dust|r (5)",
             },
-            note = "Galestriders use Dust Cloud. Mages can Polymorph and Druids can root a Flutterfly, then swat it again for extra dust.",
+            note = "Galestriders use Dust Cloud.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Aamelia Windfield|r. Turn in |cRB_QUEST_Make Yourself Useful|r, |cRB_QUEST_Ornery Ornery Galestriders|r, |cRB_QUEST_What Is My Purpose?|r and |cRB_QUEST_Flutterfly Dust|r. Accept |cRB_QUEST_The Hills Have Eyes|r.",
@@ -3360,7 +3529,6 @@ ns.RegisterGuide({
             map = 2521,
             x = 50.0,
             y = 80.0,
-            note = "Press Next when ready.",
         },
         {
             classes = { "Shaman" },
@@ -3527,7 +3695,6 @@ ns.RegisterGuide({
             details = {
                 "Obtain Enchanted Gyrozephyr from Windsong Lake",
             },
-            note = "Optional. Skip if you want to save time. Press Next.",
         },
         {
             text = "Travel north to the forest. Talk to the |cRB_FRIENDLY_Strange Hermit|r. Accept |cRB_QUEST_The Strange Hermit|r, then turn it in. Accept |cRB_QUEST_The Forest's Bounty|r and |cRB_QUEST_Free the Hollows|r.",
@@ -3541,22 +3708,55 @@ ns.RegisterGuide({
                 "Accept |cRB_QUEST_The Forest's Bounty|r",
                 "Accept |cRB_QUEST_Free the Hollows|r",
             },
-            note = "The Camping 101 Engineering quest here is optional and skipped. Go around the mountains or use a Tornado if one is near.",
+            note = "Go around the mountains or use a Tornado if one is near.",
         },
         {
-            text = "Work the Zephyrseeds, Wind Hollows and refugee crates around the forest camp.",
+            sticky = true,
+            text = "Click |cRB_PICK_Zephyrseeds|r near the trees around the forest camp.",
             map = 2521,
             x = 58.0,
             y = 31.5,
-            quests = { 93160, 93172, 94896, 94897 },
+            quest = 93160,
             when = "objectives",
             details = {
                 "|cRB_PICK_Zephyrseed|r (8), click them near trees",
-                "|cRB_ENEMY_Wind Hollow|r (10)",
+            },
+        },
+        {
+            sticky = true,
+            text = "Click |cRB_PICK_Abandoned Belongings|r (refugee crates) around the forest camp.",
+            map = 2521,
+            x = 58.0,
+            y = 31.5,
+            quest = 94896,
+            when = "objectives",
+            details = {
                 "|cRB_PICK_Abandoned Belongings|r (8)",
-                "Click |cRB_PICK_Resaan Nimbuswalker|r (57.0, 29.4) for |cRB_LOOT_Resaan's Heirloom|r",
             },
             note = "Abandoned Belongings is optional if the crates are crowded.",
+        },
+        {
+            sticky = true,
+            text = "Click |cRB_PICK_Resaan Nimbuswalker|r for |cRB_LOOT_Resaan's Heirloom|r.",
+            map = 2521,
+            x = 57.0,
+            y = 29.4,
+            quest = 94897,
+            when = "objectives",
+            details = {
+                "Click |cRB_PICK_Resaan Nimbuswalker|r (57.0, 29.4) for |cRB_LOOT_Resaan's Heirloom|r",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Wind Hollows|r around the forest camp.",
+            map = 2521,
+            x = 58.0,
+            y = 31.5,
+            quest = 93172,
+            when = "objectives",
+            details = {
+                "|cRB_ENEMY_Wind Hollow|r (10)",
+            },
         },
         {
             text = "Talk to |cRB_FRIENDLY_Elegael Thornpaw|r. Turn in |cRB_QUEST_Unnerving Silence|r. Accept |cRB_QUEST_Tears of the Lady|r, |cRB_QUEST_Feathers for Binding|r and |cRB_QUEST_Unwanted and Unworthy|r.",
@@ -3578,27 +3778,49 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
+            sticky = true,
+            text = "Loot |cRB_LOOT_Al'Aketh Cultist's Ears|r from the |cRB_ENEMY_Al'Aketh|r around the cult camp.",
+            map = 2521,
+            x = 63.4,
+            y = 37.8,
+            quest = 93165,
+            when = "objectives",
+            details = {
+                "|cRB_LOOT_Al'Aketh Cultist's Ear|r (10)",
+            },
+            note = "Mercy Falls on Deaf Ears is optional for Horde.",
+        },
+        {
             text = "Kill |cRB_ENEMY_Al'Aketh Footsoldiers|r and |cRB_ENEMY_Al'Aketh Stormchasers|r around the cult camp.",
             map = 2521,
             x = 63.4,
             y = 37.8,
-            quests = { 94487, 93165 },
+            quest = 94487,
             when = "objectives",
             details = {
                 "|cRB_LOOT_Bloody Heirloom|r (10)",
-                "|cRB_LOOT_Al'Aketh Cultist's Ear|r (10)",
             },
-            note = "Mercy Falls on Deaf Ears is optional for Horde. Skip it if the camp is busy.",
         },
         {
-            text = "Click the |cRB_PICK_Tear Moss|r on trees and kill |cRB_ENEMY_Shadowgale Shrieklings|r through the forest.",
+            sticky = true,
+            text = "Click the |cRB_PICK_Tear Moss|r on trees through the forest.",
             map = 2521,
             x = 58.5,
             y = 38.5,
-            quests = { 94485, 94486 },
+            quest = 94485,
             when = "objectives",
             details = {
                 "|cRB_PICK_Lady's Tear Moss|r (8)",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Shadowgale Shrieklings|r through the forest for |cRB_LOOT_Pristine Shriekling Feathers|r.",
+            map = 2521,
+            x = 58.5,
+            y = 38.5,
+            quest = 94486,
+            when = "objectives",
+            details = {
                 "|cRB_LOOT_Pristine Shriekling Feathers|r (20)",
             },
         },
@@ -3662,7 +3884,6 @@ ns.RegisterGuide({
             y = 36.0,
             quest = 93165,
             when = "complete",
-            note = "Skip if you did not finish it. Horde can abandon it.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Elegael Thornpaw|r. Turn in |cRB_QUEST_The Wounds of Betrayal|r, |cRB_QUEST_Ripped Missive|r and |cRB_QUEST_The Ties That Bind|r. Accept |cRB_QUEST_The Fate of the Den|r.",
@@ -3701,7 +3922,6 @@ ns.RegisterGuide({
             y = 72.66,
             quest = 93317,
             when = "complete",
-            note = "Skip if you did not finish the crabs.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Riaani Nightwind|r. Turn in |cRB_QUEST_The Broken Construct|r. Accept |cRB_QUEST_The Broken Construct|r if you completed the objectives.",
@@ -3710,7 +3930,6 @@ ns.RegisterGuide({
             y = 72.99,
             quest = 93738,
             when = "accepted",
-            note = "Skip if you skipped the Broken Construct parts.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Ayessa Dawnsinger|r. Turn in |cRB_QUEST_The Broken Construct|r and |cRB_QUEST_A Grand Adventure|r.",
@@ -3719,7 +3938,6 @@ ns.RegisterGuide({
             y = 79.77,
             quest = 93738,
             when = "complete",
-            note = "Skip if you skipped them. Abandon any leftover Camping 101 and Vulgara quests.",
         },
         {
             text = "Take the airship at the Valanaar tower to Mulgore.",
@@ -3733,7 +3951,6 @@ ns.RegisterGuide({
             text = "Druids: talk to |cRB_FRIENDLY_Muln Earthfury|r in Mulgore. Accept |cRB_QUEST_Child of Nature|r.",
             quest = 94911,
             when = "accepted",
-            note = "Skip if you already have it.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Alaana Stormwalker|r in Mulgore. Accept |cRB_QUEST_Welcome to Azeroth|r.",
@@ -3742,7 +3959,6 @@ ns.RegisterGuide({
         },
         {
             text = "Jump off the cliff south-west of the landing to die. Talk to the |cRB_FRIENDLY_Spirit Healer|r in Thunder Bluff.",
-            note = "Optional deathskip to Thunder Bluff. Otherwise walk or use the elevator.",
         },
         {
             classes = { "Druid" },
@@ -3758,7 +3974,7 @@ ns.RegisterGuide({
                 "Turn in |cRB_QUEST_Welcome to Azeroth|r",
                 "Accept |cRB_QUEST_Journey to the Crossroads|r",
             },
-            note = "Set your Hearthstone to Orgrimmar. The optional Orgrimmar food chain is skipped.",
+            note = "Set your Hearthstone to Orgrimmar.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Zor Lonetree|r. Accept |cRB_QUEST_The Spirits of Stonetalon|r.",

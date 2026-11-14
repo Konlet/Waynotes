@@ -93,6 +93,7 @@ end
 local guidePercent
 local jumpButton
 local navButton
+local settingsButton
 local function guidePercentLabel()
     if ns.db and ns.db.standaloneGuide and ns.GuidePercentLabel then
         return ns.GuidePercentLabel()
@@ -723,11 +724,79 @@ styleStepButtons = function()
             styleChromeButton(navButton, 0, 0, 0, 0.55, r, g, b, 0.75)
         end
     end
+    if settingsButton then
+        local standalone = ns.db and ns.db.standaloneGuide
+        if standalone then
+            settingsButton:Show()
+            if settingsButton.icon then
+                settingsButton.icon:SetVertexColor(r, g, b, 1)
+            end
+            if settingsButton.hovered then
+                styleChromeButton(settingsButton, r, g, b, 0.22, r, g, b, 1)
+            else
+                styleChromeButton(settingsButton, 0, 0, 0, 0.55, r, g, b, 0.75)
+            end
+        else
+            settingsButton:Hide()
+        end
+    end
     stylingButtons = false
 end
 
 createStepButton(-1, -42)
 createStepButton(1, -24)
+
+settingsButton = CreateFrame("Button", nil, tracker, "BackdropTemplate")
+settingsButton:SetSize(16, 16)
+settingsButton:SetPoint("TOPRIGHT", -4, -6)
+settingsButton:SetFrameLevel(tracker:GetFrameLevel() + 25)
+settingsButton:SetBackdrop({
+    bgFile = "Interface\\BUTTONS\\WHITE8X8",
+    edgeFile = "Interface\\BUTTONS\\WHITE8X8",
+    edgeSize = 1,
+    insets = { left = 1, right = 1, top = 1, bottom = 1 },
+})
+local settingsGlow = settingsButton:CreateTexture(nil, "HIGHLIGHT")
+settingsGlow:SetAllPoints()
+useSolid(settingsGlow)
+paintTexture(settingsGlow, 1, 1, 1, 0.14)
+settingsButton.glow = settingsGlow
+settingsButton:RegisterForClicks("LeftButtonUp")
+settingsButton.icon = settingsButton:CreateTexture(nil, "OVERLAY")
+settingsButton.icon:SetSize(12, 12)
+settingsButton.icon:SetPoint("CENTER", 0, 0)
+settingsButton.icon:SetTexture("Interface\\Buttons\\UI-OptionsButton")
+settingsButton:SetScript("OnClick", function()
+    if ns.HideGuideMenu then
+        ns.HideGuideMenu()
+    end
+    if ns.HideNavMenu then
+        ns.HideNavMenu()
+    end
+    if ns.OpenOptions then
+        ns.OpenOptions()
+    end
+end)
+settingsButton:SetScript("OnEnter", function(self)
+    self.hovered = true
+    styleStepButtons()
+    local r, g, b = ns.Color("accent")
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Options", r, g, b)
+    GameTooltip:AddLine("Open Waynotes settings.", 1, 1, 1, true)
+    ns.FinishTooltip()
+end)
+settingsButton:SetScript("OnLeave", function(self)
+    self.hovered = false
+    styleStepButtons()
+    GameTooltip:Hide()
+end)
+settingsButton:SetScript("OnMouseDown", function(self)
+    self.icon:SetPoint("CENTER", 1, -1)
+end)
+settingsButton:SetScript("OnMouseUp", function(self)
+    self.icon:SetPoint("CENTER", 0, 0)
+end)
 
 jumpButton = CreateFrame("Button", nil, tracker, "BackdropTemplate")
 jumpButton:SetSize(40, 16)
@@ -938,6 +1007,7 @@ do
         pending = false,
         flying = false,
         route = nil,
+        nodeIds = nil,
         destName = nil,
         started = nil,
         duration = nil,
@@ -1002,6 +1072,19 @@ do
         return "0"
     end
 
+    local function matchNodeId(taxiName)
+        if ns.MatchFlightNodeId then
+            return ns.MatchFlightNodeId(taxiName)
+        end
+    end
+
+    local function nodePathKey(nodeIds)
+        if type(nodeIds) ~= "table" or #nodeIds < 2 then
+            return nil
+        end
+        return "n:" .. table.concat(nodeIds, ":")
+    end
+
     local function buildRoute(destIndex)
         local current = currentTaxiNode()
         if not current or type(destIndex) ~= "number" then
@@ -1009,9 +1092,15 @@ do
         end
         local keys = {}
         local names = {}
+        local nodeIds = {}
         local function add(index)
+            local taxiName = TaxiNodeName(index)
             keys[#keys + 1] = taxiNodeKey(index) or ("#" .. index)
-            names[#names + 1] = shortTaxiName(TaxiNodeName(index)) or ("Node " .. index)
+            names[#names + 1] = shortTaxiName(taxiName) or ("Node " .. index)
+            local nodeId = matchNodeId(taxiName)
+            if nodeId and nodeIds[#nodeIds] ~= nodeId then
+                nodeIds[#nodeIds + 1] = nodeId
+            end
         end
         add(current)
         local hops = GetNumRoutes and GetNumRoutes(destIndex) or 0
@@ -1032,7 +1121,14 @@ do
             add(destIndex)
             route = table.concat(keys, ":")
         end
-        return continentKey() .. "|" .. route, names[1], names[#names]
+        if #nodeIds < 2 then
+            local fromId = matchNodeId(TaxiNodeName(current))
+            local toId = matchNodeId(TaxiNodeName(destIndex))
+            if fromId and toId and fromId ~= toId then
+                nodeIds = { fromId, toId }
+            end
+        end
+        return continentKey() .. "|" .. route, names[1], names[#names], nodeIds
     end
 
     local function timesDB()
@@ -1045,16 +1141,36 @@ do
         return ns.db.flightTimes
     end
 
-    local function savedDuration(route)
+    local function blendSeconds(previous, seconds)
+        if type(previous) == "number" and previous > 0 then
+            return math.floor((previous * 0.65) + (seconds * 0.35) + 0.5)
+        end
+        return seconds
+    end
+
+    local function savedDuration(route, nodeIds)
         local db = timesDB()
-        local value = db and route and db[route]
-        if type(value) == "number" and value > 0 then
-            return value
+        if db then
+            local value = route and db[route]
+            if type(value) == "number" and value > 0 then
+                return value
+            end
+            local nodeKey = nodePathKey(nodeIds)
+            value = nodeKey and db[nodeKey]
+            if type(value) == "number" and value > 0 then
+                return value
+            end
+        end
+        if ns.DefaultFlightSeconds then
+            local defaults = ns.DefaultFlightSeconds(nodeIds)
+            if type(defaults) == "number" and defaults > 0 then
+                return math.floor(defaults + 0.5)
+            end
         end
     end
 
-    local function rememberDuration(route, seconds)
-        if not route or type(seconds) ~= "number" then
+    local function rememberDuration(route, seconds, nodeIds)
+        if type(seconds) ~= "number" then
             return
         end
         seconds = math.floor(seconds + 0.5)
@@ -1065,11 +1181,12 @@ do
         if not db then
             return
         end
-        local previous = db[route]
-        if type(previous) == "number" and previous > 0 then
-            db[route] = math.floor((previous * 0.65) + (seconds * 0.35) + 0.5)
-        else
-            db[route] = seconds
+        if route then
+            db[route] = blendSeconds(db[route], seconds)
+        end
+        local nodeKey = nodePathKey(nodeIds)
+        if nodeKey then
+            db[nodeKey] = blendSeconds(db[nodeKey], seconds)
         end
     end
 
@@ -1106,6 +1223,7 @@ do
         state.pending = false
         state.flying = false
         state.route = nil
+        state.nodeIds = nil
         state.destName = nil
         state.started = nil
         state.duration = nil
@@ -1134,7 +1252,7 @@ do
                 state.pending = false
                 state.flying = true
                 state.started = GetTime()
-                state.duration = state.duration or savedDuration(state.route)
+                state.duration = state.duration or savedDuration(state.route, state.nodeIds)
                 if watcher then
                     watcher:Show()
                 end
@@ -1143,8 +1261,8 @@ do
             end
         elseif state.flying then
             if not onTaxi then
-                if state.started and state.route then
-                    rememberDuration(state.route, GetTime() - state.started)
+                if state.started and (state.route or state.nodeIds) then
+                    rememberDuration(state.route, GetTime() - state.started, state.nodeIds)
                 end
                 resetState()
             end
@@ -1152,7 +1270,7 @@ do
             state.flying = true
             state.started = GetTime()
             state.destName = state.destName or "Flight path"
-            state.duration = savedDuration(state.route)
+            state.duration = savedDuration(state.route, state.nodeIds)
             if watcher then
                 watcher:Show()
             end
@@ -1215,13 +1333,14 @@ do
             if type(node) ~= "number" then
                 return
             end
-            local route, _, destName = buildRoute(node)
+            local route, _, destName, nodeIds = buildRoute(node)
             state.pending = true
             state.flying = false
             state.route = route
+            state.nodeIds = nodeIds
             state.destName = destName or shortTaxiName(TaxiNodeName(node)) or "Flight path"
             state.started = nil
-            state.duration = savedDuration(route)
+            state.duration = savedDuration(route, nodeIds)
             state.armed = GetTime()
             watcher:Show()
         end)
@@ -1392,6 +1511,13 @@ do
     local function ensureWaypoint(dest)
         if type(dest) ~= "table" then
             return nil
+        end
+        if ns.PinToPlayerWorld and type(dest.x) == "number" and type(dest.y) == "number" then
+            local wx, wy, instance = ns.PinToPlayerWorld(dest.map, dest.x, dest.y, dest.zone)
+            if type(wx) == "number" and type(wy) == "number" then
+                dest.waypoint = { wx = wx, wy = wy, instance = instance }
+                return dest.waypoint
+            end
         end
         local hbd = RG.hereBeDragons()
         local function zoneToWorld(map, x, y)
@@ -1686,6 +1812,138 @@ local function styleTracker()
         hidePlate(panelShadow)
         shadowHost:Hide()
     end
+
+    if ns.StyleRegisteredPopups then
+        ns.StyleRegisteredPopups()
+    end
+end
+
+local styledPopups = {}
+
+local function usePopupBackdrop(frame, chrome, mode)
+    if chrome.mode == mode then
+        return
+    end
+    chrome.mode = mode
+    if mode == "none" then
+        frame:SetBackdrop(nil)
+    elseif mode == "border" then
+        frame:SetBackdrop({
+            bgFile = UI.WHITE,
+            edgeFile = UI.WHITE,
+            edgeSize = 1,
+            insets = { left = 1, right = 1, top = 1, bottom = 1 },
+        })
+    else
+        frame:SetBackdrop({
+            bgFile = UI.WHITE,
+        })
+    end
+end
+
+local function ensurePopupChrome(frame)
+    local chrome = frame.__waynotesChrome
+    if chrome then
+        return chrome
+    end
+    chrome = {
+        fill = makePlate(frame, "BACKGROUND", 1),
+        border = makePlate(frame, "BORDER", 1),
+        mode = nil,
+    }
+    chrome.shadowHost = CreateFrame("Frame", nil, UIParent)
+    chrome.shadowHost:Hide()
+    chrome.shadow = makePlate(chrome.shadowHost, "ARTWORK", 1)
+    if not frame.__waynotesChromeHideHook then
+        frame.__waynotesChromeHideHook = true
+        frame:HookScript("OnHide", function()
+            local stored = frame.__waynotesChrome
+            if stored and stored.shadowHost then
+                stored.shadowHost:Hide()
+            end
+        end)
+    end
+    frame.__waynotesChrome = chrome
+    styledPopups[#styledPopups + 1] = frame
+    return chrome
+end
+
+function ns.StylePopupFrame(frame)
+    if not frame or not ns.db then
+        return
+    end
+    local chrome = ensurePopupChrome(frame)
+    local background = ns.db.trackerBackground
+    if type(background) ~= "number" then
+        background = 0.4
+    end
+    local panelR, panelG, panelB = ns.Color("background")
+    local edgeR, edgeG, edgeB = ns.Color("accent")
+    local edgeA = math.max(0.25, math.min(0.85, background + 0.2))
+    local borderAlpha = ns.db.borderAlpha
+    if type(borderAlpha) == "number" then
+        edgeA = edgeA * math.max(0, math.min(1, borderAlpha))
+    end
+    local rounded = ns.db.roundedEdges and true or false
+    local borderOn = ns.db.trackerBorder and true or false
+    local radius = 0
+    if rounded then
+        radius = clampCornerRadius(ns.db.cornerRadius or 8)
+    end
+
+    if rounded then
+        usePopupBackdrop(frame, chrome, "none")
+        showPlate(chrome.fill, frame, 0, 0, 0, 0, radius)
+        paintPlate(chrome.fill, panelR, panelG, panelB, background)
+        if borderOn then
+            showBorder(chrome.border, frame, radius)
+            paintPlate(chrome.border, edgeR, edgeG, edgeB, edgeA)
+        else
+            hidePlate(chrome.border)
+        end
+    else
+        hidePlate(chrome.fill)
+        hidePlate(chrome.border)
+        usePopupBackdrop(frame, chrome, borderOn and "border" or "plain")
+        frame:SetBackdropColor(panelR, panelG, panelB, background)
+        if borderOn then
+            frame:SetBackdropBorderColor(edgeR, edgeG, edgeB, edgeA)
+        end
+    end
+
+    if ns.db.trackerShadow and frame:IsShown() then
+        local spread = 8
+        local drop = 4
+        local parentScale = UIParent:GetEffectiveScale() or 1
+        local frameScale = frame:GetEffectiveScale() or parentScale
+        if parentScale == 0 then
+            parentScale = 1
+        end
+        local host = chrome.shadowHost
+        host:SetScale(frameScale / parentScale)
+        host:SetFrameStrata(lowerStrata(frame:GetFrameStrata() or "DIALOG"))
+        host:SetFrameLevel(math.max(1, (frame:GetFrameLevel() or 20) - 2))
+        host:ClearAllPoints()
+        host:SetPoint("TOPLEFT", frame, "TOPLEFT", -spread, spread - drop)
+        host:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", spread, -(spread + drop))
+        host:Show()
+        showPlate(chrome.shadow, host, 0, 0, 0, 0, rounded and (radius + spread) or 0)
+        paintPlate(chrome.shadow, 0, 0, 0, 0.4)
+    else
+        hidePlate(chrome.shadow)
+        chrome.shadowHost:Hide()
+    end
+
+    return radius
+end
+
+function ns.StyleRegisteredPopups()
+    for index = 1, #styledPopups do
+        local frame = styledPopups[index]
+        if frame and frame.IsShown and frame:IsShown() then
+            ns.StylePopupFrame(frame)
+        end
+    end
 end
 
 local function savePoint()
@@ -1716,7 +1974,7 @@ local function openGuideMenu()
     if ns.HideNavMenu then
         ns.HideNavMenu()
     end
-    if ns.db and ns.db.standaloneGuide and ns.ToggleGuideMenu then
+    if ns.db and (ns.db.standaloneGuide or ns.db.restedXPGuides) and ns.ToggleGuideMenu then
         ns.ToggleGuideMenu()
         return
     end
@@ -1936,16 +2194,17 @@ local function setArrowRotation(texture, rotation)
         return true
     end
     texture.__rxpbRot = rotation
-    -- Forever often no-ops Texture:SetRotation; SetTexCoord is the reliable path.
-    -- Same relative angle convention as HBD demos: (bearing - facing).
-    local cos, sin = math.cos(rotation), math.sin(rotation)
-    texture:SetTexCoord(
-        0.5 - cos * 0.5 + sin * 0.5, 0.5 + sin * 0.5 + cos * 0.5,
-        0.5 - cos * 0.5 - sin * 0.5, 0.5 + sin * 0.5 - cos * 0.5,
-        0.5 + cos * 0.5 + sin * 0.5, 0.5 - sin * 0.5 + cos * 0.5,
-        0.5 + cos * 0.5 - sin * 0.5, 0.5 - sin * 0.5 - cos * 0.5
-    )
-    return true
+    -- Same arrow.tga as the header step buttons, which already use SetRotation
+    -- on Forever. TomTom's SetTexCoord path is for diagonal edge-arrows and
+    -- leaves an up-pointing chevron aimed the wrong way.
+    if texture.SetTexCoord then
+        texture:SetTexCoord(0, 1, 0, 1)
+    end
+    if texture.SetRotation then
+        texture:SetRotation(rotation)
+        return true
+    end
+    return false
 end
 
 local function playerZonePosForAim(hbd)
@@ -1971,24 +2230,49 @@ local function playerZonePosForAim(hbd)
     end
 end
 
--- Aim bearing for tracker arrows. World-space bearing first (HBD / pin delta);
--- zone-percent only when world angle is unavailable. Display yards stay on
--- PinZoneDistance via rowPinDistance, not this path.
+local function aimDeg(angle)
+    if type(angle) ~= "number" then
+        return nil
+    end
+    local degrees = angle * 180 / math.pi
+    degrees = degrees % 360
+    if degrees < 0 then
+        degrees = degrees + 360
+    end
+    return degrees
+end
+
+local function aimNum(value)
+    if type(value) ~= "number" then
+        return "-"
+    end
+    return string.format("%.1f", value)
+end
+
+-- +x east, +y south on the zone map. 0 degrees is north, clockwise.
+local function mapCardinal(east, south)
+    if type(east) ~= "number" or type(south) ~= "number" then
+        return "-"
+    end
+    if east * east + south * south <= 1e-12 then
+        return "HERE"
+    end
+    local degrees = aimDeg(math.atan2(east, -south)) or 0
+    local names = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
+    local index = math.floor((degrees + 22.5) / 45) % 8 + 1
+    return names[index]
+end
+
+-- Aim bearing for tracker arrows. Prefer same-zone percent bearing (matches the
+-- yards we already show). World-space only when zone aim is unavailable.
 local function aimAngle(hbd, instance, px, py, wp, place, facing)
     local angle
+    local source
+    local youX, youY, pinX, pinY, east, south
 
-    if hbd and type(px) == "number" and wp and type(wp.wx) == "number" and type(hbd.GetWorldVector) == "function" then
-        local ok, a = pcall(hbd.GetWorldVector, hbd, instance or 0, px, py, wp.wx, wp.wy)
-        if ok and type(a) == "number" then
-            angle = a
-        end
-    end
-
-    if type(angle) ~= "number" and type(px) == "number" and wp and type(wp.wx) == "number" and type(wp.wy) == "number" then
-        angle = facingBearing(wp.wx - px, wp.wy - py)
-    end
-
-    if type(angle) ~= "number" and type(place) == "table" and type(place.x) == "number" and type(place.y) == "number" then
+    if type(place) == "table" and type(place.x) == "number" and type(place.y) == "number" then
+        pinX = place.x > 1 and place.x or place.x * 100
+        pinY = place.y > 1 and place.y or place.y * 100
         local pzx, pzy = playerZonePosForAim(hbd)
         if type(pzx) == "number" then
             if pzx > 1 then
@@ -1997,19 +2281,103 @@ local function aimAngle(hbd, instance, px, py, wp, place, facing)
             if type(pzy) == "number" and pzy > 1 then
                 pzy = pzy / 100
             end
+            youX = pzx * 100
+            youY = (pzy or 0) * 100
             local dx = place.x > 1 and place.x / 100 or place.x
             local dy = place.y > 1 and place.y / 100 or place.y
-            local ex, ey = dx - pzx, dy - pzy
-            if ex * ex + ey * ey > 1e-12 then
-                -- Zone y grows south; HBD world y grows north.
-                angle = facingBearing(ex, -ey)
+            east, south = dx - pzx, dy - (pzy or 0)
+            if east * east + south * south > 1e-12 then
+                -- Zone y grows south. On this client zone x grows west, so east is negated.
+                -- Checked with /wn aim: facing the NPC matched facingBearing(-east, -south).
+                angle = facingBearing(-east, -south)
+                source = "zone"
             elseif type(facing) == "number" then
                 angle = facing
+                source = "onpin"
             end
         end
     end
 
+    local worldEast, worldNorth, hbdAngle
+    if type(px) == "number" and wp and type(wp.wx) == "number" and type(wp.wy) == "number" then
+        worldEast, worldNorth = wp.wx - px, wp.wy - py
+        if hbd and type(hbd.GetWorldVector) == "function" then
+            local ok, a = pcall(hbd.GetWorldVector, hbd, instance or 0, px, py, wp.wx, wp.wy)
+            if ok and type(a) == "number" then
+                hbdAngle = a
+            end
+        end
+    end
+
+    if type(angle) ~= "number" and type(hbdAngle) == "number" then
+        angle = hbdAngle
+        source = "hbd"
+    end
+
+    if type(angle) ~= "number" and type(worldEast) == "number" then
+        angle = facingBearing(worldEast, worldNorth)
+        source = "world"
+    end
+
+    ns.AimTrace = {
+        source = source or "none",
+        pinX = pinX,
+        pinY = pinY,
+        youX = youX,
+        youY = youY,
+        east = east,
+        south = south,
+        map = mapCardinal(east, south),
+        bear = aimDeg(angle),
+        face = aimDeg(facing),
+        worldEast = worldEast,
+        worldNorth = worldNorth,
+        hbd = aimDeg(hbdAngle),
+        zoneEN = aimDeg(facingBearing(east or 0, -(south or 0))),
+        zoneNegE = aimDeg(type(east) == "number" and facingBearing(-east, -(south or 0)) or nil),
+        zoneES = aimDeg(type(east) == "number" and facingBearing(east, south or 0) or nil),
+        zoneSW = aimDeg(type(east) == "number" and facingBearing(-east, south or 0) or nil),
+        worldEN = aimDeg(type(worldEast) == "number" and facingBearing(worldEast, worldNorth) or nil),
+        worldSwap = aimDeg(type(worldEast) == "number" and facingBearing(worldNorth, worldEast) or nil),
+        worldNegE = aimDeg(type(worldEast) == "number" and facingBearing(-worldEast, worldNorth) or nil),
+    }
+
     return angle
+end
+
+local aimLogUntil = 0
+local aimLogNext = 0
+
+function ns.PrintAim()
+    local trace = ns.AimTrace
+    if type(trace) ~= "table" then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r No aim sample yet. Show the guide arrow, then run /wn aim again.")
+        return
+    end
+    local rot
+    if type(trace.bear) == "number" and type(trace.face) == "number" then
+        rot = (trace.bear - trace.face) % 360
+    end
+    DEFAULT_CHAT_FRAME:AddMessage(string.format(
+        "|cffce7bffWaynotes aim|r src=%s map=%s pin=%s,%s you=%s,%s face=%s bear=%s rot=%s hbd=%s",
+        trace.source,
+        trace.map,
+        aimNum(trace.pinX), aimNum(trace.pinY),
+        aimNum(trace.youX), aimNum(trace.youY),
+        aimNum(trace.face), aimNum(trace.bear), aimNum(rot),
+        aimNum(trace.hbd)
+    ))
+    DEFAULT_CHAT_FRAME:AddMessage(string.format(
+        "|cffce7bffWaynotes aim|r zone EN=%s -E=%s ES=%s SW=%s | world EN=%s swap=%s -E=%s",
+        aimNum(trace.zoneEN), aimNum(trace.zoneNegE), aimNum(trace.zoneES), aimNum(trace.zoneSW),
+        aimNum(trace.worldEN), aimNum(trace.worldSwap), aimNum(trace.worldNegE)
+    ))
+end
+
+function ns.StartAimLog()
+    aimLogUntil = (GetTime and GetTime() or 0) + 12
+    aimLogNext = 0
+    DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r Logging aim for 12s. Walk around the target and keep it in front of you. Paste both lines from each sample.")
 end
 
 -- Nav strip arrow shares the step-arrow aiming path (defined after tint helpers).
@@ -2195,7 +2563,16 @@ local function showStepTooltip(row)
     if where then
         GameTooltip:AddLine("Location: " .. where, 1, 1, 1, true)
     end
-    local dist = waypointDistance(row.tipWaypoint)
+    -- Same yards as the arrow label. Raw map-world distance is an axis swap
+    -- (~5150 yd on a Durotar pin) and must not override the zone measurement.
+    local dist
+    local place = row.place
+    if place and ns.PinZoneDistance and type(place.x) == "number" and type(place.y) == "number" then
+        dist = ns.PinZoneDistance(place.map, place.x, place.y, place.zone)
+    end
+    if type(dist) ~= "number" then
+        dist = waypointDistance(row.tipWaypoint)
+    end
     if dist then
         GameTooltip:AddLine("Distance: " .. formatYards(dist), 1, 1, 1)
     end
@@ -2305,6 +2682,13 @@ local function updateArrows()
                 end
             else
                 setArrowAlpha(arrow, 0.35)
+            end
+            local now = GetTime and GetTime() or 0
+            if now < aimLogUntil and now >= aimLogNext then
+                aimLogNext = now + 1
+                if ns.PrintAim then
+                    ns.PrintAim()
+                end
             end
         end
     end
@@ -3313,6 +3697,14 @@ local function progressRatio(text)
     local done, total = plain:match("(%d+)%s*/%s*(%d+)")
     done = tonumber(done)
     total = tonumber(total)
+    if not total then
+        -- Authored gather counts like "Durotar Tiger Fur (4)" start at 0/N
+        -- until live quest log text replaces them.
+        total = tonumber(plain:match("%((%d+)%)%s*$"))
+        if total then
+            done = 0
+        end
+    end
     if not done or not total or total <= 1 then
         return nil
     end

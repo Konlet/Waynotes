@@ -575,6 +575,47 @@ local function build(parent)
 
     local standalone = createCheck(parent, "Replace RestedXP", "Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", "standaloneGuide")
     standalone:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local standaloneRefresh = standalone.Refresh
+    function standalone:Refresh()
+        if standaloneRefresh then
+            standaloneRefresh(self)
+        end
+        local locked = ns.RestedXPActive and ns.RestedXPActive()
+        local label = _G[self:GetName() .. "Text"]
+        if locked then
+            self:SetChecked(false)
+            self:Disable()
+            if label then
+                label:SetAlpha(0.45)
+            end
+        else
+            self:Enable()
+            if label then
+                label:SetAlpha(1)
+            end
+        end
+    end
+    standalone:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Replace RestedXP", 1, 1, 1)
+        if ns.RestedXPActive and ns.RestedXPActive() then
+            GameTooltip:AddLine("RestedXP is loaded, so this stays off. Right-click the tracker to open its guides in this window.", 0.9, 0.9, 0.9, true)
+        else
+            GameTooltip:AddLine("Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", 0.9, 0.9, 0.9, true)
+        end
+        ns.FinishTooltip()
+    end)
+    standalone:SetScript("OnClick", function(self)
+        if not ns.db or (ns.RestedXPActive and ns.RestedXPActive()) then
+            self:SetChecked(false)
+            return
+        end
+        ns.db.standaloneGuide = self:GetChecked() and true or false
+        ns.Apply()
+        if ns.RefreshOptions then
+            ns.RefreshOptions()
+        end
+    end)
     y = y - 28
 
     local hardcore = createCheck(parent, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
@@ -602,6 +643,24 @@ local function build(parent)
     guideStatus:SetHeight(32)
     place(guideStatus, parent, y)
     function guideStatus:Refresh()
+        if ns.RestedXPActive and ns.RestedXPActive() then
+            local title = "RestedXP"
+            local rxp = ns.RestedXP and ns.RestedXP()
+            local current = rxp and rxp.currentGuide
+            if type(current) == "table" and type(rxp.GetGuideName) == "function" then
+                local ok, name = pcall(rxp.GetGuideName, current)
+                if ok and type(name) == "string" then
+                    name = name:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                    name = strtrim(name:match("^[^\n]+") or name)
+                    if name ~= "" then
+                        title = name
+                    end
+                end
+            end
+            self:SetText(title .. ". RestedXP is loaded, so Replace RestedXP stays off. Right-click the tracker to choose one of its guides.")
+            self:SetTextColor(0.9, 0.9, 0.9)
+            return
+        end
         if not ns.db or not ns.db.standaloneGuide then
             self:SetText("Replace RestedXP is off. The tracker follows RestedXP while Replace the guide window is on.")
             self:SetTextColor(0.7, 0.7, 0.7)
@@ -646,7 +705,7 @@ local function build(parent)
     guidePercent:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 
-    local flightTimer = createCheck(parent, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. First runs of a route are timed and remembered.", "showFlightTimer")
+    local flightTimer = createCheck(parent, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. Uses Forever flight-time data by default, then updates your local times after each flight.", "showFlightTimer")
     flightTimer:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 36
 
@@ -945,7 +1004,19 @@ SlashCmdList.WAYNOTES = function(message)
         return
     end
     if command == "help" then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r /waynotes guides, /waynotes recommend, /waynotes guide <id>, /waynotes step <n>, /waynotes next, /waynotes back")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r /waynotes guides, /waynotes recommend, /waynotes guide <id>, /waynotes step <n>, /waynotes next, /waynotes back, /waynotes aim, /waynotes aimlog")
+        return
+    end
+    if command == "aim" then
+        if ns.PrintAim then
+            ns.PrintAim()
+        end
+        return
+    end
+    if command == "aimlog" then
+        if ns.StartAimLog then
+            ns.StartAimLog()
+        end
         return
     end
     ns.OpenOptions()

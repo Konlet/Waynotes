@@ -1,0 +1,4292 @@
+[
+  {
+    "fromNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "toNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 78.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "toNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 113.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 259.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "toNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 116.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "toNode": {
+      "nodeId": 19,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 245.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "toNode": {
+      "nodeId": 45,
+      "name": "Nethergarde Keep",
+      "zone": "Blasted Lands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 176.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "toNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 157.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "toNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 86.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "toNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 130.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "toNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 97.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "toNode": {
+      "nodeId": 19,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 185.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "toNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 113.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "toNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 133.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "toNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 60.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "toNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 61.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "toNode": {
+      "nodeId": 3276,
+      "name": "Farholde Keep",
+      "zone": "Riverglades"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 123.8,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 210.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 128.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 101.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 265.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 253.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 298.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 294.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 67,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 349.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "toNode": {
+      "nodeId": 74,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 87.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 89.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "toNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 163.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "toNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 107.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "toNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 113.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 109.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "toNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 153.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "toNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 164.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "toNode": {
+      "nodeId": 3276,
+      "name": "Farholde Keep",
+      "zone": "Riverglades"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 172.8,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 10,
+      "name": "The Sepulcher",
+      "zone": "Silverpine Forest"
+    },
+    "toNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 112.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 10,
+      "name": "The Sepulcher",
+      "zone": "Silverpine Forest"
+    },
+    "toNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 95.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "toNode": {
+      "nodeId": 10,
+      "name": "The Sepulcher",
+      "zone": "Silverpine Forest"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 106.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "toNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 141.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "toNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 301.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 488.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "toNode": {
+      "nodeId": 68,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 261.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "toNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 284.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "toNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 88.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "toNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 93.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "toNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 60.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "toNode": {
+      "nodeId": 19,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 171.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "toNode": {
+      "nodeId": 45,
+      "name": "Nethergarde Keep",
+      "zone": "Blasted Lands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 97.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 10,
+      "name": "The Sepulcher",
+      "zone": "Silverpine Forest"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 99.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 139.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 118.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 195.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 206.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 110.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 74.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 71.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "toNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 81.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 271.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 7,
+      "name": "Menethil Harbor",
+      "zone": "Wetlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 126.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 171.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 86.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 72.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 259.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 117.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 259.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 91.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "toNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 305.2,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 18,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 20,
+      "name": "Grom'gol",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 102.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 18,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 406.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 18,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 267.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 19,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 220.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 19,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 4,
+      "name": "Sentinel Hill",
+      "zone": "Westfall"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 181.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 19,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 175.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 20,
+      "name": "Grom'gol",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 18,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 81.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 20,
+      "name": "Grom'gol",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 327.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 20,
+      "name": "Grom'gol",
+      "zone": "Stranglethorn"
+    },
+    "toNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 205.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 497.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 263.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 18,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 417.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 20,
+      "name": "Grom'gol",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 313.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 280.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 87.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 75,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 56.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "toNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 119.4,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 207.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 159.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 29,
+      "name": "Sun Rock Retreat",
+      "zone": "Stonetalon Mountains"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 182.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 204.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 38,
+      "name": "Shadowprey Village",
+      "zone": "Desolace"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 159.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 290.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 252.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 269.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 239.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "toNode": {
+      "nodeId": 77,
+      "name": "Camp Taurajo",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 87.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 224.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 110.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 417.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 99.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 252.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 319.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 229.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "toNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 89.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 182.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 142.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 29,
+      "name": "Sun Rock Retreat",
+      "zone": "Stonetalon Mountains"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 150.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 184.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 303.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 252.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 168.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 253.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 162.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 58,
+      "name": "Zoram'gar Outpost",
+      "zone": "Ashenvale"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 231.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 162.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 77,
+      "name": "Camp Taurajo",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 90.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 80,
+      "name": "Ratchet",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 52.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 27,
+      "name": "Rut'theran Village",
+      "zone": "Teldrassil"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 84.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 28,
+      "name": "Astranaar",
+      "zone": "Ashenvale"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 176.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 675.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 33,
+      "name": "Stonetalon Peak",
+      "zone": "Stonetalon Mountains"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 181.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 291.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 473.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 49,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 151.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 301.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "toNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 190.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 27,
+      "name": "Rut'theran Village",
+      "zone": "Teldrassil"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 86.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 28,
+      "name": "Astranaar",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 148.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 28,
+      "name": "Astranaar",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 33,
+      "name": "Stonetalon Peak",
+      "zone": "Stonetalon Mountains"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 153.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 28,
+      "name": "Astranaar",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 150.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 29,
+      "name": "Sun Rock Retreat",
+      "zone": "Stonetalon Mountains"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 175.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 29,
+      "name": "Sun Rock Retreat",
+      "zone": "Stonetalon Mountains"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 150.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 29,
+      "name": "Sun Rock Retreat",
+      "zone": "Stonetalon Mountains"
+    },
+    "toNode": {
+      "nodeId": 38,
+      "name": "Shadowprey Village",
+      "zone": "Desolace"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 143.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 225.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 194.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 93.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "toNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 124.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "toNode": {
+      "nodeId": 77,
+      "name": "Camp Taurajo",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 137.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 31,
+      "name": "Thalanaar",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 159.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 31,
+      "name": "Thalanaar",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 171.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 31,
+      "name": "Thalanaar",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 179.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 620.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 31,
+      "name": "Thalanaar",
+      "zone": "Feralas"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 162.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 334.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 157.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 235.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 80,
+      "name": "Ratchet",
+      "zone": "The Barrens"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 115.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 33,
+      "name": "Stonetalon Peak",
+      "zone": "Stonetalon Mountains"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 177.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 33,
+      "name": "Stonetalon Peak",
+      "zone": "Stonetalon Mountains"
+    },
+    "toNode": {
+      "nodeId": 28,
+      "name": "Astranaar",
+      "zone": "Ashenvale"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 154.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 33,
+      "name": "Stonetalon Peak",
+      "zone": "Stonetalon Mountains"
+    },
+    "toNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 126.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 282.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "toNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 308.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "toNode": {
+      "nodeId": 33,
+      "name": "Stonetalon Peak",
+      "zone": "Stonetalon Mountains"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 120.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "toNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 232.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 38,
+      "name": "Shadowprey Village",
+      "zone": "Desolace"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 178.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 38,
+      "name": "Shadowprey Village",
+      "zone": "Desolace"
+    },
+    "toNode": {
+      "nodeId": 29,
+      "name": "Sun Rock Retreat",
+      "zone": "Stonetalon Mountains"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 199.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 38,
+      "name": "Shadowprey Village",
+      "zone": "Desolace"
+    },
+    "toNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 196.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 31,
+      "name": "Thalanaar",
+      "zone": "Feralas"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 177.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 154.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 73,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 197.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 104.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 304.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 350.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 301.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 87.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 200.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 222.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 72,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 233.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "toNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 108.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 468.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 31,
+      "name": "Thalanaar",
+      "zone": "Feralas"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 155.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 37,
+      "name": "Nijel's Point",
+      "zone": "Desolace"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 227.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 73,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 159.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 259.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 263.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 107.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 38,
+      "name": "Shadowprey Village",
+      "zone": "Desolace"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 201.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 201.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "toNode": {
+      "nodeId": 72,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 132.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 256.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 68.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 16,
+      "name": "Refuge Pointe",
+      "zone": "Arathi"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 75.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 54.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 67,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 164.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 257.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 121.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 172.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 232.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 131.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 94.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 45,
+      "name": "Nethergarde Keep",
+      "zone": "Blasted Lands"
+    },
+    "toNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 189.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 45,
+      "name": "Nethergarde Keep",
+      "zone": "Blasted Lands"
+    },
+    "toNode": {
+      "nodeId": 12,
+      "name": "Darkshire",
+      "zone": "Duskwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 91.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 45,
+      "name": "Nethergarde Keep",
+      "zone": "Blasted Lands"
+    },
+    "toNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 207.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 259.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 241.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 241.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 190.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 69,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 166.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 49,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 142.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 49,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "toNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 131.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 49,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "toNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 61.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 49,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 122.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 176.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 122.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 3242,
+      "name": "Tainted Foothills",
+      "zone": "Mount Hyjal"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 126.8,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 304.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 135.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 195.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 69,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 134.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "toNode": {
+      "nodeId": 3242,
+      "name": "Tainted Foothills",
+      "zone": "Mount Hyjal"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 127.4,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 224.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 217.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 162.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 55,
+      "name": "Brackenwall Village",
+      "zone": "Dustwallow Marsh"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 222.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "toNode": {
+      "nodeId": 18,
+      "name": "Booty Bay",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 260.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "toNode": {
+      "nodeId": 20,
+      "name": "Grom'gol",
+      "zone": "Stranglethorn"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 189.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 285.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "toNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 197.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "toNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 158.9,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 58,
+      "name": "Zoram'gar Outpost",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 228.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 58,
+      "name": "Zoram'gar Outpost",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 167.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 23,
+      "name": "Orgrimmar",
+      "zone": "Durotar"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 96.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 160.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 44,
+      "name": "Valormok",
+      "zone": "Azshara"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 96.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 61,
+      "name": "Splintertree Post",
+      "zone": "Ashenvale"
+    },
+    "toNode": {
+      "nodeId": 58,
+      "name": "Zoram'gar Outpost",
+      "zone": "Ashenvale"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 166.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 301.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 28,
+      "name": "Astranaar",
+      "zone": "Ashenvale"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 153.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 241.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 178.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 283.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "toNode": {
+      "nodeId": 80,
+      "name": "Ratchet",
+      "zone": "The Barrens"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 135.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 26,
+      "name": "Auberdine",
+      "zone": "Darkshore"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 188.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 49,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 67.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 121.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 65,
+      "name": "Talonbranch Glade",
+      "zone": "Felwood"
+    },
+    "toNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 282.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 261.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 14,
+      "name": "Southshore",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 85.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 66.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 67,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 147.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 67,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 369.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 67,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 43,
+      "name": "Aerie Peak",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 163.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 67,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 66,
+      "name": "Chillwind Camp",
+      "zone": "Western Plaguelands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 150.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 68,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 262.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 68,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "toNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 141.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 69,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "toNode": {
+      "nodeId": 48,
+      "name": "Bloodvenom Post",
+      "zone": "Felwood"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 157.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 69,
+      "name": "Moonglade",
+      "zone": "Moonglade"
+    },
+    "toNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 142.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 99.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 213.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 75,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 72.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 128.5,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 2,
+      "name": "Stormwind",
+      "zone": "Elwynn"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 151.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 64.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 45,
+      "name": "Nethergarde Keep",
+      "zone": "Blasted Lands"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 210.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 74,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 104.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "toNode": {
+      "nodeId": 3276,
+      "name": "Farholde Keep",
+      "zone": "Riverglades"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 123.0,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 72,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 241.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 72,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "toNode": {
+      "nodeId": 42,
+      "name": "Camp Mojache",
+      "zone": "Feralas"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 129.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 72,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "toNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 97.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 73,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "toNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 189.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 73,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "toNode": {
+      "nodeId": 41,
+      "name": "Feathermoon",
+      "zone": "Feralas"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 175.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 73,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "toNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 92.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 74,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "toNode": {
+      "nodeId": 6,
+      "name": "Ironforge",
+      "zone": "Dun Morogh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 94.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 74,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "toNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 96.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 75,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 70.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 75,
+      "name": "Thorium Point",
+      "zone": "Searing Gorge"
+    },
+    "toNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 77.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 11,
+      "name": "Undercity",
+      "zone": "Tirisfal"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 284.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 13,
+      "name": "Tarren Mill",
+      "zone": "Hillsbrad"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 159.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 93.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 76,
+      "name": "Revantusk Village",
+      "zone": "The Hinterlands"
+    },
+    "toNode": {
+      "nodeId": 68,
+      "name": "Light's Hope Chapel",
+      "zone": "Eastern Plaguelands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 139.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 77,
+      "name": "Camp Taurajo",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 22,
+      "name": "Thunder Bluff",
+      "zone": "Mulgore"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 114.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 77,
+      "name": "Camp Taurajo",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 79.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 77,
+      "name": "Camp Taurajo",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 30,
+      "name": "Freewind Post",
+      "zone": "Thousand Needles"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 125.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "toNode": {
+      "nodeId": 39,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 104.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "toNode": {
+      "nodeId": 40,
+      "name": "Gadgetzan",
+      "zone": "Tanaris"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 113.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "toNode": {
+      "nodeId": 72,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 100.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 79,
+      "name": "Marshal's Refuge",
+      "zone": "Un'Goro Crater"
+    },
+    "toNode": {
+      "nodeId": 73,
+      "name": "Cenarion Hold",
+      "zone": "Silithus"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 94.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 80,
+      "name": "Ratchet",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 25,
+      "name": "Crossroads",
+      "zone": "The Barrens"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 69.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 80,
+      "name": "Ratchet",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 32,
+      "name": "Theramore",
+      "zone": "Dustwallow Marsh"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 106.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 80,
+      "name": "Ratchet",
+      "zone": "The Barrens"
+    },
+    "toNode": {
+      "nodeId": 64,
+      "name": "Talrendis Point",
+      "zone": "Azshara"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 132.0,
+    "timingSource": "classic_inflight_recording"
+  },
+  {
+    "fromNode": {
+      "nodeId": 559,
+      "name": "Summit of Eternity",
+      "zone": "Mount Hyjal"
+    },
+    "toNode": {
+      "nodeId": 3242,
+      "name": "Tainted Foothills",
+      "zone": "Mount Hyjal"
+    },
+    "faction": "Both",
+    "estimatedSeconds": 58.3,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "toNode": {
+      "nodeId": 17,
+      "name": "Hammerfall",
+      "zone": "Arathi"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 307.7,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "toNode": {
+      "nodeId": 21,
+      "name": "Kargath",
+      "zone": "Badlands"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 112.7,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "toNode": {
+      "nodeId": 56,
+      "name": "Stonard",
+      "zone": "Swamp of Sorrows"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 144.5,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3203,
+      "name": "Rog'mar",
+      "zone": "Riverglades"
+    },
+    "toNode": {
+      "nodeId": 70,
+      "name": "Flame Crest",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 124.8,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3242,
+      "name": "Tainted Foothills",
+      "zone": "Mount Hyjal"
+    },
+    "toNode": {
+      "nodeId": 52,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 117.0,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3242,
+      "name": "Tainted Foothills",
+      "zone": "Mount Hyjal"
+    },
+    "toNode": {
+      "nodeId": 53,
+      "name": "Everlook",
+      "zone": "Winterspring"
+    },
+    "faction": "Horde",
+    "estimatedSeconds": 124.0,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3242,
+      "name": "Tainted Foothills",
+      "zone": "Mount Hyjal"
+    },
+    "toNode": {
+      "nodeId": 559,
+      "name": "Summit of Eternity",
+      "zone": "Mount Hyjal"
+    },
+    "faction": "Both",
+    "estimatedSeconds": 57.8,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3276,
+      "name": "Farholde Keep",
+      "zone": "Riverglades"
+    },
+    "toNode": {
+      "nodeId": 5,
+      "name": "Lakeshire",
+      "zone": "Redridge"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 122.4,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3276,
+      "name": "Farholde Keep",
+      "zone": "Riverglades"
+    },
+    "toNode": {
+      "nodeId": 8,
+      "name": "Thelsamar",
+      "zone": "Loch Modan"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 162.3,
+    "timingSource": "path_length_at_32_yards_per_second"
+  },
+  {
+    "fromNode": {
+      "nodeId": 3276,
+      "name": "Farholde Keep",
+      "zone": "Riverglades"
+    },
+    "toNode": {
+      "nodeId": 71,
+      "name": "Morgan's Vigil",
+      "zone": "Burning Steppes"
+    },
+    "faction": "Alliance",
+    "estimatedSeconds": 114.9,
+    "timingSource": "path_length_at_32_yards_per_second"
+  }
+]
