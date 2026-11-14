@@ -2,6 +2,8 @@ local _, ns = ...
 
 -- Horde The Barrens.
 -- Crossroads opener, Ratchet loop, then the western Barrens lead-in to Stonetalon.
+-- Multi-step class lines live in Horde_Barrens_ClassQuests.lua; this file
+-- only drops pointer steps at the right hubs.
 -- Orc/Troll entry assumes Conscript of the Horde from Durotar.
 -- Tauren entry assumes Journey to the Crossroads from Camp Taurajo (Mulgore curated).
 
@@ -36,6 +38,18 @@ ns.RegisterGuide({
             details = {
                 "Turn in |cRB_QUEST_Conscript of the Horde|r",
             },
+        },
+        {
+            classes = { "Warrior" },
+            text = "Warriors: open the side guide Barrens Warrior Path of Defense at |cRB_FRIENDLY_Uzzek|r, finish Singed Scales, then resume here.",
+            note = "Finish the Warrior Path of Defense side guide, then resume here.",
+            guide = "horde-barrens-warrior-path",
+        },
+        {
+            classes = { "Shaman" },
+            text = "Shamans: open the side guide Barrens Shaman Call of Fire at |cRB_FRIENDLY_Kranal Fiss|r, finish the chain, then resume here.",
+            note = "Finish the Shaman Call of Fire side guide, then resume here.",
+            guide = "horde-barrens-shaman-fire",
         },
         {
             text = "Travel to The Crossroads.",

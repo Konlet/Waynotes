@@ -3,6 +3,7 @@ local _, ns = ...
 -- Curated Forever secondary professions 1-300.
 -- ForeverDB client routes. Horde Cooking uses Dig Rat Stew where it saves mats.
 -- Press Next when you reach the listed skill.
+-- Trainer/zone tips use Horde: / Alliance: labels (filtered to your faction).
 
 ns.RegisterGuide({
     id = "profession-cooking-1-300",
@@ -14,6 +15,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Cooking|r at a fire or stove. Buy Mild Spices and Hot Spices from cooking suppliers.",
             note = "Horde: Cook Torka (Durotar), Pyall Silentstride (Mulgore), Eunice Burch (Undercity), Zamja (Orgrimmar).",
             map = 1454,
@@ -21,29 +23,45 @@ ns.RegisterGuide({
             y = 53.9,
         },
         {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Cooking|r at a fire or stove. Buy Mild Spices and Hot Spices from cooking suppliers.",
+            note = "Alliance: Tomas (Elwynn), Stephen Ryback (Stormwind), Daryl Riknussun (Ironforge), Alegorn (Darnassus).",
+            map = 1453,
+            x = 78.2,
+            y = 53.0,
+        },
+        {
             text = "Skill 1-65: craft |cRB_LOOT_Charred Wolf Meat|r (~71). 1 Stringy Wolf Meat each.",
             note = "Learned automatically. Train Journeyman at 50 (level 10).",
         },
         {
             text = "Skill 65-90: craft |cRB_LOOT_Coyote Steak|r (~40 toward 103 if not doing Dig Rat). 1 Coyote Meat each.",
-            note = "Horde: skip ahead with Dig Rat Stew when you can. Alliance stays on Coyote Steak longer.",
+            note = "Horde: skip ahead with Dig Rat Stew when you can. Alliance: stay on Coyote Steak longer.",
         },
         {
-            text = "Horde skill ~90-167: craft |cRB_LOOT_Dig Rat Stew|r (~138). 1 Dig Rat each.",
+            faction = "Horde",
+            text = "Skill ~90-167: craft |cRB_LOOT_Dig Rat Stew|r (~138). 1 Dig Rat each.",
             note = "Recipe from the Dig Rat Stew quest (Gruel in Bael Modan / The Barrens). Excellent cheap stretch.",
             map = 1413,
             x = 47.0,
             y = 85.0,
         },
         {
-            text = "Horde skill 167-190: craft |cRB_LOOT_Hot Lion Chops|r (~27). 1 Lion Meat, 1 Hot Spices each.",
-            note = "Recipe sold by Zargh (Crossroads) or from Elixir of Pain. Alliance: Cooked Crab Claw / Curiously Tasty Omelet instead.",
+            faction = "Horde",
+            text = "Skill 167-190: craft |cRB_LOOT_Hot Lion Chops|r (~27). 1 Lion Meat, 1 Hot Spices each.",
+            note = "Recipe sold by Zargh (Crossroads) or from Elixir of Pain.",
             map = 1413,
             x = 52.6,
             y = 29.9,
         },
         {
-            text = "Alliance / shared mid game: |cRB_LOOT_Cooked Crab Claw|r to ~150, then |cRB_LOOT_Curiously Tasty Omelet|r.",
+            faction = "Alliance",
+            text = "Skill ~90-150: craft |cRB_LOOT_Cooked Crab Claw|r, then |cRB_LOOT_Curiously Tasty Omelet|r.",
+            note = "Train Expert Cooking at 125 (level 20) via the Expert Cookbook quest.",
+        },
+        {
+            faction = "Horde",
+            text = "If Dig Rat did not carry you past mid game: |cRB_LOOT_Cooked Crab Claw|r to ~150, then |cRB_LOOT_Curiously Tasty Omelet|r.",
             note = "Train Expert Cooking at 125 (level 20) via the Expert Cookbook quest. Skip if Dig Rat already carried you past this.",
         },
         {
@@ -55,7 +73,7 @@ ns.RegisterGuide({
         },
         {
             text = "Skill 233-272: craft |cRB_LOOT_Spiced Chili Crab|r (~40). 1 Tender Crab Meat, 2 Hot Spices each.",
-            note = "Recipe sold by Kriggon Talsone (Westfall) / check Horde cooking vendors or AH.",
+            note = "Horde: check cooking vendors or AH. Alliance: recipe sold by Kriggon Talsone (Westfall).",
         },
         {
             text = "Skill 272-300: craft |cRB_LOOT_Poached Sunscale Salmon|r (~29). 1 Raw Sunscale Salmon each.",
@@ -77,6 +95,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_First Aid|r. Farm cloth while questing.",
             note = "Horde: Arnok (Orgrimmar), Pand Stonebinder (Thunder Bluff), Mary Edras (Undercity).",
             details = {
@@ -85,6 +104,17 @@ ns.RegisterGuide({
             map = 1454,
             x = 34.0,
             y = 84.5,
+        },
+        {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_First Aid|r. Farm cloth while questing.",
+            note = "Alliance: Michelle Belle (Elwynn), Shaina Fuller (Stormwind), Nissa Firestone (Ironforge), Dannelor (Darnassus).",
+            details = {
+                "Forever moves some healing potions onto First Aid. Bandages remain the leveling path.",
+            },
+            map = 1453,
+            x = 52.9,
+            y = 44.8,
         },
         {
             text = "Skill 1-41: craft |cRB_LOOT_Linen Bandage|r (~42). 1 Linen Cloth each.",
@@ -105,7 +135,7 @@ ns.RegisterGuide({
         },
         {
             text = "Skill 180-210: craft |cRB_LOOT_Heavy Silk Bandage|r (~41). 2 Silk Cloth each.",
-            note = "Manual sold by Deneb Walker (Arathi) / Balai Lok'Wein (Dustwallow, Horde).",
+            note = "Horde: manual sold by Balai Lok'Wein (Dustwallow). Alliance: manual sold by Deneb Walker (Arathi).",
             map = 1445,
             x = 36.0,
             y = 30.0,
@@ -116,10 +146,7 @@ ns.RegisterGuide({
         },
         {
             text = "Skill 260-300: craft |cRB_LOOT_Runecloth Bandage|r (~65). 1 Runecloth each.",
-            note = "Horde Artisan trainer: Doctor Gregory Victor (Arathi, Hammerfall). Alliance: Doctor Gustaf VanHowzen (Theramore).",
-            map = 1417,
-            x = 73.4,
-            y = 36.8,
+            note = "Horde: Doctor Gregory Victor (Arathi, Hammerfall). Alliance: Doctor Gustaf VanHowzen (Theramore).",
         },
     },
 })

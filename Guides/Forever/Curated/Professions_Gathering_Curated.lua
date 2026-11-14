@@ -3,6 +3,7 @@ local _, ns = ...
 -- Curated Forever gathering professions 1-300.
 -- Routes from Forever client / ForeverDB skill colours and zone tiers.
 -- Press Next when you reach the listed skill. No auto skill tracking yet.
+-- Trainer/zone tips use Horde: / Alliance: labels (filtered to your faction).
 
 ns.RegisterGuide({
     id = "profession-herbalism-1-300",
@@ -14,6 +15,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Herbalism|r and learn Find Herbs. Buy an herb pouch if offered.",
             note = "Horde: Mishiki (Durotar), Faruza (Tirisfal), Komin Winterhoof (Thunder Bluff), Jandi (Orgrimmar). Also on Zephras Isle.",
             map = 1454,
@@ -21,28 +23,27 @@ ns.RegisterGuide({
             y = 39.7,
         },
         {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Herbalism|r and learn Find Herbs. Buy an herb pouch if offered.",
+            note = "Alliance: Herbalist Pomeroy (Elwynn), Malorne Bladeleaf (Teldrassil), Reyna Stonebranch (Ironforge). Also on Zephras Isle.",
+            map = 1453,
+            x = 55.6,
+            y = 85.0,
+        },
+        {
             text = "Skill 1-70: pick |cRB_LOOT_Peacebloom|r, |cRB_LOOT_Silverleaf|r, and |cRB_LOOT_Earthroot|r (from 15).",
-            note = "Any starting zone. Horde: Durotar, Mulgore, Tirisfal, or Zephras Isle. Train Journeyman at 50 (level 10).",
+            note = "Any starting zone. Horde: Durotar, Mulgore, Tirisfal, or Zephras Isle. Alliance: Elwynn, Dun Morogh, Teldrassil, or Zephras Isle. Train Journeyman at 50 (level 10).",
             details = {
                 "Incense Candle (camp) unlocks at Herbalism 20.",
             },
-            map = 1411,
-            x = 50.0,
-            y = 50.0,
         },
         {
             text = "Skill 70-115: pick |cRB_LOOT_Mageroyal|r, |cRB_LOOT_Briarthorn|r, and |cRB_LOOT_Stranglekelp|r (85, underwater).",
-            note = "Horde: Silverpine Forest or The Barrens. Keep Swiftthistle and Frilled Lichen.",
-            map = 1421,
-            x = 50.0,
-            y = 50.0,
+            note = "Horde: Silverpine Forest or The Barrens. Alliance: Westfall, Loch Modan, or Darkshore. Keep Swiftthistle and Frilled Lichen.",
         },
         {
             text = "Skill 115-170: pick |cRB_LOOT_Bruiseweed|r, |cRB_LOOT_Wild Steelbloom|r, |cRB_LOOT_Kingsblood|r (125), and |cRB_LOOT_Liferoot|r (150).",
-            note = "Horde: Hillsbrad, Stonetalon, or Ashenvale. Train Expert at 125 (level 20).",
-            map = 1424,
-            x = 50.0,
-            y = 50.0,
+            note = "Horde: Hillsbrad, Stonetalon, or Ashenvale. Alliance: Wetlands, Redridge, Ashenvale, or Hillsbrad. Train Expert at 125 (level 20).",
         },
         {
             text = "Skill 170-205: pick |cRB_LOOT_Fadeleaf|r, |cRB_LOOT_Goldthorn|r, |cRB_LOOT_Khadgar's Whisker|r (185), plus leftover Kingsblood and Liferoot.",
@@ -95,6 +96,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Mining|r, buy a |cRB_LOOT_Mining Pick|r, and learn Find Minerals.",
             note = "Horde: Makaru (Orgrimmar), Brek Stonehoof (Thunder Bluff), Brom Killian (Undercity). Smelt as you go for extra skill.",
             map = 1454,
@@ -102,18 +104,20 @@ ns.RegisterGuide({
             y = 26.4,
         },
         {
-            text = "Skill 1-65: mine |cRB_LOOT_Copper Vein|r. Smelt Copper at a forge.",
-            note = "Horde: Durotar, The Barrens, or Silverpine. Train Journeyman at 50 (level 10).",
-            map = 1411,
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Mining|r, buy a |cRB_LOOT_Mining Pick|r, and learn Find Minerals.",
+            note = "Alliance: Brock Stoneseeker (Loch Modan), Dank Drizzlecut (Dun Morogh), Geofram Bouldertoe (Ironforge). Smelt as you go for extra skill.",
+            map = 1455,
             x = 50.0,
-            y = 50.0,
+            y = 26.0,
+        },
+        {
+            text = "Skill 1-65: mine |cRB_LOOT_Copper Vein|r. Smelt Copper at a forge.",
+            note = "Horde: Durotar, The Barrens, or Silverpine. Alliance: Elwynn, Dun Morogh, or Westfall. Train Journeyman at 50 (level 10).",
         },
         {
             text = "Skill 65-125: mine |cRB_LOOT_Tin Vein|r and |cRB_LOOT_Silver Vein|r (75). Smelt Tin, Bronze, and Silver.",
-            note = "Horde: Hillsbrad, Ashenvale, or Wetlands / Redridge / Loch Modan if you go east. Train Expert at 125 (level 20).",
-            map = 1424,
-            x = 50.0,
-            y = 50.0,
+            note = "Horde: Hillsbrad, Ashenvale, or Wetlands / Redridge / Loch Modan if you go east. Alliance: Wetlands, Redridge, Loch Modan, or Darkshore. Train Expert at 125 (level 20).",
         },
         {
             text = "Skill 125-175: mine |cRB_LOOT_Iron Deposit|r and |cRB_LOOT_Gold Vein|r (155). Smelt Iron, Gold, and Steel.",
@@ -152,6 +156,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Skinning|r and buy a |cRB_LOOT_Skinning Knife|r.",
             note = "Horde: Mooranta / Yonn Deepcut (Mulgore), Thuwd (Orgrimmar), Killian Hagey (Undercity). Skin any looted beast, including other players' kills.",
             map = 1454,
@@ -159,18 +164,20 @@ ns.RegisterGuide({
             y = 45.0,
         },
         {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Skinning|r and buy a |cRB_LOOT_Skinning Knife|r.",
+            note = "Alliance: Helene Peltskinner (Elwynn), Maris Granger (Stormwind), Eladriel (Darnassus). Skin any looted beast, including other players' kills.",
+            map = 1453,
+            x = 71.6,
+            y = 62.2,
+        },
+        {
             text = "Skill 1-50: skin beasts up to about level 10-15.",
-            note = "Horde: Mulgore, Durotar, or Tirisfal while questing. Train Journeyman at 50 (level 10).",
-            map = 1412,
-            x = 50.0,
-            y = 50.0,
+            note = "Horde: Mulgore, Durotar, or Tirisfal while questing. Alliance: Elwynn, Dun Morogh, or Teldrassil while questing. Train Journeyman at 50 (level 10).",
         },
         {
             text = "Skill 50-150: skin beasts up to about level 30.",
-            note = "The Barrens is ideal. From skill 100, max beast level is roughly skill / 5. Train Expert at 125 (level 20).",
-            map = 1413,
-            x = 50.0,
-            y = 50.0,
+            note = "Horde: The Barrens is ideal. Alliance: Westfall, Loch Modan, Darkshore, or Wetlands. From skill 100, max beast level is roughly skill / 5. Train Expert at 125 (level 20).",
         },
         {
             text = "Skill 150-180: skin beasts up to about level 36.",
@@ -216,6 +223,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Fishing|r. Buy a |cRB_LOOT_Fishing Pole|r and a lure (|cRB_LOOT_Shiny Bauble|r).",
             note = "Horde: Lumak (Orgrimmar), Kah Mistrunner (Thunder Bluff), Armand Cromwell (Undercity). Equip the pole and attach the lure.",
             map = 1454,
@@ -223,18 +231,20 @@ ns.RegisterGuide({
             y = 29.6,
         },
         {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Fishing|r. Buy a |cRB_LOOT_Fishing Pole|r and a lure (|cRB_LOOT_Shiny Bauble|r).",
+            note = "Alliance: Lee Brown (Elwynn), Arnold Leland (Stormwind), Grimnur Stonebrand (Ironforge). Equip the pole and attach the lure.",
+            map = 1453,
+            x = 54.9,
+            y = 69.6,
+        },
+        {
             text = "Skill 1-75: fish any starting-zone water.",
-            note = "Durotar, Mulgore, Tirisfal, or Zephras Isle. Train Journeyman at 50.",
-            map = 1411,
-            x = 53.0,
-            y = 42.0,
+            note = "Horde: Durotar, Mulgore, Tirisfal, or Zephras Isle. Alliance: Elwynn, Dun Morogh, Teldrassil, or Zephras Isle. Train Journeyman at 50.",
         },
         {
             text = "Skill 75-150: fish mid zones (skill ~55 water).",
-            note = "Ashenvale, Hillsbrad, Stonetalon, or Zephras Isle. Use lures if fish get away. Train Expert at 125.",
-            map = 1440,
-            x = 12.0,
-            y = 34.0,
+            note = "Ashenvale, Hillsbrad, Stonetalon, Darkshore, Wetlands, or Zephras Isle. Use lures if fish get away. Train Expert at 125.",
         },
         {
             text = "Skill 150-225: fish higher inland / coastal water (skill ~130).",
