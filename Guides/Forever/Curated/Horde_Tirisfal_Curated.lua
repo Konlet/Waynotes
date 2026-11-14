@@ -2,6 +2,8 @@ local _, ns = ...
 
 -- Curated Undead Tirisfal Glades 1-13.
 -- Hybrid of Forever quest coverage with tight quest chaining.
+-- Multi-step class lines live in Horde_Tirisfal_ClassQuests.lua; this file
+-- only drops pointer steps at the right hubs.
 -- Forever-only lines (Adventurer, camping, Patience/Discipline, Bandarion, etc.) stay in.
 -- Skips: Orgrimmar Forever detour, full Gunther island elite chain (optional note).
 -- Pins omitted: QuestieDB supplies NPC coordinates for accept and turn-in steps.
@@ -1093,17 +1095,9 @@ ns.RegisterGuide({
         },
         {
             classes = { "Warlock" },
-            text = "Talk to |cRB_FRIENDLY_Carendin Halgar|r. Turn in |cRB_QUEST_Halgar's Summons|r. Accept |cRB_QUEST_Creature of the Void|r, turn it in with |cRB_LOOT_Egalin's Grimoire|r, then finish |cRB_QUEST_The Binding|r.",
-            map = 1458,
-            x = 85.0,
-            y = 26.0,
-            quest = 1471,
-            when = "complete",
-            details = {
-                "Turn in |cRB_QUEST_Halgar's Summons|r",
-                "Turn in |cRB_QUEST_Creature of the Void|r",
-                "Kill the Summoned Voidwalker",
-            },
+            text = "Warlocks: open the side guide Tirisfal Warlock Halgar's Summons, finish The Binding, then resume here.",
+            note = "Finish the Warlock Halgar's Summons side guide, then resume here.",
+            guide = "horde-tirisfal-warlock-halgar",
         },
         {
             classes = { "Mage" },
@@ -1345,12 +1339,9 @@ ns.RegisterGuide({
         },
         {
             classes = { "Paladin" },
-            text = "Talk to |cRB_FRIENDLY_Shari Stilwell|r. Accept |cRB_QUEST_A Second Home|r. Train before leaving for Bandarion Keep.",
-            map = 1420,
-            x = 60.2,
-            y = 52.7,
-            quest = 91282,
-            when = "accepted",
+            text = "Paladins: open the side guide Tirisfal Paladin Bandarion Keep, run it alongside the crypt clears below, then resume here.",
+            note = "Finish the Paladin Bandarion Keep side guide with the crypt steps, then resume here.",
+            guide = "horde-tirisfal-paladin-bandarion",
         },
         {
             text = "Travel west to Bandarion Keep. Talk to |cRB_FRIENDLY_Leonid Barthalomew the Revered|r. Turn in |cRB_QUEST_Bandarion Keep|r. Accept |cRB_QUEST_A Righteous Cause|r, turn it in, then accept |cRB_QUEST_Leonid's Letter|r.",
@@ -1363,14 +1354,6 @@ ns.RegisterGuide({
                 "Turn in |cRB_QUEST_Bandarion Keep|r",
                 "Turn in |cRB_QUEST_A Righteous Cause|r",
             },
-        },
-        {
-            classes = { "Paladin" },
-            text = "Talk to |cRB_FRIENDLY_Breton Samuels|r and |cRB_FRIENDLY_Danitha Morr|r for the Paladin keep chain, then press Next.",
-            map = 1420,
-            x = 21.9,
-            y = 45.2,
-            note = "Keep the Paladin side quests moving while clearing the crypt.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Ephram Barbaro|r. Accept |cRB_QUEST_The One That Got Away|r. Talk to |cRB_FRIENDLY_Hilda the Breaker|r. Accept |cRB_QUEST_As Above, So Below|r.",
@@ -1425,14 +1408,6 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            classes = { "Paladin" },
-            text = "Finish remaining Bandarion Paladin turn-ins at Breton, Danitha, and Jorin, then press Next.",
-            map = 1420,
-            x = 22.1,
-            y = 44.7,
-            note = "Includes Murlocs at the Gates, Touring the Grounds, Making Repairs, and The Tarnished if offered.",
-        },
-        {
             text = "Hearth or return to Brill. Talk to |cRB_FRIENDLY_Carolai Anise|r. Turn in |cRB_QUEST_That Shadowvale Green Elixir|r.",
             map = 1420,
             x = 59.4,
@@ -1480,15 +1455,6 @@ ns.RegisterGuide({
             x = 85.1,
             y = 10.0,
             quest = 1882,
-            when = "complete",
-        },
-        {
-            classes = { "Paladin" },
-            text = "Talk to |cRB_FRIENDLY_Tanis Alderwood|r for Divinity turn-ins, then |cRB_FRIENDLY_Lady Sylvanas Windrunner|r for |cRB_QUEST_A Token of Good Faith|r if you have it.",
-            map = 1458,
-            x = 58.1,
-            y = 91.8,
-            quest = 95803,
             when = "complete",
         },
         {

@@ -2,6 +2,8 @@ local _, ns = ...
 
 -- Curated Tauren Mulgore 1-12.
 -- Hybrid of Forever quest coverage with tight quest chaining.
+-- Multi-step class lines live in Horde_Mulgore_ClassQuests.lua and
+-- Horde_Barrens_ClassQuests.lua; this file only drops pointer steps at hubs.
 -- Forever-only lines (Adventurer, camping, Longwalkers, Drive Them Out, etc.) stay in.
 -- Pins omitted: QuestieDB supplies NPC coordinates for accept and turn-in steps.
 
@@ -286,15 +288,9 @@ ns.RegisterGuide({
         },
         {
             classes = { "Shaman" },
-            text = "Talk to |cRB_FRIENDLY_Seer Ravenfeather|r. Turn in |cRB_QUEST_Call of Earth|r. Accept |cRB_QUEST_Call of Earth|r.",
-            map = 1412,
-            x = 44.7,
-            y = 76.2,
-            quest = 1520,
-            when = "accepted",
-            details = {
-                "Turn in |cRB_QUEST_Call of Earth|r",
-            },
+            text = "Shamans: open the side guide Mulgore Shaman Call of Earth, finish the sapta and Ravenfeather turn-ins, then resume here.",
+            note = "Finish the Shaman Call of Earth side guide, then resume here.",
+            guide = "horde-mulgore-shaman-earth",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Chief Hawkwind|r. Turn in |cRB_QUEST_Rite of Strength|r and |cRB_QUEST_Attack on Camp Narache|r. Accept |cRB_QUEST_Rites of the Earthmother|r and |cRB_QUEST_The Adventurer|r.",
@@ -307,27 +303,6 @@ ns.RegisterGuide({
                 "Turn in |cRB_QUEST_Rite of Strength|r",
                 "Turn in |cRB_QUEST_Attack on Camp Narache|r",
             },
-        },
-        {
-            classes = { "Shaman" },
-            text = "At the Kodo Rock east of camp, use the |cRB_LOOT_Earth Sapta|r. Talk to the |cRB_FRIENDLY_Minor Manifestation of Earth|r. Turn in |cRB_QUEST_Call of Earth|r. Accept |cRB_QUEST_Call of Earth|r.",
-            map = 1412,
-            x = 53.7,
-            y = 80.2,
-            quest = 1521,
-            when = "accepted",
-            details = {
-                "Turn in |cRB_QUEST_Call of Earth|r",
-            },
-        },
-        {
-            classes = { "Shaman" },
-            text = "Talk to |cRB_FRIENDLY_Seer Ravenfeather|r. Turn in |cRB_QUEST_Call of Earth|r. Train Healing Wave at |cRB_FRIENDLY_Meela|r.",
-            map = 1412,
-            x = 44.7,
-            y = 76.2,
-            quest = 1521,
-            when = "complete",
         },
         {
             text = "Leave Camp Narache northwest on the road. Talk to |cRB_FRIENDLY_Antur Fallow|r. Accept |cRB_QUEST_A Task Unfinished|r.",
@@ -910,53 +885,35 @@ ns.RegisterGuide({
         },
         {
             classes = { "Warrior" },
-            text = "Talk to |cRB_FRIENDLY_Krang Stonehoof|r. Train. Accept |cRB_QUEST_Veteran Uzzek|r.",
+            text = "Talk to |cRB_FRIENDLY_Krang Stonehoof|r. Train. Accept |cRB_QUEST_Veteran Uzzek|r. Finish it later with the Barrens Warrior Path of Defense side guide.",
             map = 1412,
             x = 49.5,
             y = 60.6,
             quest = 1505,
             when = "accepted",
+            note = "Open Barrens Warrior Path of Defense when you reach Far Watch Post.",
         },
         {
             classes = { "Shaman" },
-            text = "Talk to |cRB_FRIENDLY_Narm Skychaser|r. Train. Accept |cRB_QUEST_Call of Fire|r.",
+            text = "Talk to |cRB_FRIENDLY_Narm Skychaser|r. Train. Accept |cRB_QUEST_Call of Fire|r. Finish it later with the Barrens Shaman Call of Fire side guide.",
             map = 1412,
             x = 48.4,
             y = 59.2,
             quest = 2984,
             when = "accepted",
+            note = "Open Barrens Shaman Call of Fire when you reach Kranal Fiss.",
         },
         {
             classes = { "Hunter" },
-            text = "Talk to |cRB_FRIENDLY_Yaw Sharpmane|r. Train. Accept |cRB_QUEST_Taming the Beast|r.",
-            map = 1412,
-            x = 47.8,
-            y = 55.7,
-            quest = 6061,
-            when = "accepted",
+            text = "Hunters: open the side guide Mulgore Hunter Taming, finish Training the Beast in Thunder Bluff, then resume here.",
+            note = "Finish the Hunter Taming side guide, then resume here.",
+            guide = "horde-mulgore-hunter-taming",
         },
         {
             classes = { "Druid" },
-            text = "Talk to |cRB_FRIENDLY_Gennia Runetotem|r. Train. Accept |cRB_QUEST_Heeding the Call|r.",
-            map = 1412,
-            x = 48.5,
-            y = 59.6,
-            quest = 5928,
-            when = "accepted",
-        },
-        {
-            classes = { "Hunter" },
-            text = "Tame an |cRB_ENEMY_Adult Plainstrider|r west of town, return to Yaw, then tame a |cRB_ENEMY_Prairie Stalker|r and a |cRB_ENEMY_Swoop|r. Turn in and accept |cRB_QUEST_Training the Beast|r.",
-            map = 1412,
-            x = 47.8,
-            y = 55.7,
-            quest = 6089,
-            when = "accepted",
-            details = {
-                "Tame Adult Plainstrider",
-                "Tame Prairie Stalker",
-                "Tame Swoop",
-            },
+            text = "Druids: open the side guide Mulgore Druid Moonglade for Heeding the Call through Body and Heart pickup, then resume here.",
+            note = "Finish the Druid Moonglade side guide pickup, then resume here. Lunaclaw is finished later near Camp Taurajo.",
+            guide = "horde-mulgore-druid-moonglade",
         },
         {
             sticky = true,
@@ -1076,20 +1033,6 @@ ns.RegisterGuide({
             },
         },
         {
-            classes = { "Hunter" },
-            text = "Talk to |cRB_FRIENDLY_Melor Stonehoof|r on Hunter Rise. Turn in |cRB_QUEST_The Hunter's Way|r. Accept |cRB_QUEST_Sergra Darkthorn|r. Talk to |cRB_FRIENDLY_Holt Thunderhorn|r. Turn in |cRB_QUEST_Training the Beast|r.",
-            map = 1456,
-            x = 61.3,
-            y = 80.9,
-            quest = 860,
-            when = "accepted",
-            details = {
-                "Turn in |cRB_QUEST_The Hunter's Way|r",
-                "Turn in |cRB_QUEST_Training the Beast|r",
-            },
-        },
-        {
-            excludeClasses = { "Hunter" },
             text = "Talk to |cRB_FRIENDLY_Melor Stonehoof|r on Hunter Rise. Turn in |cRB_QUEST_The Hunter's Way|r. Accept |cRB_QUEST_Sergra Darkthorn|r.",
             map = 1456,
             x = 61.3,
@@ -1099,6 +1042,7 @@ ns.RegisterGuide({
             details = {
                 "Turn in |cRB_QUEST_The Hunter's Way|r",
             },
+            note = "Hunters should already have finished Training the Beast in the side guide.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Eyahn Eagletalon|r. Accept |cRB_QUEST_Preparation for Ceremony|r.",
@@ -1123,27 +1067,13 @@ ns.RegisterGuide({
         },
         {
             classes = { "Druid" },
-            text = "Talk to |cRB_FRIENDLY_Arch Druid Hamuul Runetotem|r. Accept |cRB_QUEST_The Barrens Oases|r. Talk to |cRB_FRIENDLY_Turak Runetotem|r. Turn in |cRB_QUEST_Heeding the Call|r. Accept |cRB_QUEST_Moonglade|r.",
+            text = "Talk to |cRB_FRIENDLY_Arch Druid Hamuul Runetotem|r. Accept |cRB_QUEST_The Barrens Oases|r if you still need it, then press Next.",
             map = 1456,
-            x = 76.7,
-            y = 27.3,
-            quest = 5922,
+            x = 78.6,
+            y = 28.5,
+            quest = 886,
             when = "accepted",
-            details = {
-                "Turn in |cRB_QUEST_Heeding the Call|r",
-            },
-        },
-        {
-            classes = { "Druid" },
-            text = "Cast Teleport: Moonglade. Talk to |cRB_FRIENDLY_Dendrite Starblaze|r, learn from the Great Bear Spirit, then return via |cRB_FRIENDLY_Bunthen|r. Turn in at Turak and accept |cRB_QUEST_Body and Heart|r.",
-            map = 1456,
-            x = 76.7,
-            y = 27.3,
-            quest = 6002,
-            when = "accepted",
-            details = {
-                "Turn in Moonglade / Great Bear Spirit / Back to Thunder Bluff",
-            },
+            note = "Moonglade / Body and Heart pickup is in the Mulgore Druid Moonglade side guide.",
         },
         {
             sticky = true,
@@ -1241,12 +1171,9 @@ ns.RegisterGuide({
         },
         {
             classes = { "Druid" },
-            text = "At the Moonkin Stone west of Camp Taurajo, use |cRB_LOOT_Cenarion Lunardust|r. Kill |cRB_ENEMY_Lunaclaw|r, talk to the spirit, then fly from Camp Taurajo to Thunder Bluff and turn in |cRB_QUEST_Body and Heart|r at Turak. Fly back to Camp Taurajo.",
-            map = 1413,
-            x = 42.0,
-            y = 60.9,
-            quest = 6002,
-            when = "complete",
+            text = "Druids: open the side guide Barrens Druid Body and Heart, finish Lunaclaw and the Turak turn-in, then resume here.",
+            note = "Finish the Druid Body and Heart side guide, then resume here.",
+            guide = "horde-barrens-druid-body",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Omusa Thunderhorn|r. Get the Camp Taurajo flight path.",

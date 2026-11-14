@@ -4,6 +4,7 @@ local _, ns = ...
 -- Cheap ForeverDB client routes (skill colours from the Forever client).
 -- Craft counts are estimates; yellow/green crafts can miss a point. Press Next at the listed skill.
 -- Trainer/vendor locations use Classic data until Forever-confirmed.
+-- Trainer/zone tips use Horde: / Alliance: labels (filtered to your faction).
 
 ns.RegisterGuide({
     id = "profession-alchemy-1-300",
@@ -15,6 +16,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Alchemy|r. Pair with Herbalism. Buy Empty Vials from a trade vendor.",
             note = "Horde: Yelmak (Orgrimmar), Bena Winterhoof (Thunder Bluff), Doctor Herbert Halsey (Undercity).",
             details = {
@@ -23,6 +25,17 @@ ns.RegisterGuide({
             map = 1454,
             x = 56.6,
             y = 34.1,
+        },
+        {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Alchemy|r. Pair with Herbalism. Buy Empty Vials from a trade vendor.",
+            note = "Alliance: Alchemist Mallory (Elwynn), Ainethil (Darnassus), Lilyssia Nightbreeze (Stormwind).",
+            details = {
+                "Forever camp: Mana Well (20), Fermenter (140), Alchemy Laboratory (300).",
+            },
+            map = 1453,
+            x = 46.4,
+            y = 79.6,
         },
         {
             text = "Skill 1-13: craft |cRB_LOOT_Minor Arcane Elixir|r (~13). 1 Peacebloom, 1 Empty Vial each.",
@@ -72,7 +85,7 @@ ns.RegisterGuide({
         },
         {
             text = "Skill 265-300: craft |cRB_LOOT_Elixir of Greater Defense|r (~42). 2 Stonescale Oil, 1 Sungrass, 1 Crystal Vial each.",
-            note = "Recipe sold by Soolie Berryfizz (Ironforge) / check Horde recipe vendors if listed. Finish Stonescale Oil as needed.",
+            note = "Alliance: recipe sold by Soolie Berryfizz (Ironforge). Horde: check recipe vendors if listed. Finish Stonescale Oil as needed.",
         },
     },
 })
@@ -87,11 +100,20 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Blacksmithing|r at a forge. Pair with Mining.",
             note = "Horde: Saru Steelfury (Orgrimmar), Karn Stonehoof (Thunder Bluff), Basil Frye (Undercity).",
             map = 1454,
             x = 82.0,
             y = 23.0,
+        },
+        {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Blacksmithing|r at a forge. Pair with Mining.",
+            note = "Alliance: Smith Argus (Elwynn), Therum Deepforge (Stormwind), Bengus Deepforge (Ironforge).",
+            map = 1453,
+            x = 63.2,
+            y = 36.8,
         },
         {
             text = "Skill 1-25: craft |cRB_LOOT_Rough Sharpening Stone|r (~25). 1 Rough Stone each.",
@@ -166,6 +188,7 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Enchanting|r. Disenchant greens for mats. Pair with Tailoring.",
             note = "Horde: Godan (Orgrimmar), Teg Dawnstrider (Thunder Bluff), Lavinia Crowe (Undercity). Forever starts with Mote of Magic on Inferior Stamina.",
             map = 1454,
@@ -173,24 +196,47 @@ ns.RegisterGuide({
             y = 38.2,
         },
         {
-            text = "Horde 1-23: craft |cRB_LOOT_Enchant Bracer - Inferior Stamina|r (~23). 1 Mote of Magic each.",
-            note = "Alliance stays on Inferior Stamina a bit longer (to ~25), then Minor Deflect / Minor Absorption.",
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Enchanting|r. Disenchant greens for mats. Pair with Tailoring.",
+            note = "Alliance: Lucan Cordell (Stormwind), Gimble Thistlefuzz (Ironforge), Lalina Lambar (Darnassus). Forever starts with Mote of Magic on Inferior Stamina.",
+            map = 1453,
+            x = 53.0,
+            y = 74.2,
         },
         {
-            text = "Horde 23-90: craft |cRB_LOOT_Enchant Chest - Inferior Stamina|r (~74). 1 Strange Dust each.",
-            note = "Train Journeyman at 50 (level 10). Alliance: Enchant Chest - Minor Absorption with Lesser Magic Essence.",
+            faction = "Horde",
+            text = "Skill 1-23: craft |cRB_LOOT_Enchant Bracer - Inferior Stamina|r (~23). 1 Mote of Magic each.",
         },
         {
-            text = "Horde 90-128: craft |cRB_LOOT_Enchant Cloak - Minor Protection|r (~44). 2 Strange Dust each.",
-            note = "Alliance often uses Enchant Cloak - Minor Agility (Lesser Astral Essence from Dalria in Ashenvale).",
+            faction = "Alliance",
+            text = "Skill 1-25: craft |cRB_LOOT_Enchant Bracer - Inferior Stamina|r (~25). 1 Mote of Magic each.",
+            note = "Then Minor Deflect / Minor Absorption.",
         },
         {
-            text = "Horde 128-164: craft |cRB_LOOT_Enchant Boots - Minor Stamina|r (~39). 4 Strange Dust each.",
+            faction = "Horde",
+            text = "Skill 23-90: craft |cRB_LOOT_Enchant Chest - Inferior Stamina|r (~74). 1 Strange Dust each.",
+            note = "Train Journeyman at 50 (level 10).",
+        },
+        {
+            faction = "Alliance",
+            text = "Skill 25-90: craft |cRB_LOOT_Enchant Chest - Minor Absorption|r with Lesser Magic Essence.",
+            note = "Train Journeyman at 50 (level 10).",
+        },
+        {
+            faction = "Horde",
+            text = "Skill 90-128: craft |cRB_LOOT_Enchant Cloak - Minor Protection|r (~44). 2 Strange Dust each.",
+        },
+        {
+            faction = "Alliance",
+            text = "Skill 90-128: craft |cRB_LOOT_Enchant Cloak - Minor Agility|r (Lesser Astral Essence from Dalria in Ashenvale).",
+        },
+        {
+            text = "Skill 128-164: craft |cRB_LOOT_Enchant Boots - Minor Stamina|r (~39). 4 Strange Dust each.",
             note = "Train Expert at 125 (level 20).",
         },
         {
             text = "Skill 164-210: craft |cRB_LOOT_Enchant Boots - Lesser Agility|r (~70). 1 Soul Dust each.",
-            note = "Horde trainer Hgarth (Stonetalon). Shared with Alliance from here.",
+            note = "Horde: trainer Hgarth (Stonetalon). Alliance: shared trainer path from here.",
             map = 1442,
             x = 49.2,
             y = 57.2,
@@ -205,10 +251,7 @@ ns.RegisterGuide({
         },
         {
             text = "Skill 285-300: craft |cRB_LOOT_Enchant Shield - Greater Stamina|r (~19). 6 Dream Dust each.",
-            note = "Horde recipe sold by Daniel Bartlett (Undercity). Alliance: Mythrin'dir (Darnassus).",
-            map = 1458,
-            x = 64.0,
-            y = 38.0,
+            note = "Horde: recipe sold by Daniel Bartlett (Undercity). Alliance: Mythrin'dir (Darnassus).",
         },
     },
 })
@@ -223,11 +266,20 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Engineering|r at an anvil. Pair with Mining.",
             note = "Horde: Roxxik (Orgrimmar), Tinkerwiz (Ratchet), Graham Van Talen (Undercity).",
             map = 1454,
             x = 76.0,
             y = 25.0,
+        },
+        {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Engineering|r at an anvil. Pair with Mining.",
+            note = "Alliance: Sprite Jumpsprocket (Stormwind), Springspindle Fizzlegear (Ironforge), Tinkerwiz (Ratchet).",
+            map = 1453,
+            x = 62.4,
+            y = 30.2,
         },
         {
             text = "Skill 1-33: craft |cRB_LOOT_Rough Blasting Powder|r (~39). 1 Rough Stone each.",
@@ -307,11 +359,20 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Leatherworking|r. Pair with Skinning.",
             note = "Horde: Karolek (Orgrimmar), Una (Thunder Bluff), Arthur Moore (Undercity).",
             map = 1454,
             x = 62.8,
             y = 44.5,
+        },
+        {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Leatherworking|r. Pair with Skinning.",
+            note = "Alliance: Adele Fielder (Elwynn), Simon Tanner (Stormwind), Telonis (Darnassus).",
+            map = 1453,
+            x = 71.8,
+            y = 62.0,
         },
         {
             text = "Skill 1-48: craft |cRB_LOOT_Light Armor Kit|r (~56). 1 Light Leather each.",
@@ -345,15 +406,15 @@ ns.RegisterGuide({
         },
         {
             text = "Skill 150-160: craft |cRB_LOOT_Mystic Heavy Armor Kit|r (~11). 1 Heavy Armor Kit, 2 Soul Dust, 2 Lesser Mana Potion each.",
-            note = "New Forever recipe. Alliance vendor Saenorion (Darnassus); check Horde leather vendors / AH for the pattern.",
+            note = "New Forever recipe. Alliance: vendor Saenorion (Darnassus). Horde: check leather vendors / AH for the pattern.",
         },
         {
             text = "Skill 160-170: craft |cRB_LOOT_Raptor Hide Belt|r (~13). 4 Raptor Hide, 4 Heavy Leather, 2 Fine Thread each.",
-            note = "Horde alternative around here: Barbaric Leggings from Keena (Arathi). Alliance uses Barbaric Shoulders next.",
+            note = "Horde: Barbaric Leggings from Keena (Arathi) is an alternative around here. Alliance: use Barbaric Shoulders next.",
         },
         {
             text = "Skill 170-185: craft |cRB_LOOT_Barbaric Shoulders|r then |cRB_LOOT_Green Leather Bracers|r to about 185.",
-            note = "Trainer recipes. Skip Barbaric Shoulders if you used the Horde Barbaric Leggings path.",
+            note = "Trainer recipes. Horde: skip Barbaric Shoulders if you used the Barbaric Leggings path.",
         },
         {
             text = "Skill 185-200: craft |cRB_LOOT_Guardian Gloves|r (~13) then |cRB_LOOT_Thick Armor Kit|r (~6).",
@@ -364,7 +425,7 @@ ns.RegisterGuide({
         },
         {
             text = "Skill 212-225: craft Wild Leather Shoulders then Wild Leather Helmet (quest recipes).",
-            note = "Pratt McGrubben (A) / Jangdor Swiftstrider (H) Wild Leather chain in Feralas.",
+            note = "Alliance: Pratt McGrubben in Feralas. Horde: Jangdor Swiftstrider Wild Leather chain in Feralas.",
             map = 1444,
             x = 74.5,
             y = 42.9,
@@ -400,11 +461,20 @@ ns.RegisterGuide({
     maxLevel = 60,
     steps = {
         {
+            faction = "Horde",
             text = "Train |cRB_LOOT_Tailoring|r. Farm cloth from humanoids. Pair with Enchanting.",
             note = "Horde: Magar (Orgrimmar), Tepa (Thunder Bluff), Josef Gregorian (Undercity).",
             map = 1454,
             x = 63.0,
             y = 49.7,
+        },
+        {
+            faction = "Alliance",
+            text = "Train |cRB_LOOT_Tailoring|r. Farm cloth from humanoids. Pair with Enchanting.",
+            note = "Alliance: Eldrin (Elwynn), Georgio Bolero (Stormwind), Me'lynn (Darnassus).",
+            map = 1453,
+            x = 53.4,
+            y = 81.0,
         },
         {
             text = "Skill 1-27: craft |cRB_LOOT_Bolt of Linen Cloth|r (~26). 2 Linen Cloth each.",

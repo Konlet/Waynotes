@@ -330,8 +330,8 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "You still need |cRB_LOOT_Fire Tar|r later in The Barrens. Return to the 10-12 Durotar guide for Skull Rock and Orgrimmar, then finish Call of Fire with the Barrens guide.",
-            note = "|cRB_LOOT_Fire Tar|r comes from Razormane spellcasters in The Barrens.",
+            text = "You still need |cRB_LOOT_Fire Tar|r later in The Barrens. Return to the 10-12 Durotar guide for Skull Rock and Orgrimmar, then open Barrens Shaman Call of Fire when you reach Kranal again.",
+            note = "|cRB_LOOT_Fire Tar|r comes from Razormane spellcasters. Continue with guide Barrens Shaman Call of Fire.",
             guide = "horde-durotar-10-12-curated",
         },
     },

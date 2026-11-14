@@ -151,16 +151,29 @@ local RACE_MASK = {
     Skyborne = 4294967296,
 }
 
-local function copyNames(value)
+local function canonName(name, canon)
+    if type(name) ~= "string" or name == "" then
+        return nil
+    end
+    if not canon then
+        return name
+    end
+    -- Accept "NightElf", "Night Elf", or "nightelf" as the same race.
+    local key = name:lower():gsub("%s+", "")
+    return canon[key] or name
+end
+
+local function copyNames(value, canon)
     if type(value) ~= "table" then
         return nil
     end
     local list = {}
     local seen = {}
     for _, name in ipairs(value) do
-        if type(name) == "string" and name ~= "" and not seen[name] then
-            seen[name] = true
-            list[#list + 1] = name
+        local resolved = canonName(name, canon)
+        if resolved and not seen[resolved] then
+            seen[resolved] = true
+            list[#list + 1] = resolved
         end
     end
     if #list > 0 then
@@ -223,17 +236,17 @@ local function cleanStep(step)
         local rest, classes, excludeClasses, races, excludeRaces = parseLeadingFilter(copy.text)
         if classes then
             copy.text = rest
-            copy.classes = copyNames(step.classes) or classes
-            copy.excludeClasses = copyNames(step.excludeClasses) or excludeClasses
-            copy.races = copyNames(step.races) or races
-            copy.excludeRaces = copyNames(step.excludeRaces) or excludeRaces
+            copy.classes = copyNames(step.classes, CLASS_CANON) or classes
+            copy.excludeClasses = copyNames(step.excludeClasses, CLASS_CANON) or excludeClasses
+            copy.races = copyNames(step.races, RACE_CANON) or races
+            copy.excludeRaces = copyNames(step.excludeRaces, RACE_CANON) or excludeRaces
         end
     end
     if not copy.classes then
-        copy.classes = copyNames(step.classes)
-        copy.excludeClasses = copyNames(step.excludeClasses)
-        copy.races = copyNames(step.races)
-        copy.excludeRaces = copyNames(step.excludeRaces)
+        copy.classes = copyNames(step.classes, CLASS_CANON)
+        copy.excludeClasses = copyNames(step.excludeClasses, CLASS_CANON)
+        copy.races = copyNames(step.races, RACE_CANON)
+        copy.excludeRaces = copyNames(step.excludeRaces, RACE_CANON)
     end
     if step.mode == "softcore" or step.mode == "hardcore" then
         copy.mode = step.mode
@@ -242,6 +255,9 @@ local function cleanStep(step)
     end
     if type(step.note) == "string" and step.note ~= "" and step.note ~= "softcore" and step.note ~= "hardcore" then
         copy.note = step.note
+    end
+    if step.faction == "Alliance" or step.faction == "Horde" then
+        copy.faction = step.faction
     end
     copy.map = tonumber(step.map)
     copy.x = tonumber(step.x)
@@ -346,10 +362,10 @@ function ns.RegisterGuide(guide)
         minLevel = minLevel or inferredMin
         maxLevel = maxLevel or inferredMax
     end
-    local races = copyNames(guide.races) or inferRaces(name, id)
-    local classes = copyNames(guide.classes)
-    local excludeRaces = copyNames(guide.excludeRaces)
-    local excludeClasses = copyNames(guide.excludeClasses)
+    local races = copyNames(guide.races, RACE_CANON) or inferRaces(name, id)
+    local classes = copyNames(guide.classes, CLASS_CANON)
+    local excludeRaces = copyNames(guide.excludeRaces, RACE_CANON)
+    local excludeClasses = copyNames(guide.excludeClasses, CLASS_CANON)
     -- Class side quests nest under the class name in the guide menu.
     if classes and #classes == 1 then
         group = classes[1]
@@ -693,6 +709,12 @@ stepApplies = function(step)
     if not step then
         return false
     end
+    if step.faction == "Alliance" or step.faction == "Horde" then
+        local faction = UnitFactionGroup and UnitFactionGroup("player")
+        if (faction == "Alliance" or faction == "Horde") and step.faction ~= faction then
+            return false
+        end
+    end
     local class = ns.PlayerClass()
     if class then
         if step.classes and #step.classes > 0 and not listed(step.classes, class) then
@@ -717,6 +739,103 @@ stepApplies = function(step)
         end
     end
     return true
+end
+
+-- Keep shared note text; drop "Horde:" / "Alliance:" sentences for the other faction.
+local function filterFactionLabeledText(text, faction)
+    if type(text) ~= "string" or text == "" then
+        return nil
+    end
+    if faction ~= "Alliance" and faction ~= "Horde" then
+        return text
+    end
+    local parts = {}
+    local i = 1
+    local n = #text
+    while i <= n do
+        local allianceAt = text:find("Alliance:", i, true)
+        local hordeAt = text:find("Horde:", i, true)
+        local labelAt
+        local labelLen
+        local label
+        if allianceAt and (not hordeAt or allianceAt < hordeAt) then
+            labelAt = allianceAt
+            labelLen = 9
+            label = "Alliance"
+        elseif hordeAt then
+            labelAt = hordeAt
+            labelLen = 6
+            label = "Horde"
+        else
+            local rest = strtrim(text:sub(i))
+            if rest ~= "" then
+                parts[#parts + 1] = rest
+            end
+            break
+        end
+        local before = strtrim(text:sub(i, labelAt - 1))
+        if before ~= "" then
+            parts[#parts + 1] = before
+        end
+        local bodyStart = labelAt + labelLen
+        while bodyStart <= n and text:sub(bodyStart, bodyStart):match("%s") do
+            bodyStart = bodyStart + 1
+        end
+        local nextAlliance = text:find("Alliance:", bodyStart, true)
+        local nextHorde = text:find("Horde:", bodyStart, true)
+        local nextLabel
+        if nextAlliance and (not nextHorde or nextAlliance < nextHorde) then
+            nextLabel = nextAlliance
+        elseif nextHorde then
+            nextLabel = nextHorde
+        end
+        local bodyEnd
+        local searchFrom = bodyStart
+        while true do
+            local dot = text:find("%.", searchFrom, true)
+            if not dot or (nextLabel and dot >= nextLabel) then
+                break
+            end
+            local after = text:sub(dot + 1, dot + 1)
+            if after == "" or after:match("%s") then
+                bodyEnd = dot
+                break
+            end
+            searchFrom = dot + 1
+        end
+        if not bodyEnd then
+            if nextLabel then
+                bodyEnd = nextLabel - 1
+            else
+                bodyEnd = n
+            end
+        end
+        if label == faction then
+            local body = strtrim(text:sub(bodyStart, bodyEnd))
+            if body ~= "" then
+                parts[#parts + 1] = body
+            end
+        end
+        i = bodyEnd + 1
+        while i <= n and text:sub(i, i):match("%s") do
+            i = i + 1
+        end
+    end
+    if #parts == 0 then
+        return nil
+    end
+    local out = strtrim(table.concat(parts, " "):gsub("%s+", " "))
+    if out == "" then
+        return nil
+    end
+    return out
+end
+
+local function playerFactionForNotes()
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    if faction == "Alliance" or faction == "Horde" then
+        return faction
+    end
 end
 
 local function questApplies(id)
@@ -1651,12 +1770,13 @@ local function authoredPresentation(step)
         end
     end
     local headlineKey = detailKey(headline)
+    local noteFaction = playerFactionForNotes()
     if type(step.details) == "table" then
         for _, line in ipairs(step.details) do
-            addDetail(details, seen, line, headlineKey)
+            addDetail(details, seen, filterFactionLabeledText(line, noteFaction), headlineKey)
         end
     end
-    addDetail(details, seen, step.note, headlineKey)
+    addDetail(details, seen, filterFactionLabeledText(step.note, noteFaction), headlineKey)
     if headline == "" then
         local id = step.quests and step.quests[1]
         if id then
