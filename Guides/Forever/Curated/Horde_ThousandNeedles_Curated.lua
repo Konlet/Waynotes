@@ -17,7 +17,7 @@ ns.RegisterGuide({
     maxLevel = 30,
     steps = {
         {
-            text = "In Sun Rock Retreat, talk to [FRIENDLY]Maggran Earthbinder[/]. Accept [QUEST]Calling in the Reserves[/] if you do not have it, then press Next.",
+            text = "In Sun Rock Retreat, talk to [FRIENDLY]Maggran Earthbinder[/]. Accept [QUEST]Calling in the Reserves[/] if you do not have it.",
             map = 1442,
             x = 47.2,
             y = 61.2,
@@ -55,16 +55,16 @@ ns.RegisterGuide({
             note = "Skip if the camp is too hard.",
         },
         {
-            text = "Talk to [FRIENDLY]Grunt Logmar[/]. Turn in [QUEST]Wrongly Blamed, Justly Corrected[/], then press Next.",
+            text = "Talk to [FRIENDLY]Grunt Logmar[/]. Turn in [QUEST]Wrongly Blamed, Justly Corrected[/].",
             map = 1413,
             x = 44.6,
             y = 59.3,
             quest = 97250,
             when = "complete",
-            note = "Skip if unfinished.",
+            note = "Skip.",
         },
         {
-            text = "Talk to [FRIENDLY]Grish Longrunner[/] at the Great Lift. Turn in [QUEST]Calling in the Reserves[/] if you have it.",
+            text = "Talk to [FRIENDLY]Grish Longrunner[/] at the Great Lift. Turn in [QUEST]Calling in the Reserves[/].",
             map = 1441,
             x = 31.9,
             y = 21.7,
@@ -114,7 +114,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Rau Cliffrunner[/]. Turn in [QUEST]The Sacred Flame[/] if you have it. Accept [QUEST]The Sacred Flame[/].",
+            text = "Talk to [FRIENDLY]Rau Cliffrunner[/]. Turn in [QUEST]The Sacred Flame[/]. Accept [QUEST]The Sacred Flame[/].",
             map = 1441,
             x = 46.1,
             y = 51.7,
@@ -187,7 +187,7 @@ ns.RegisterGuide({
             note = "Also check around 52.3, 55.2 if the first nest is empty.",
         },
         {
-            text = "Kill [ENEMY]Gravelsnout Diggers[/] and Surveyors for an [LOOT]Unrefined Ore Sample[/], then press Next.",
+            text = "Kill [ENEMY]Gravelsnout Diggers[/] and Surveyors for an [LOOT]Unrefined Ore Sample[/].",
             map = 1441,
             x = 65.0,
             y = 54.5,
@@ -218,7 +218,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Rau Cliffrunner[/]. Turn in [QUEST]The Sacred Flame[/] if you finished the hoof.",
+            text = "Talk to [FRIENDLY]Rau Cliffrunner[/]. Turn in [QUEST]The Sacred Flame[/].",
             map = 1441,
             x = 46.1,
             y = 51.7,
@@ -284,7 +284,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "If you have [QUEST]Steelsnap[/], kill [ENEMY]Steelsnap[/] for [LOOT]Steelsnap's Rib[/], then press Next.",
+            text = "Kill [ENEMY]Steelsnap[/] for [LOOT]Steelsnap's Rib[/] for [QUEST]Steelsnap[/].",
             map = 1441,
             x = 17.3,
             y = 22.2,
@@ -342,7 +342,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Fly or hearth out to Thunder Bluff when convenient. Talk to [FRIENDLY]Melor Stonehoof[/]. Turn in [QUEST]Steelsnap[/] if finished. Accept [QUEST]Frostmaw[/].",
+            text = "Fly or hearth out to Thunder Bluff when convenient. Talk to [FRIENDLY]Melor Stonehoof[/]. Turn in [QUEST]Steelsnap[/]. Accept [QUEST]Frostmaw[/].",
             map = 1456,
             x = 61.5,
             y = 80.9,
@@ -365,13 +365,13 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "If you finished the ore sample, fly to Camp Taurajo and turn in [QUEST]A New Ore Sample[/] at [FRIENDLY]Tatternack Steelforge[/], then return to Freewind.",
+            text = "Fly to Camp Taurajo. Turn in [QUEST]A New Ore Sample[/] at [FRIENDLY]Tatternack Steelforge[/], then return to Freewind.",
             map = 1413,
             x = 45.1,
             y = 57.7,
             quest = 1153,
             when = "complete",
-            note = "Abandon the quest if unfinished.",
+            note = "Abandon the quest.",
         },
         {
             text = "Talk to [FRIENDLY]Elu[/]. Turn in [QUEST]Wind Rider[/].",
@@ -469,7 +469,7 @@ ns.RegisterGuide({
             note = "Abandon if the panther is too hard.",
         },
         {
-            text = "Optional softcore: follow the road into Feralas and get the Camp Mojache flight path from [FRIENDLY]Shyn[/], then press Next.",
+            text = "Optional softcore: follow the road into Feralas and get the Camp Mojache flight path from [FRIENDLY]Shyn[/].",
             map = 1444,
             x = 75.5,
             y = 44.4,
@@ -561,11 +561,11 @@ ns.RegisterGuide({
             map = 1441,
             x = 77.8,
             y = 77.3,
-            note = "Pick up Swarm Grows from Belgrom in Orgrimmar if you still need the follow-up.",
+            note = "Pick up Swarm Grows from Belgrom in Orgrimmar.",
         },
         {
             classes = { "Shaman" },
-            text = "Optional: talk to [FRIENDLY]Prate Cloudseer[/] in The Weathered Nook. Turn in [QUEST]Call of Air[/] if you have it, then press Next.",
+            text = "Optional: talk to [FRIENDLY]Prate Cloudseer[/] in The Weathered Nook. Turn in [QUEST]Call of Air[/].",
             map = 1441,
             x = 53.5,
             y = 42.7,

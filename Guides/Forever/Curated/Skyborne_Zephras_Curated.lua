@@ -124,7 +124,7 @@ ns.RegisterGuide({
             details = {
                 "Use Walk on Air while falling",
             },
-            note = "If Walk on Air is on cooldown, press Next and finish this later. You can also just jump on the ground and press the button.",
+            note = "If Walk on Air is on cooldown, skip and finish this later. You can also just jump on the ground and press the button.",
         },
         {
             text = "Talk to [FRIENDLY]Rorian the Dayseeker[/]. Turn in [QUEST]Harmony in Balance[/]. Accept [QUEST]Elemental Unrest[/]. Accept your class intro quest.",
@@ -2191,7 +2191,7 @@ ns.RegisterGuide({
             details = {
                 "Use Walk on Air while falling",
             },
-            note = "If Walk on Air is on cooldown, press Next and finish this later. You can also just jump on the ground and press the button.",
+            note = "If Walk on Air is on cooldown, skip and finish this later. You can also just jump on the ground and press the button.",
         },
         {
             text = "Talk to [FRIENDLY]Rorian the Dayseeker[/]. Turn in [QUEST]Harmony in Balance[/]. Accept [QUEST]Elemental Unrest[/]. Accept your class intro quest.",
@@ -3930,7 +3930,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Riaani Nightwind[/]. Turn in [QUEST]The Broken Construct[/]. Accept [QUEST]The Broken Construct[/] if you completed the objectives.",
+            text = "Talk to [FRIENDLY]Riaani Nightwind[/]. Turn in [QUEST]The Broken Construct[/]. Accept [QUEST]The Broken Construct[/].",
             map = 2521,
             x = 59.07,
             y = 72.99,

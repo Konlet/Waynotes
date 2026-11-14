@@ -339,7 +339,7 @@ ns.RegisterGuide({
             note = "Skip if the fang quest is not offered.",
         },
         {
-            text = "Talk to [FRIENDLY]Gilshalan Windwalker[/]. Turn in [QUEST]Webwood Egg[/] and [QUEST]Fang of Githyiss[/] if you have it. Accept [QUEST]Tenaron's Summons[/].",
+            text = "Talk to [FRIENDLY]Gilshalan Windwalker[/]. Turn in [QUEST]Webwood Egg[/] and [QUEST]Fang of Githyiss[/]. Accept [QUEST]Tenaron's Summons[/].",
             map = 1438,
             x = 57.8,
             y = 41.7,
@@ -726,7 +726,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Loot the [PICK]Strange Fruited Plant[/] for [QUEST]The Glowing Fruit[/] if you see it, then press Next.",
+            text = "Loot the [PICK]Strange Fruited Plant[/] for [QUEST]The Glowing Fruit[/] if you see it.",
             map = 1438,
             x = 42.6,
             y = 76.1,
@@ -797,7 +797,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Loot the [PICK]Strange Fronded Plant[/] for [QUEST]The Shimmering Frond[/] if you see it, then press Next.",
+            text = "Loot the [PICK]Strange Fronded Plant[/] for [QUEST]The Shimmering Frond[/] if you see it.",
             map = 1438,
             x = 34.6,
             y = 28.8,
@@ -842,7 +842,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Arch Druid Fandral Staghelm[/] atop the tree. Turn in [QUEST]Teldrassil[/] if you have it from the Oracle line. Accept [QUEST]Grove of the Ancients[/].",
+            text = "Talk to [FRIENDLY]Arch Druid Fandral Staghelm[/] atop the tree. Turn in [QUEST]Teldrassil[/] from the Oracle line. Accept [QUEST]Grove of the Ancients[/].",
             map = 1457,
             x = 34.8,
             y = 9.0,
@@ -878,7 +878,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Turn in Glowing Fruit and Shimmering Frond at Denalan if you have them. Plant the heart if [LOOT]Moss-twined Heart[/] dropped.",
+            text = "Turn in Glowing Fruit and Shimmering Frond at Denalan. Plant the heart if [LOOT]Moss-twined Heart[/] dropped.",
             map = 1438,
             x = 60.9,
             y = 68.5,
@@ -887,7 +887,7 @@ ns.RegisterGuide({
             note = "Skip missing turn-ins.",
         },
         {
-            text = "If you still have [QUEST]Easing Suffering[/], return to [FRIENDLY]Sentinel Eralya Leafshadow[/] at the Oracle Glade and turn it in, then press Next.",
+            text = "Talk to [FRIENDLY]Sentinel Eralya Leafshadow[/] at the Oracle Glade. Turn in [QUEST]Easing Suffering[/].",
             map = 1438,
             x = 37.6,
             y = 36.8,
@@ -945,7 +945,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In Darnassus, talk to [FRIENDLY]Mydrannul[/] near the bank exit if needed, then talk to [FRIENDLY]Nessa Shadowsong[/] in Rut'theran. Accept [QUEST]Nessa Shadowsong[/] in the city if you do not have it, turn it in at Nessa, accept [QUEST]The Bounty of Teldrassil[/], turn that in at [FRIENDLY]Vesprystus[/], then accept [QUEST]Flight to Auberdine[/].",
+            text = "In Darnassus, talk to [FRIENDLY]Mydrannul[/] near the bank exit, then talk to [FRIENDLY]Nessa Shadowsong[/] in Rut'theran. Accept [QUEST]Nessa Shadowsong[/] in the city if you do not have it, turn it in at Nessa, accept [QUEST]The Bounty of Teldrassil[/], turn that in at [FRIENDLY]Vesprystus[/], then accept [QUEST]Flight to Auberdine[/].",
             map = 1438,
             x = 56.3,
             y = 92.4,

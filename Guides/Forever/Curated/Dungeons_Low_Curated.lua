@@ -32,8 +32,8 @@ ns.RegisterGuide({
             y = 49.0,
         },
         {
-            text = "Just inside, talk to [FRIENDLY]Maur Grimtotem[/] if you have [QUEST]Searching for the Lost Satchel[/]. Turn it in and accept [QUEST]Returning the Lost Satchel[/].",
-            note = "Press Next if you do not have the quest.",
+            text = "Just inside, talk to [FRIENDLY]Maur Grimtotem[/] for [QUEST]Searching for the Lost Satchel[/]. Turn it in and accept [QUEST]Returning the Lost Satchel[/].",
+            note = "Skip if you do not have the quest.",
         },
         {
             text = "Clear the first trogg tunnel. Kill 8 [ENEMY]Ragefire Troggs[/] and 8 [ENEMY]Ragefire Shaman[/] for [QUEST]Testing an Enemy's Strength[/] while you move. At the end, crowd-control one of [ENEMY]Oggleflint[/]'s guards if you can, kill the adds, then kill [ENEMY]Oggleflint[/]. Keep him faced away from the group so Cleave does not hit everyone.",
@@ -54,7 +54,7 @@ ns.RegisterGuide({
             y = 50.6,
         },
         {
-            text = "Travel to [FRIENDLY]Thrall[/] in Grommash Hold. Turn in [QUEST]Hidden Enemies[/] and finish that chain if you still have steps open.",
+            text = "Travel to [FRIENDLY]Thrall[/] in Grommash Hold. Turn in [QUEST]Hidden Enemies[/] and finish that chain.",
             map = 1454,
             x = 31.7,
             y = 37.8,
@@ -97,52 +97,52 @@ ns.RegisterGuide({
             y = 35.7,
         },
         {
-            text = "Follow the tunnels deeper. Kill [ENEMY]Mad Magglish[/] and loot [LOOT]99-Year-Old Port[/] if you have [QUEST]Trouble at the Docks[/] from [FRIENDLY]Crane Operator Bigglefuzz[/] in Ratchet. He paces the side tunnels before the instance portal.",
+            text = "Follow the tunnels deeper. Kill [ENEMY]Mad Magglish[/] and loot [LOOT]99-Year-Old Port[/] for [QUEST]Trouble at the Docks[/] from [FRIENDLY]Crane Operator Bigglefuzz[/] in Ratchet. He paces the side tunnels before the instance portal.",
             map = 1413,
             x = 45.7,
             y = 33.6,
-            note = "Press Next if you are not on that quest or he is not up.",
+            note = "Skip if you are not on that quest or he is not up.",
         },
         {
             faction = "Horde",
-            text = "Before you zone in, make sure you also have [QUEST]Leaders of the Fang[/] from [FRIENDLY]Nara Wildmane[/] in Thunder Bluff, [QUEST]Serpentbloom[/] from [FRIENDLY]Apothecary Zamah[/], and [QUEST]Smart Drinks[/] from [FRIENDLY]Mebok Mizzyrix[/] in Ratchet if you want the full clear.",
+            text = "Before you zone in, make sure you also have [QUEST]Leaders of the Fang[/] from [FRIENDLY]Nara Wildmane[/] in Thunder Bluff, [QUEST]Serpentbloom[/] from [FRIENDLY]Apothecary Zamah[/], and [QUEST]Smart Drinks[/] from [FRIENDLY]Mebok Mizzyrix[/] in Ratchet.",
             map = 1413,
             x = 45.9,
             y = 36.3,
         },
         {
             faction = "Alliance",
-            text = "Before you zone in, make sure you also have [QUEST]Smart Drinks[/] from [FRIENDLY]Mebok Mizzyrix[/] in Ratchet if you want the full clear. [QUEST]Deviate Hides[/] and [QUEST]Deviate Eradication[/] are the cave pickups you just took.",
+            text = "Before you zone in, make sure you also have [QUEST]Smart Drinks[/] from [FRIENDLY]Mebok Mizzyrix[/] in Ratchet. [QUEST]Deviate Hides[/] and [QUEST]Deviate Eradication[/] are the cave pickups you just took.",
             map = 1413,
             x = 45.9,
             y = 36.3,
         },
         {
-            text = "Enter the Wailing Caverns instance with your group. Loot [LOOT]Deviate Hides[/] from deviate beasts the whole run. Loot [PICK]Serpentbloom[/] off the ground if you have [QUEST]Serpentbloom[/]. Kill [ENEMY]Ectoplasms[/] for 6 [LOOT]Wailing Essence[/] if you have [QUEST]Smart Drinks[/].",
+            text = "Enter the Wailing Caverns instance with your group. Loot [LOOT]Deviate Hides[/] from deviate beasts the whole run. Loot [PICK]Serpentbloom[/] off the ground for [QUEST]Serpentbloom[/]. Kill [ENEMY]Ectoplasms[/] for 6 [LOOT]Wailing Essence[/] for [QUEST]Smart Drinks[/].",
             map = 1413,
             x = 45.9,
             y = 36.3,
         },
         {
             text = "Optional: kill [ENEMY]Kresh[/], the large turtle, if your group wants him. He has no special abilities.",
-            note = "Press Next if the group is skipping him.",
+            note = "Skip if the group is skipping him.",
         },
         {
-            text = "Kill [ENEMY]Lady Anacondra[/] in the first fang chamber. Interrupt Sleep. Loot the [LOOT]Gem of Anacondra[/] if you have [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Ravagers[/] for [QUEST]Deviate Eradication[/] are in this wing.",
+            text = "Kill [ENEMY]Lady Anacondra[/] in the first fang chamber. Interrupt Sleep. Loot the [LOOT]Gem of Anacondra[/] for [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Ravagers[/] for [QUEST]Deviate Eradication[/] are in this wing.",
         },
         {
-            text = "Kill the three [ENEMY]Deviate Pythons[/] with [ENEMY]Lord Cobrahn[/] before you focus him. Interrupt Sleep. Loot the [LOOT]Gem of Cobrahn[/] if you have [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Vipers[/] are in this wing.",
+            text = "Kill the three [ENEMY]Deviate Pythons[/] with [ENEMY]Lord Cobrahn[/] before you focus him. Interrupt Sleep. Loot the [LOOT]Gem of Cobrahn[/] for [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Vipers[/] are in this wing.",
         },
         {
             text = "Optional: in the Winding Chasm, before Lord Pythas, kill the [ENEMY]Deviate Faerie Dragon[/] if it is up.",
-            note = "Rare. Press Next if it is not spawned.",
+            note = "Rare. Skip if it is not spawned.",
         },
         {
-            text = "Pull [ENEMY]Lord Pythas[/]. Crowd-control the Druid of the Fang, kill the other add, then kill Pythas. Interrupt Sleep. Loot the [LOOT]Gem of Pythas[/] if you have [QUEST]Leaders of the Fang[/].",
+            text = "Pull [ENEMY]Lord Pythas[/]. Crowd-control the Druid of the Fang, kill the other add, then kill Pythas. Interrupt Sleep. Loot the [LOOT]Gem of Pythas[/] for [QUEST]Leaders of the Fang[/].",
         },
         {
             text = "Optional: kill [ENEMY]Skum[/]. Spread melee apart so Chained Bolt does not jump through the group.",
-            note = "Press Next if the group is skipping him.",
+            note = "Skip if the group is skipping him.",
         },
         {
             text = "Kill [ENEMY]Lord Serpentis[/]. Interrupt Sleep. Loot the [LOOT]Gem of Serpentis[/] to finish the four gems for [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Dreadfangs[/] are in the Winding Chasm.",
@@ -160,7 +160,7 @@ ns.RegisterGuide({
             y = 35.7,
         },
         {
-            text = "Travel to Ratchet. Turn in [QUEST]Smart Drinks[/] at [FRIENDLY]Mebok Mizzyrix[/] and [QUEST]Trouble at the Docks[/] at [FRIENDLY]Crane Operator Bigglefuzz[/] if you finished them. Talk to [FRIENDLY]Sputtervalve[/] about the [LOOT]Glowing Shard[/].",
+            text = "Travel to Ratchet. Turn in [QUEST]Smart Drinks[/] at [FRIENDLY]Mebok Mizzyrix[/] and [QUEST]Trouble at the Docks[/] at [FRIENDLY]Crane Operator Bigglefuzz[/]. Talk to [FRIENDLY]Sputtervalve[/] about the [LOOT]Glowing Shard[/].",
             map = 1413,
             x = 62.4,
             y = 37.6,
@@ -192,7 +192,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Horde",
-            text = "On Elder Rise, talk to [FRIENDLY]Arch Druid Hamuul Runetotem[/]. Turn in [QUEST]In Nightmares[/] if you have it.",
+            text = "On Elder Rise, talk to [FRIENDLY]Arch Druid Hamuul Runetotem[/]. Turn in [QUEST]In Nightmares[/].",
             map = 1456,
             x = 78.6,
             y = 28.6,
@@ -218,7 +218,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Alliance",
-            text = "Before the instance, finish the entrance-mine quests if you have them. [QUEST]The Defias Brotherhood[/] escort from the Defias Traitor at Sentinel Hill ends at this mine. Inside the tunnels, kill [ENEMY]Foreman Thistlenettle[/] for [LOOT]Thistlenettle's Badge[/] ([QUEST]Oh Brother. . .[/]) and loot 4 [LOOT]Miners' Union Cards[/] from the undead miners ([QUEST]Collecting Memories[/]). Also bring [QUEST]Underground Assault[/] from [FRIENDLY]Shoni the Silent[/] in Stormwind and [QUEST]Red Silk Bandanas[/] from [FRIENDLY]Scout Riell[/] at Sentinel Hill.",
+            text = "Before the instance, finish the entrance-mine quests. [QUEST]The Defias Brotherhood[/] escort from the Defias Traitor at Sentinel Hill ends at this mine. Inside the tunnels, kill [ENEMY]Foreman Thistlenettle[/] for [LOOT]Thistlenettle's Badge[/] ([QUEST]Oh Brother...[/]) and loot 4 [LOOT]Miners' Union Cards[/] from the undead miners ([QUEST]Collecting Memories[/]). Also bring [QUEST]Underground Assault[/] from [FRIENDLY]Shoni the Silent[/] in Stormwind and [QUEST]Red Silk Bandanas[/] from [FRIENDLY]Scout Riell[/] at Sentinel Hill.",
             map = 1436,
             x = 41.1,
             y = 80.1,
@@ -235,7 +235,7 @@ ns.RegisterGuide({
         },
         {
             text = "Optional: if [ENEMY]Miner Johnson[/] is up, pick off the non-elite [ENEMY]Defias Miners[/] around him, then kill him.",
-            note = "Rare. Press Next if he is not spawned.",
+            note = "Rare. Skip if he is not spawned.",
         },
         {
             text = "Clear the lumber room, then kill [ENEMY]Sneed's Shredder[/]. Terrify makes you run in fear, so fight with space behind you. When the shredder dies, [ENEMY]Sneed[/] jumps out and disarms the tank. Let the tank pick him up before you damage him.",
@@ -256,7 +256,7 @@ ns.RegisterGuide({
         },
         {
             text = "Optional: drop to the small lower deck and kill [ENEMY]Cookie[/]. Clear the adds below before you jump if the group is low. Interrupt Cookie's Cooking or he heals.",
-            note = "Press Next if the group is skipping him.",
+            note = "Skip if the group is skipping him.",
         },
         {
             faction = "Alliance",
@@ -316,7 +316,7 @@ ns.RegisterGuide({
             map = 1455,
             x = 39.1,
             y = 56.2,
-            note = "Bring Old Ironforge Incursion from Earthseer Farsen in Dun Morogh (64.9, 58.5) if you have it.",
+            note = "Bring Old Ironforge Incursion from Earthseer Farsen in Dun Morogh (64.9, 58.5).",
         },
         {
             faction = "Horde",
@@ -417,7 +417,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Horde",
-            text = "If you still need pickups before you zone in: [QUEST]The New Plague[/] from [FRIENDLY]Theodore Griffs[/] in the Apothecarium, [QUEST]Light's Justice[/] from [FRIENDLY]Morbin Lightbane[/] near Lady Sylvanas, [QUEST]A Frightened Request[/] from [FRIENDLY]Tabitha Heartweaver[/] in Silverpine, and [QUEST]The Wrath of Rath'mael[/] from [FRIENDLY]Deathguard Kristof[/] on the road outside Undercity.",
+            text = "Pick up before you zone in: [QUEST]The New Plague[/] from [FRIENDLY]Theodore Griffs[/] in the Apothecarium, [QUEST]Light's Justice[/] from [FRIENDLY]Morbin Lightbane[/] near Lady Sylvanas, [QUEST]A Frightened Request[/] from [FRIENDLY]Tabitha Heartweaver[/] in Silverpine, and [QUEST]The Wrath of Rath'mael[/] from [FRIENDLY]Deathguard Kristof[/] on the road outside Undercity.",
             map = 1458,
             pins = {
                 { x = 46.3, y = 71.9, note = "Theodore Griffs" },
@@ -426,19 +426,19 @@ ns.RegisterGuide({
         },
         {
             faction = "Horde",
-            text = "Outside Undercity on the Tirisfal road, talk to [FRIENDLY]Deathguard Kristof[/] if you still need [QUEST]The Wrath of Rath'mael[/].",
+            text = "Outside Undercity on the Tirisfal road, talk to [FRIENDLY]Deathguard Kristof[/] for [QUEST]The Wrath of Rath'mael[/].",
             map = 1420,
             x = 65.3,
             y = 60.2,
-            note = "Press Next if you already have it or are skipping it.",
+            note = "Skip if you already have it or are skipping it.",
         },
         {
             faction = "Horde",
-            text = "In Silverpine at the Sepulcher, talk to [FRIENDLY]Tabitha Heartweaver[/] if you still need [QUEST]A Frightened Request[/], then return to the courtyard entrance.",
+            text = "In Silverpine at the Sepulcher, talk to [FRIENDLY]Tabitha Heartweaver[/] for [QUEST]A Frightened Request[/], then return to the courtyard entrance.",
             map = 1421,
             x = 44.5,
             y = 43.0,
-            note = "Press Next if you already have it or are skipping it.",
+            note = "Skip if you already have it or are skipping it.",
         },
         {
             text = "Enter the Ruins of Lordaeron with your group. After you zone in, go forward through the first street, then down the slope into the lower ruins.",
@@ -477,7 +477,7 @@ ns.RegisterGuide({
         },
         {
             text = "Optional: search tower bases, ramparts, and crypts for a [LOOT]Crest of Lordaeron[/]. If it starts a quest, accept it.",
-            note = "Press Next if you do not find one.",
+            note = "Skip if you do not find one.",
         },
         {
             faction = "Alliance",
@@ -506,7 +506,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Horde",
-            text = "If you have [QUEST]Unending Torment[/], turn it in at [FRIENDLY]Master Apothecary Faranell[/], then the abomination in the next room, then Faranell again.",
+            text = "Turn in [QUEST]Unending Torment[/] at [FRIENDLY]Master Apothecary Faranell[/], then the abomination in the next room, then Faranell again.",
             map = 1458,
             x = 48.8,
             y = 69.3,
@@ -514,7 +514,7 @@ ns.RegisterGuide({
                 { x = 48.8, y = 69.3, note = "Master Apothecary Faranell" },
                 { x = 45.9, y = 61.8, note = "Abomination" },
             },
-            note = "Press Next if you do not have Unending Torment.",
+            note = "Skip if you do not have Unending Torment.",
         },
         {
             faction = "Horde",
@@ -522,7 +522,7 @@ ns.RegisterGuide({
             map = 1458,
             x = 73.1,
             y = 32.9,
-            note = "Press Next if you did not find a crest.",
+            note = "Skip if you did not find a crest.",
         },
         {
             faction = "Horde",
@@ -533,19 +533,19 @@ ns.RegisterGuide({
         },
         {
             faction = "Alliance",
-            text = "Leave the ruins. Travel to Stormwind. Turn in [QUEST]Bloodied Insignia[/] at [FRIENDLY]General Marcus Jonathan[/] if you have it.",
+            text = "Leave the ruins. Travel to Stormwind. Turn in [QUEST]Bloodied Insignia[/] at [FRIENDLY]General Marcus Jonathan[/].",
             map = 1453,
             x = 69.2,
             y = 82.7,
-            note = "Press Next if you do not have Bloodied Insignia.",
+            note = "Skip if you do not have Bloodied Insignia.",
         },
         {
             faction = "Alliance",
-            text = "Turn in the letter chain at [FRIENDLY]Orphan Matron Nightingale[/] if you have it.",
+            text = "Turn in the letter chain at [FRIENDLY]Orphan Matron Nightingale[/].",
             map = 1453,
             x = 56.3,
             y = 54.0,
-            note = "Press Next if you do not have the letter quest.",
+            note = "Skip if you do not have the letter quest.",
         },
         {
             faction = "Alliance",
@@ -553,7 +553,7 @@ ns.RegisterGuide({
             map = 1453,
             x = 68.0,
             y = 28.9,
-            note = "Press Next if you did not find a crest.",
+            note = "Skip if you did not find a crest.",
         },
     },
 })

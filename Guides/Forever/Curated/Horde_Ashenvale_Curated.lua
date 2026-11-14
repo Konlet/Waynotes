@@ -103,7 +103,7 @@ ns.RegisterGuide({
         },
         {
             text = "Take the flight path (or Hearthstone) from Zoram'gar toward Thunder Bluff.",
-            note = "Fly from Andruk if you have the Thunder Bluff path. Hearth if it is bound there.",
+            note = "Fly from Andruk, or hearth if it is bound to Thunder Bluff.",
             map = 1440,
             x = 12.23,
             y = 33.8,
@@ -225,14 +225,14 @@ ns.RegisterGuide({
             y = 68.12,
         },
         {
-            text = "Talk to [FRIENDLY]Senani Thunderheart[/]. Turn in [QUEST]The Ashenvale Hunt[/] if you have the breadcrumb. Accept [QUEST]The Ashenvale Hunt[/].",
+            text = "Talk to [FRIENDLY]Senani Thunderheart[/]. Turn in [QUEST]The Ashenvale Hunt[/]. Accept [QUEST]The Ashenvale Hunt[/].",
             quest = 6383,
             when = "accepted",
             map = 1440,
             x = 73.78,
             y = 61.46,
             details = {
-                "Turn in breadcrumb [QUEST]The Ashenvale Hunt[/] if you have it",
+                "Turn in breadcrumb [QUEST]The Ashenvale Hunt[/]",
                 "Accept [QUEST]The Ashenvale Hunt[/]",
             },
         },
@@ -342,7 +342,7 @@ ns.RegisterGuide({
             note = "Requires [QUEST]The Ashenvale Hunt[/].",
         },
         {
-            text = "Kill [ENEMY]Laughing Sisters[/] for the [LOOT]Etched Phial[/] if you have [QUEST]The Sacred Flame[/].",
+            text = "Kill [ENEMY]Laughing Sisters[/] for the [LOOT]Etched Phial[/] ([QUEST]The Sacred Flame[/]).",
             quest = 1195,
             when = "objectives",
             map = 1440,
@@ -467,7 +467,7 @@ ns.RegisterGuide({
             y = 62.47,
         },
         {
-            text = "Talk to [FRIENDLY]Senani Thunderheart[/]. Turn in [QUEST]Shadumbra's Head[/] and [QUEST]Ursangous's Paw[/] if you finished them.",
+            text = "Talk to [FRIENDLY]Senani Thunderheart[/]. Turn in [QUEST]Shadumbra's Head[/] and [QUEST]Ursangous's Paw[/].",
             quests = { 24, 23 },
             when = "complete",
             map = 1440,
@@ -591,7 +591,7 @@ ns.RegisterGuide({
             note = "Requires all three Hunt trophies turned in.",
         },
         {
-            text = "Ashenvale is done. If you still hold [QUEST]The Flying Machine Airport[/], [QUEST]The Sacred Flame[/], or [QUEST]Steelsnap[/], finish them in Thunder Bluff when convenient.",
+            text = "Ashenvale is done. Finish [QUEST]The Flying Machine Airport[/], [QUEST]The Sacred Flame[/], or [QUEST]Steelsnap[/] in Thunder Bluff when convenient.",
             note = "Zamah in the Spirit Rise cave (~22.8, 20.9) takes Flying Machine Airport. Optional TB leftovers only.",
             map = 1456,
             x = 22.81,

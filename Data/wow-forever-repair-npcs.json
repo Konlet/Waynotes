@@ -1,0 +1,5353 @@
+[
+  {
+    "name": "Abra Cadabra",
+    "npcId": 252019,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 12.14,
+      "y": 70.32
+    },
+    "title": "Wands",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Aemara",
+    "npcId": 28989,
+    "faction": "Both",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 17.17,
+      "y": 71.52
+    },
+    "title": "Bowyer",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Anthony Durain",
+    "npcId": 28990,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 20.13,
+      "y": 63.71
+    },
+    "title": "Shields",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bartram Haller",
+    "npcId": 275625,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 14.67,
+      "y": 71.22
+    },
+    "title": "Dagger & Fist Weapon Merchant",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bragund Brightlink",
+    "npcId": 275603,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 12.48,
+      "y": 71.06
+    },
+    "title": "Mail Armor Merchant",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jekyll Flandring",
+    "npcId": 13219,
+    "faction": "Horde",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 62.84,
+      "y": 59.27
+    },
+    "title": "Frostwolf Supply Officer",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kerta the Bold",
+    "npcId": 275622,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 14.8,
+      "y": 70.79
+    },
+    "title": "Axe & Polearm Merchant",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rafael Langrom",
+    "npcId": 275596,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 12.68,
+      "y": 71.02
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Thanthaldis Snowgleam",
+    "npcId": 13217,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 39.45,
+      "y": 81.65
+    },
+    "title": "Stormpike Supply Officer",
+    "town": "The Headland",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Valaden Silverblade",
+    "npcId": 275623,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 14.73,
+      "y": 71.22
+    },
+    "title": "Sword Merchant",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Valerie Langrom",
+    "npcId": 275598,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 12.65,
+      "y": 71.07
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Walther Whiteford",
+    "npcId": 275626,
+    "faction": null,
+    "position": {
+      "zone": "Alterac Mountains",
+      "mapId": 1416,
+      "x": 14.4,
+      "y": 71.4
+    },
+    "title": "Mace Merchant",
+    "town": "Dalaran",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gaelden Hammersmith",
+    "npcId": 13216,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Valley",
+      "mapId": 1459,
+      "x": 44.28,
+      "y": 18.25
+    },
+    "title": "Stormpike Supply Officer",
+    "town": "Dun Baldar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grelkor",
+    "npcId": 3343,
+    "faction": "Horde",
+    "position": {
+      "zone": "Alterac Valley",
+      "mapId": 1459,
+      "x": 49.68,
+      "y": 82.46
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Frostwolf Keep",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grunnda Wolfheart",
+    "npcId": 13218,
+    "faction": "Horde",
+    "position": {
+      "zone": "Alterac Valley",
+      "mapId": 1459,
+      "x": 49.33,
+      "y": 82.49
+    },
+    "title": "Frostwolf Supply Officer",
+    "town": "Frostwolf Keep",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lana Thunderbrew",
+    "npcId": 4257,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Alterac Valley",
+      "mapId": 1459,
+      "x": 43.41,
+      "y": 15.64
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Dun Baldar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jannos Ironwill",
+    "npcId": 1471,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Arathi Highlands",
+      "mapId": 1417,
+      "x": 45.98,
+      "y": 47.72
+    },
+    "title": "Superior Macecrafter",
+    "town": "Refuge Pointe",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mu'uta",
+    "npcId": 9555,
+    "faction": "Horde",
+    "position": {
+      "zone": "Arathi Highlands",
+      "mapId": 1417,
+      "x": 72.52,
+      "y": 33.35
+    },
+    "title": "Bowyer",
+    "town": "Hammerfall",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rutherford Twing",
+    "npcId": 15126,
+    "faction": null,
+    "position": {
+      "zone": "Arathi Highlands",
+      "mapId": 1417,
+      "x": 73.4,
+      "y": 29.8
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Samuel Hawke",
+    "npcId": 15127,
+    "faction": null,
+    "position": {
+      "zone": "Arathi Highlands",
+      "mapId": 1417,
+      "x": 46.0,
+      "y": 45.4
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Aeolynn",
+    "npcId": 3952,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 34.47,
+      "y": 49.52
+    },
+    "title": "Clothier",
+    "town": "Astranaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bhaldaran Ravenshade",
+    "npcId": 3951,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 50.27,
+      "y": 67.27
+    },
+    "title": "Bowyer",
+    "town": "Mystral Lake",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Burkrum",
+    "npcId": 6028,
+    "faction": "Horde",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 73.54,
+      "y": 60.31
+    },
+    "title": "Heavy Armor Merchant",
+    "town": "Splintertree Post",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Illiyana Moonblaze",
+    "npcId": 14753,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 61.5,
+      "y": 83.8
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Quartermaster Kyleen",
+    "npcId": 222685,
+    "faction": "Both",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 89.4,
+      "y": 40.4
+    },
+    "title": null,
+    "town": "Bough Shadow",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Tandaan Lightmane",
+    "npcId": 3953,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 34.55,
+      "y": 49.9
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Astranaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Xai'ander",
+    "npcId": 11137,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ashenvale",
+      "mapId": 1440,
+      "x": 35.79,
+      "y": 52.05
+    },
+    "title": "Weaponsmith",
+    "town": "Astranaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Brinna Valanaar",
+    "npcId": 14301,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Azshara",
+      "mapId": 1447,
+      "x": 12.0,
+      "y": 78.38
+    },
+    "title": "Bowyer",
+    "town": "Talrendis Point",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gruul Darkblade",
+    "npcId": 10361,
+    "faction": "Horde",
+    "position": {
+      "zone": "Azshara",
+      "mapId": 1447,
+      "x": 22.22,
+      "y": 51.09
+    },
+    "title": "Weaponsmith",
+    "town": "Valormok",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jazzrik",
+    "npcId": 9179,
+    "faction": "Both",
+    "position": {
+      "zone": "Badlands",
+      "mapId": 1418,
+      "x": 42.47,
+      "y": 52.5
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Valley of Fangs",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sranda",
+    "npcId": 1407,
+    "faction": "Horde",
+    "position": {
+      "zone": "Badlands",
+      "mapId": 1418,
+      "x": 2.91,
+      "y": 47.25
+    },
+    "title": "Light Armor & Weapons Merchant",
+    "town": "Kargath",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Strumner Flintheel",
+    "npcId": 5508,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Blasted Lands",
+      "mapId": 1419,
+      "x": 66.08,
+      "y": 17.16
+    },
+    "title": "Armor Crafter",
+    "town": "Nethergarde Keep",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Felder Stover",
+    "npcId": 1296,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Burning Steppes",
+      "mapId": 1428,
+      "x": 85.21,
+      "y": 68.39
+    },
+    "title": "Weaponsmith",
+    "town": "Morgan's Vigil",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Yuka Screwspigot",
+    "npcId": 9544,
+    "faction": "Both",
+    "position": {
+      "zone": "Burning Steppes",
+      "mapId": 1428,
+      "x": 66.06,
+      "y": 21.95
+    },
+    "title": null,
+    "town": "Flame Crest",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Elisa Steelhand",
+    "npcId": 6300,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darkshore",
+      "mapId": 1439,
+      "x": 38.14,
+      "y": 41.11
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Auberdine",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Harlon Thornguard",
+    "npcId": 4187,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darkshore",
+      "mapId": 1439,
+      "x": 37.05,
+      "y": 41.34
+    },
+    "title": "Armorer & Shieldsmith",
+    "town": "Auberdine",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mavralyn",
+    "npcId": 4186,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darkshore",
+      "mapId": 1439,
+      "x": 37.0,
+      "y": 41.2
+    },
+    "title": "Leather Armor & Leatherworking Supplies",
+    "town": "Auberdine",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Naram Longclaw",
+    "npcId": 4183,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darkshore",
+      "mapId": 1439,
+      "x": 37.57,
+      "y": 40.35
+    },
+    "title": "Weaponsmith",
+    "town": "Auberdine",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Shaldyn",
+    "npcId": 4185,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darkshore",
+      "mapId": 1439,
+      "x": 38.1,
+      "y": 40.5
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Anadyia",
+    "npcId": 4172,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 55.6,
+      "y": 89.5
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Andrus",
+    "npcId": 4234,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 55.6,
+      "y": 88.5
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ariyell Skyshadow",
+    "npcId": 4203,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 58.76,
+      "y": 44.5
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Caynrus",
+    "npcId": 4240,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 56.93,
+      "y": 76.33
+    },
+    "title": "Shield Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Cylania",
+    "npcId": 4164,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 59.24,
+      "y": 46.36
+    },
+    "title": "Night Elf Armorer",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Cyridan",
+    "npcId": 4236,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 53.1,
+      "y": 79.9
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ealyshia Dewwhisper",
+    "npcId": 4180,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 60.8,
+      "y": 72.0
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Glorandiir",
+    "npcId": 4232,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 63.68,
+      "y": 58.8
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kieran",
+    "npcId": 4231,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 64.99,
+      "y": 60.22
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Landria",
+    "npcId": 4173,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 63.26,
+      "y": 66.27
+    },
+    "title": "Bow Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Melea",
+    "npcId": 4177,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 57.04,
+      "y": 77.28
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Merelyssa",
+    "npcId": 4171,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 65.03,
+      "y": 60.1
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mythidan",
+    "npcId": 4233,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 65.2,
+      "y": 60.36
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Turian",
+    "npcId": 4235,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 62.44,
+      "y": 65.72
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Vinasia",
+    "npcId": 4175,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Darnassus",
+      "mapId": 1457,
+      "x": 60.55,
+      "y": 72.4
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Haunted Anvil",
+    "npcId": 240568,
+    "faction": "Both",
+    "position": {
+      "zone": "Deadwind Pass",
+      "mapId": 1430,
+      "x": 48.4,
+      "y": 78.0
+    },
+    "title": null,
+    "town": "Karazhan",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hae'Wilani",
+    "npcId": 12045,
+    "faction": "Horde",
+    "position": {
+      "zone": "Desolace",
+      "mapId": 1443,
+      "x": 25.8,
+      "y": 71.02
+    },
+    "title": "Axecrafter",
+    "town": "Shadowprey Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Maxton Strang",
+    "npcId": 1322,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Desolace",
+      "mapId": 1443,
+      "x": 67.93,
+      "y": 8.31
+    },
+    "title": "Mail Armor Merchant",
+    "town": "Nijel's Point",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Muuran",
+    "npcId": 8878,
+    "faction": "Horde",
+    "position": {
+      "zone": "Desolace",
+      "mapId": 1443,
+      "x": 55.59,
+      "y": 56.5
+    },
+    "title": "Superior Macecrafter",
+    "town": "Kodo Graveyard",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Boran Ironclink",
+    "npcId": 1240,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 45.16,
+      "y": 51.75
+    },
+    "title": "Armorer",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Burdrak Harglhelm",
+    "npcId": 3162,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 30.11,
+      "y": 45.28
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Brewnall Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Durnan Furcutter",
+    "npcId": 836,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.77,
+      "y": 66.37
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Frast Dokner",
+    "npcId": 1698,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 69.0,
+      "y": 55.89
+    },
+    "title": "Apprentice Weaponsmith",
+    "town": "Gol'Bolar Quarry",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gamili Frosthide",
+    "npcId": 1238,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 45.18,
+      "y": 51.93
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grawn Thromwyn",
+    "npcId": 1273,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 45.29,
+      "y": 52.19
+    },
+    "title": "Weaponsmith",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grundel Harkin",
+    "npcId": 1104,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.79,
+      "y": 67.84
+    },
+    "title": "Armorer",
+    "town": "Coldridge Valley",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hegnar Rumbleshot",
+    "npcId": 1243,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 40.6,
+      "y": 65.0
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rybrad Coldbank",
+    "npcId": 945,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 28.66,
+      "y": 67.74
+    },
+    "title": "Weaponsmith",
+    "town": "Coldridge Valley",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Thrawn Boltar",
+    "npcId": 1690,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 45.3,
+      "y": 51.53
+    },
+    "title": "Blacksmithing Supplies",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Turuk Amberstill",
+    "npcId": 3177,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dun Morogh",
+      "mapId": 1426,
+      "x": 62.9,
+      "y": 49.89
+    },
+    "title": "Dwarven Weaponsmith",
+    "town": "Amberstill Ranch",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Cutac",
+    "npcId": 3166,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 53.11,
+      "y": 40.86
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Razor Hill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ghrawt",
+    "npcId": 3165,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 52.98,
+      "y": 41.03
+    },
+    "title": "Bowyer",
+    "town": "Razor Hill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Huklah",
+    "npcId": 3160,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 40.61,
+      "y": 67.8
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Valley of Trials",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kzan Thornslash",
+    "npcId": 3159,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 40.47,
+      "y": 68.0
+    },
+    "title": "Weaponsmith",
+    "town": "Valley of Trials",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rarc",
+    "npcId": 3161,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 40.48,
+      "y": 67.82
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Valley of Trials",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Trayexir",
+    "npcId": 10369,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 56.47,
+      "y": 73.12
+    },
+    "title": "Weapon Merchant",
+    "town": "Sen'jin Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Uhgar",
+    "npcId": 3163,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 52.02,
+      "y": 40.45
+    },
+    "title": "Weaponsmith",
+    "town": "Razor Hill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Wuark",
+    "npcId": 3167,
+    "faction": "Horde",
+    "position": {
+      "zone": "Durotar",
+      "mapId": 1411,
+      "x": 51.9,
+      "y": 41.14
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Razor Hill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Avette Fellwood",
+    "npcId": 228,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Duskwood",
+      "mapId": 1431,
+      "x": 73.03,
+      "y": 44.42
+    },
+    "title": "Bowyer",
+    "town": "Darkshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gavin Gnarltree",
+    "npcId": 225,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Duskwood",
+      "mapId": 1431,
+      "x": 73.6,
+      "y": 50.04
+    },
+    "title": "Weaponsmith",
+    "town": "Darkshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Morg Gnarltree",
+    "npcId": 226,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Duskwood",
+      "mapId": 1431,
+      "x": 73.97,
+      "y": 48.89
+    },
+    "title": "Armorer",
+    "town": "Darkshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Quartermaster Falinar",
+    "npcId": 222684,
+    "faction": "Both",
+    "position": {
+      "zone": "Duskwood",
+      "mapId": 1431,
+      "x": 45.6,
+      "y": 51.2
+    },
+    "title": null,
+    "town": "Twilight Grove",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Quartermaster Falinar",
+    "npcId": 222684,
+    "faction": "Both",
+    "position": {
+      "zone": "Duskwood",
+      "mapId": 1431,
+      "x": 46.8,
+      "y": 47.6
+    },
+    "title": null,
+    "town": "Twilight Grove",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hans Weston",
+    "npcId": 4886,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 64.63,
+      "y": 50.42
+    },
+    "title": "Armorer & Shieldsmith",
+    "town": "Theramore Isle",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jensen Farran",
+    "npcId": 4892,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 67.95,
+      "y": 49.89
+    },
+    "title": "Bowyer",
+    "town": "Theramore Isle",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Krak",
+    "npcId": 4883,
+    "faction": "Horde",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 36.4,
+      "y": 30.85
+    },
+    "title": "Armorer",
+    "town": "Brackenwall Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Marie Holdston",
+    "npcId": 4888,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 64.61,
+      "y": 50.07
+    },
+    "title": "Weaponsmith",
+    "town": "Theramore Isle",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Piter Verance",
+    "npcId": 4890,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 67.39,
+      "y": 47.86
+    },
+    "title": "Weaponsmith & Armorer",
+    "town": "Theramore Isle",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Torq Ironblast",
+    "npcId": 4889,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 67.51,
+      "y": 47.98
+    },
+    "title": "Gunsmith",
+    "town": "Theramore Isle",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Zanara",
+    "npcId": 9552,
+    "faction": "Horde",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 35.5,
+      "y": 30.09
+    },
+    "title": "Bowyer",
+    "town": "Brackenwall Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Zulrg",
+    "npcId": 4884,
+    "faction": "Horde",
+    "position": {
+      "zone": "Dustwallow Marsh",
+      "mapId": 1445,
+      "x": 36.17,
+      "y": 31.8
+    },
+    "title": "Weaponsmith",
+    "town": "Brackenwall Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Anvil",
+    "npcId": 242954,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 99.4,
+      "y": 77.8
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bryon Steelblade",
+    "npcId": 240248,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 98.5,
+      "y": 84.0
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Craftsman Wilhelm",
+    "npcId": 16376,
+    "faction": "Both",
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 71.24,
+      "y": 49.9
+    },
+    "title": "Brotherhood of the Light",
+    "town": "Light's Hope Chapel",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "G00 DV-1B3 Generator",
+    "npcId": 235164,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 40.2,
+      "y": 27.0
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "G00 DV-1B3 Generator",
+    "npcId": 235164,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 41.4,
+      "y": 23.0
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "G00 DV-1B3 Generator",
+    "npcId": 235164,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 47.9,
+      "y": 22.4
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "G00 DV-1B3 Generator",
+    "npcId": 235164,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 67.8,
+      "y": 83.0
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "G00 DV-1B3 Generator",
+    "npcId": 235164,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 68.3,
+      "y": 87.5
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "G00 DV-1B3 Generator",
+    "npcId": 235164,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 81.0,
+      "y": 58.6
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "G00 DV-1B3 Generator",
+    "npcId": 235164,
+    "faction": null,
+    "position": {
+      "zone": "Eastern Plaguelands",
+      "mapId": 1423,
+      "x": 98.6,
+      "y": 82.4
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Andrew Krighton",
+    "npcId": 2046,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 41.7,
+      "y": 65.86
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Goldshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Corina Steele",
+    "npcId": 54,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 41.53,
+      "y": 65.9
+    },
+    "title": "Weaponsmith",
+    "town": "Goldshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Dermot Johns",
+    "npcId": 190,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 47.56,
+      "y": 41.4
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Northshire Valley",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Godric Rothgar",
+    "npcId": 1213,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 47.69,
+      "y": 41.42
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Northshire Valley",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Janos Hammerknuckle",
+    "npcId": 78,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 47.24,
+      "y": 41.9
+    },
+    "title": "Weaponsmith",
+    "town": "Northshire Valley",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kurran Steele",
+    "npcId": 74,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 41.37,
+      "y": 65.59
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Goldshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Morley Eberlein",
+    "npcId": 959,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 64.69,
+      "y": 69.51
+    },
+    "title": "Clothier",
+    "town": "Tower of Azora",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nordun Steadysight",
+    "npcId": 268238,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 42.01,
+      "y": 66.39
+    },
+    "title": "Traveling Ranged Weapon Salesman",
+    "town": "Goldshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Quartermaster Hicks",
+    "npcId": 1645,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 25.37,
+      "y": 74.0
+    },
+    "title": "Master Weaponsmith",
+    "town": "Forest's Edge",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Quartermaster Hudson",
+    "npcId": 1249,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 25.23,
+      "y": 74.07
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Forest's Edge",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rallic Finn",
+    "npcId": 1198,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 83.28,
+      "y": 66.09
+    },
+    "title": "Bowyer",
+    "town": "Eastvale Logging Camp",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Veldan Lightfoot",
+    "npcId": 896,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Elwynn Forest",
+      "mapId": 1429,
+      "x": 25.18,
+      "y": 73.89
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Forest's Edge",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Altsoba Ragetotem",
+    "npcId": 10379,
+    "faction": "Horde",
+    "position": {
+      "zone": "Felwood",
+      "mapId": 1448,
+      "x": 34.81,
+      "y": 53.16
+    },
+    "title": "Weapon Merchant",
+    "town": "Bloodvenom Post ",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mylini Frostmoon",
+    "npcId": 15315,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Felwood",
+      "mapId": 1448,
+      "x": 62.41,
+      "y": 25.78
+    },
+    "title": "Weapon Merchant",
+    "town": "Talonbranch Glade ",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Cawind Trueaim",
+    "npcId": 9548,
+    "faction": "Horde",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 74.94,
+      "y": 45.71
+    },
+    "title": "Gunsmith & Bowyer",
+    "town": "Camp Mojache",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Dulciea Frostmoon",
+    "npcId": 10293,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 30.79,
+      "y": 43.15
+    },
+    "title": "Cloth Armor Merchant",
+    "town": "Feathermoon Stronghold",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Pratt McGrubben",
+    "npcId": 7852,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 30.63,
+      "y": 42.71
+    },
+    "title": "Leatherworking Supplies",
+    "town": "Feathermoon Stronghold",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Quartermaster Valdane",
+    "npcId": 222687,
+    "faction": "Both",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 48.4,
+      "y": 12.4
+    },
+    "title": null,
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rendow",
+    "npcId": 1695,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 89.35,
+      "y": 45.86
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Thalanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Shen'dralar Provisioner",
+    "npcId": 14371,
+    "faction": "Both",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 59.2,
+      "y": 45.1
+    },
+    "title": null,
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Worb Strongstitch",
+    "npcId": 8159,
+    "faction": "Horde",
+    "position": {
+      "zone": "Feralas",
+      "mapId": 1444,
+      "x": 74.71,
+      "y": 42.58
+    },
+    "title": "Light Armor Merchant",
+    "town": "Camp Mojache",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Blacksmith Verringtan",
+    "npcId": 2404,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "mapId": 1424,
+      "x": 32.11,
+      "y": 44.42
+    },
+    "title": null,
+    "town": "Hillsbrad Fields",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kris Legace",
+    "npcId": 3536,
+    "faction": "Both",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "mapId": 1424,
+      "x": 80.14,
+      "y": 38.89
+    },
+    "title": "Freewheeling Tradeswoman",
+    "town": "Durnholde Keep",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ott",
+    "npcId": 3539,
+    "faction": "Horde",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "mapId": 1424,
+      "x": 60.43,
+      "y": 26.18
+    },
+    "title": "Weaponsmith",
+    "town": "Tarren Mill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Robert Aebischer",
+    "npcId": 3543,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "mapId": 1424,
+      "x": 51.21,
+      "y": 56.98
+    },
+    "title": "Superior Armorsmith",
+    "town": "Southshore",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Zixil",
+    "npcId": 3537,
+    "faction": "Both",
+    "position": {
+      "zone": "Hillsbrad Foothills",
+      "mapId": 1424,
+      "x": 55.38,
+      "y": 34.71
+    },
+    "title": "Merchant Supreme",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bingus",
+    "npcId": 5152,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 22.77,
+      "y": 15.92
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Brenwyn Wintersteel",
+    "npcId": 5120,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 62.37,
+      "y": 88.68
+    },
+    "title": "Blade Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bretta Goldfury",
+    "npcId": 5123,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 72.21,
+      "y": 65.24
+    },
+    "title": "Gun Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bromiir Ormsen",
+    "npcId": 5106,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 31.72,
+      "y": 58.27
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Dolkin Craghelm",
+    "npcId": 5125,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 53.85,
+      "y": 87.89
+    },
+    "title": "Mail Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Dolman Steelfury",
+    "npcId": 5102,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 35.8,
+      "y": 65.72
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grenil Steelfury",
+    "npcId": 5103,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 35.98,
+      "y": 65.37
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Harick Boulderdrum",
+    "npcId": 5133,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 23.13,
+      "y": 15.94
+    },
+    "title": "Wands Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hegnar Swiftaxe",
+    "npcId": 5119,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 62.19,
+      "y": 88.16
+    },
+    "title": "Axe Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hjoldir Stoneblade",
+    "npcId": 5170,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 44.99,
+      "y": 6.79
+    },
+    "title": "Blade Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ingrys Stonebrow",
+    "npcId": 5155,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 38.25,
+      "y": 5.15
+    },
+    "title": "Cloth Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kelomir Ironhand",
+    "npcId": 5121,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 62.55,
+      "y": 88.71
+    },
+    "title": "Maces & Staves",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lissyphus Finespindle",
+    "npcId": 5129,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 54.7,
+      "y": 87.97
+    },
+    "title": "Light Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Maeva Snowbraid",
+    "npcId": 5156,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 38.68,
+      "y": 5.99
+    },
+    "title": "Robe Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mangorn Flinthammer",
+    "npcId": 5107,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 31.95,
+      "y": 57.93
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Olthran Craghelm",
+    "npcId": 5126,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 54.86,
+      "y": 87.41
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Raena Flinthammer",
+    "npcId": 5108,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 32.62,
+      "y": 57.39
+    },
+    "title": "Light Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Skolmin Goldfury",
+    "npcId": 5122,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 71.76,
+      "y": 66.7
+    },
+    "title": "Bow Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Thalgus Thunderfist",
+    "npcId": 7976,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 61.55,
+      "y": 89.43
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Thurgrum Deepforge",
+    "npcId": 4259,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Ironforge",
+      "mapId": 1455,
+      "x": 51.74,
+      "y": 42.78
+    },
+    "title": "Blacksmithing Supplies",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Aldren Cordon",
+    "npcId": 1214,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 64.82,
+      "y": 66.05
+    },
+    "title": "Clothier",
+    "town": "Ironband's Excavation Site",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Cliff Hadin",
+    "npcId": 1687,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 83.02,
+      "y": 62.96
+    },
+    "title": "Bowyer",
+    "town": "The Farstrider Lodge",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gothor Brumn",
+    "npcId": 1362,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 24.13,
+      "y": 18.21
+    },
+    "title": "Armorer",
+    "town": "North Gate Pass",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Irene Sureshot",
+    "npcId": 1686,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 83.15,
+      "y": 63.42
+    },
+    "title": "Gunsmith",
+    "town": "The Farstrider Lodge",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kat Sampson",
+    "npcId": 954,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 82.65,
+      "y": 64.11
+    },
+    "title": "Leather Armor Merchant",
+    "town": "The Farstrider Lodge",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Morhan Coppertongue",
+    "npcId": 167,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 34.02,
+      "y": 46.54
+    },
+    "title": "Metalsmith",
+    "town": "Thelsamar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nillen Andemar",
+    "npcId": 222,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 42.87,
+      "y": 9.89
+    },
+    "title": "Macecrafter",
+    "town": "Stonewrought Dam",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Vrok Blunderblast",
+    "npcId": 1469,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Loch Modan",
+      "mapId": 1432,
+      "x": 35.83,
+      "y": 43.46
+    },
+    "title": "Gunsmith",
+    "town": "Thelsamar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Geenia Sunshadow",
+    "npcId": 4184,
+    "faction": "Both",
+    "position": {
+      "zone": "Moonglade",
+      "mapId": 1450,
+      "x": 52.0,
+      "y": 32.89
+    },
+    "title": "Speciality Dress Maker",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kharedon",
+    "npcId": 12023,
+    "faction": "Both",
+    "position": {
+      "zone": "Moonglade",
+      "mapId": 1450,
+      "x": 56.6,
+      "y": 29.95
+    },
+    "title": "Light Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Meliri",
+    "npcId": 12024,
+    "faction": "Both",
+    "position": {
+      "zone": "Moonglade",
+      "mapId": 1450,
+      "x": 51.18,
+      "y": 42.31
+    },
+    "title": "Weaponsmith",
+    "town": "Nighthaven",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Narianna",
+    "npcId": 12029,
+    "faction": "Both",
+    "position": {
+      "zone": "Moonglade",
+      "mapId": 1450,
+      "x": 53.34,
+      "y": 42.7
+    },
+    "title": "Bowyer",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Aisarra Nightmeadow",
+    "npcId": 264797,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Mount Hyjal",
+      "mapId": 2482,
+      "x": 71.09,
+      "y": 51.32
+    },
+    "title": "Keeper of Knowledge",
+    "town": "Summit of Eternity",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Chagrak Hammerstrike",
+    "npcId": 265883,
+    "faction": null,
+    "position": {
+      "zone": "Mount Hyjal",
+      "mapId": 2482,
+      "x": 13.4,
+      "y": 52.4
+    },
+    "title": "Repairs",
+    "town": "Elderwild",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Toron Rockhoof",
+    "npcId": 243855,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Mount Hyjal",
+      "mapId": 2482,
+      "x": 69.0,
+      "y": 47.36
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Summit of Eternity",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Trigg Ironhand",
+    "npcId": 265866,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Mount Hyjal",
+      "mapId": 2482,
+      "x": 15.6,
+      "y": 50.6
+    },
+    "title": "Repairs",
+    "town": "Elderwild",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bronk Steelrage",
+    "npcId": 3075,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 43.91,
+      "y": 77.86
+    },
+    "title": "Armorer and Shieldcrafter",
+    "town": "Red Cloud Mesa",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Harant Ironbrace",
+    "npcId": 3080,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 45.32,
+      "y": 62.19
+    },
+    "title": "Armorer and Shieldcrafter",
+    "town": "Bloodhoof Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kennah Hawkseye",
+    "npcId": 3078,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 44.98,
+      "y": 61.97
+    },
+    "title": "Gunsmith",
+    "town": "Bloodhoof Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mahnott Roughwound",
+    "npcId": 3077,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 45.12,
+      "y": 62.08
+    },
+    "title": "Weaponsmith",
+    "town": "Bloodhoof Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Marjak Keenblade",
+    "npcId": 3073,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 43.79,
+      "y": 77.84
+    },
+    "title": "Weaponsmith",
+    "town": "Red Cloud Mesa",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Varg Windwhisper",
+    "npcId": 3079,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 45.26,
+      "y": 62.16
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Bloodhoof Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Varia Hardhide",
+    "npcId": 3074,
+    "faction": "Horde",
+    "position": {
+      "zone": "Mulgore",
+      "mapId": 1412,
+      "x": 43.86,
+      "y": 77.65
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Red Cloud Mesa",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Galthuk",
+    "npcId": 4043,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 82.29,
+      "y": 18.86
+    },
+    "title": "Two-Handed Weapons Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Handor",
+    "npcId": 3316,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 62.88,
+      "y": 44.69
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jin'sora",
+    "npcId": 3410,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 77.67,
+      "y": 38.53
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kaja",
+    "npcId": 3322,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 52.15,
+      "y": 62.13
+    },
+    "title": "Guns and Ammo Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kareth",
+    "npcId": 3331,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 45.65,
+      "y": 55.96
+    },
+    "title": "Blade Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Katis",
+    "npcId": 5816,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 44.18,
+      "y": 48.44
+    },
+    "title": "Wand Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kiro",
+    "npcId": 3359,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 73.26,
+      "y": 42.25
+    },
+    "title": "War Harness Maker",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Koru",
+    "npcId": 3360,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 81.48,
+      "y": 18.74
+    },
+    "title": "Mace & Staves Vendor",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lady Palanseer",
+    "npcId": 12792,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 40.4,
+      "y": 68.3
+    },
+    "title": "Armor Quartermaster",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Morgum",
+    "npcId": 3321,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 56.24,
+      "y": 73.21
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Muragus",
+    "npcId": 3330,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 44.35,
+      "y": 48.11
+    },
+    "title": "Staff Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ollanus",
+    "npcId": 3317,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 56.52,
+      "y": 73.77
+    },
+    "title": "Light Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sana",
+    "npcId": 3319,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 55.97,
+      "y": 72.73
+    },
+    "title": "Mail Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sergeant Ba'sha",
+    "npcId": 12799,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 41.46,
+      "y": 68.6
+    },
+    "title": "Accessories Quartermaster",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sergeant Thunderhorn",
+    "npcId": 14581,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 40.4,
+      "y": 68.31
+    },
+    "title": "Weapons Quartermaster",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Shoma",
+    "npcId": 3361,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 81.59,
+      "y": 18.86
+    },
+    "title": "Weapon Vendor",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sumi",
+    "npcId": 3356,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 82.6,
+      "y": 23.96
+    },
+    "title": "Blacksmithing Supplier",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Tor'phan",
+    "npcId": 3315,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 62.81,
+      "y": 50.44
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Tumi",
+    "npcId": 5812,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 82.58,
+      "y": 23.57
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ukra'nor",
+    "npcId": 3349,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 29.74,
+      "y": 74.17
+    },
+    "title": "Staff Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Urtharo",
+    "npcId": 3314,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 47.56,
+      "y": 68.38
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Zendo'jian",
+    "npcId": 3409,
+    "faction": "Horde",
+    "position": {
+      "zone": "Orgrimmar",
+      "mapId": 1454,
+      "x": 81.13,
+      "y": 18.93
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bernard Brubaker",
+    "npcId": 3097,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 83.16,
+      "y": 71.02
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Dorin Songblade",
+    "npcId": 956,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 25.79,
+      "y": 46.44
+    },
+    "title": "Armorer",
+    "town": "Lakeshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Henry Chapal",
+    "npcId": 3088,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 18.75,
+      "y": 41.32
+    },
+    "title": "Gunsmith",
+    "town": "Lakeshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kara Adams",
+    "npcId": 793,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 25.48,
+      "y": 46.46
+    },
+    "title": "Shield Crafter",
+    "town": "Lakeshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kimberly Hiett",
+    "npcId": 789,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 21.99,
+      "y": 45.55
+    },
+    "title": "Fletcher",
+    "town": "Lakeshire",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Stondry Darkhammer",
+    "npcId": 256730,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 8.01,
+      "y": 74.81
+    },
+    "title": "Blacksmith",
+    "town": "Three Corners",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Stondry Darkhammer",
+    "npcId": 256730,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 8.24,
+      "y": 79.43
+    },
+    "title": "Blacksmith",
+    "town": "Three Corners",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Stondry Darkhammer",
+    "npcId": 256730,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Redridge Mountains",
+      "mapId": 1433,
+      "x": 10.11,
+      "y": 72.59
+    },
+    "title": "Blacksmith",
+    "town": "Three Corners",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Fizzix Boomshot",
+    "npcId": 260566,
+    "faction": "Both",
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 78.59,
+      "y": 53.66
+    },
+    "title": "Gunsmith",
+    "town": "Powderfuse Port",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Goren Grayfellow",
+    "npcId": 272435,
+    "faction": null,
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 37.8,
+      "y": 76.0
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hamur",
+    "npcId": 263440,
+    "faction": null,
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 67.0,
+      "y": 21.6
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kreza Darkthorn",
+    "npcId": 256657,
+    "faction": "Horde",
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 59.85,
+      "y": 45.98
+    },
+    "title": "Weaponsmith & Armorcrafter",
+    "town": "Rog'mar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mika Darby",
+    "npcId": 259766,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 77.76,
+      "y": 52.03
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Powderfuse Port",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Paige Armstrong",
+    "npcId": 259861,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Riverglades",
+      "mapId": 2548,
+      "x": 64.35,
+      "y": 82.01
+    },
+    "title": "Weaponsmith & Armorcrafter",
+    "town": "Farholde Keep",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Graw Cornerstone",
+    "npcId": 11703,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Searing Gorge",
+      "mapId": 1427,
+      "x": 41.5,
+      "y": 74.97
+    },
+    "title": "Mail Armor Merchant",
+    "town": "The Sea of Cinders",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Master Smith Burninate",
+    "npcId": 14624,
+    "faction": "Both",
+    "position": {
+      "zone": "Searing Gorge",
+      "mapId": 1427,
+      "x": 38.8,
+      "y": 28.51
+    },
+    "title": "The Thorium Brotherhood",
+    "town": "Thorium Point",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lieutenant General Andorov",
+    "npcId": 15471,
+    "faction": "Both",
+    "position": {
+      "zone": "Silithus",
+      "mapId": 1451,
+      "x": 28.6,
+      "y": 92.3
+    },
+    "title": null,
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Vargus",
+    "npcId": 15176,
+    "faction": "Both",
+    "position": {
+      "zone": "Silithus",
+      "mapId": 1451,
+      "x": 51.23,
+      "y": 38.86
+    },
+    "title": "Blacksmith",
+    "town": "Cenarion Hold",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Alexandre Lefevre",
+    "npcId": 3552,
+    "faction": "Horde",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 44.6,
+      "y": 39.11
+    },
+    "title": "Leather Armor Merchant",
+    "town": "The Sepulcher",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Andrea Boynton",
+    "npcId": 3554,
+    "faction": "Horde",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 44.8,
+      "y": 39.24
+    },
+    "title": "Clothier",
+    "town": "The Sepulcher",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Moonrage Armorer",
+    "npcId": 3529,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 46.61,
+      "y": 72.34
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Moonrage Leatherworker",
+    "npcId": 3533,
+    "faction": null,
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 44.3,
+      "y": 73.6
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Moonrage Tailor",
+    "npcId": 3531,
+    "faction": null,
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 46.72,
+      "y": 72.25
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Moonrage Tailor",
+    "npcId": 3531,
+    "faction": null,
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 50.1,
+      "y": 71.9
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nadia Vernon",
+    "npcId": 9553,
+    "faction": "Horde",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 45.01,
+      "y": 39.3
+    },
+    "title": "Bowyer",
+    "town": "The Sepulcher",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Pyrewood Armorer",
+    "npcId": 3528,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 46.4,
+      "y": 71.88
+    },
+    "title": null,
+    "town": "Pyrewood Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Pyrewood Leatherworker",
+    "npcId": 3532,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 43.95,
+      "y": 74.1
+    },
+    "title": null,
+    "town": "Pyrewood Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Pyrewood Tailor",
+    "npcId": 3530,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 46.55,
+      "y": 72.39
+    },
+    "title": null,
+    "town": "Pyrewood Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sebastian Meloche",
+    "npcId": 3553,
+    "faction": "Horde",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 43.33,
+      "y": 41.35
+    },
+    "title": "Armorer",
+    "town": "The Sepulcher",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Wallace the Blind",
+    "npcId": 3534,
+    "faction": "Both",
+    "position": {
+      "zone": "Silverpine Forest",
+      "mapId": 1421,
+      "x": 43.88,
+      "y": 84.59
+    },
+    "title": "Weaponsmith",
+    "town": "The Greymane Wall",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Borand",
+    "npcId": 9549,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "mapId": 1442,
+      "x": 45.36,
+      "y": 59.1
+    },
+    "title": "Bowyer",
+    "town": "Sun Rock Retreat",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Illyanie",
+    "npcId": 4188,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "mapId": 1442,
+      "x": 35.59,
+      "y": 7.35
+    },
+    "title": "Cloth Armor Merchant",
+    "town": "Stonetalon Peak",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nizzik",
+    "npcId": 4085,
+    "faction": "Both",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "mapId": 1442,
+      "x": 62.7,
+      "y": 40.18
+    },
+    "title": "Venture Armor Salesman",
+    "town": "Windshear Crag",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Veenix",
+    "npcId": 4086,
+    "faction": "Both",
+    "position": {
+      "zone": "Stonetalon Mountains",
+      "mapId": 1442,
+      "x": 58.22,
+      "y": 51.74
+    },
+    "title": "Venture Co. Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Agustus Moulaine",
+    "npcId": 1349,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 53.51,
+      "y": 57.56
+    },
+    "title": "Mail Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Aldric Moore",
+    "npcId": 1294,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 61.91,
+      "y": 67.18
+    },
+    "title": "Mail Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Allan Hafgan",
+    "npcId": 1315,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 53.01,
+      "y": 74.9
+    },
+    "title": "Staves Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ardwyn Cailen",
+    "npcId": 1312,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 52.86,
+      "y": 74.82
+    },
+    "title": "Wand Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bryan Cross",
+    "npcId": 1319,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 69.19,
+      "y": 57.64
+    },
+    "title": "Shield Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Carla Granger",
+    "npcId": 1291,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 62.02,
+      "y": 67.79
+    },
+    "title": "Cloth Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Duncan Cullen",
+    "npcId": 1314,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 53.18,
+      "y": 82.04
+    },
+    "title": "Light Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Evan Larson",
+    "npcId": 1310,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 52.65,
+      "y": 83.69
+    },
+    "title": "Hatter",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Frederick Stover",
+    "npcId": 1298,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 58.35,
+      "y": 69.04
+    },
+    "title": "Bow & Arrow Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gerik Koen",
+    "npcId": 1333,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 73.0,
+      "y": 57.45
+    },
+    "title": "Two Handed Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gregory Ardus",
+    "npcId": 1348,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 48.13,
+      "y": 55.12
+    },
+    "title": "Staff & Mace Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gunther Weller",
+    "npcId": 1289,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 64.21,
+      "y": 68.6
+    },
+    "title": "Weapons Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Heinrich Stone",
+    "npcId": 1324,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 77.22,
+      "y": 57.37
+    },
+    "title": "Blade Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kaita Deepforge",
+    "npcId": 5512,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 63.26,
+      "y": 37.74
+    },
+    "title": "Blacksmithing Supplies",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kathrum Axehand",
+    "npcId": 5509,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 59.3,
+      "y": 33.82
+    },
+    "title": "Axe Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lara Moore",
+    "npcId": 1295,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 61.97,
+      "y": 67.47
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lina Stover",
+    "npcId": 1297,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 58.72,
+      "y": 68.72
+    },
+    "title": "Bow & Gun Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lisbeth Schneider",
+    "npcId": 1299,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 58.3,
+      "y": 67.15
+    },
+    "title": "Clothier",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Marda Weller",
+    "npcId": 1287,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 64.07,
+      "y": 68.36
+    },
+    "title": "Weapons Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mayda Thane",
+    "npcId": 1339,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 71.69,
+      "y": 58.19
+    },
+    "title": "Cobbler",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Officer Areyn",
+    "npcId": 12805,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 76.8,
+      "y": 65.96
+    },
+    "title": "Accessories Quartermaster",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Osric Strang",
+    "npcId": 1323,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 77.17,
+      "y": 60.99
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Seoman Griffith",
+    "npcId": 1320,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 71.87,
+      "y": 61.99
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Theresa Moulaine",
+    "npcId": 1350,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 53.21,
+      "y": 57.93
+    },
+    "title": "Robe Vendor",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Thulman Flintcrag",
+    "npcId": 5510,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 61.95,
+      "y": 36.56
+    },
+    "title": "Guns Vendor",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Wilhelm Strang",
+    "npcId": 1341,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 77.51,
+      "y": 61.3
+    },
+    "title": "Mail Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Wynne Larson",
+    "npcId": 1309,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Stormwind City",
+      "mapId": 1453,
+      "x": 51.84,
+      "y": 83.51
+    },
+    "title": "Robe Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bubbles",
+    "npcId": 235251,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.4,
+      "y": 75.4
+    },
+    "title": "Toy Vendor",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Fargon Mortalak",
+    "npcId": 2845,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 29.04,
+      "y": 74.99
+    },
+    "title": "Superior Armorer",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Haren Kanmae",
+    "npcId": 2839,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.31,
+      "y": 74.56
+    },
+    "title": "Superior Bowyer",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hragran",
+    "npcId": 1147,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 31.61,
+      "y": 29.18
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Grom'gol Base Camp",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hurklor",
+    "npcId": 2844,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.97,
+      "y": 75.06
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jansen Underwood",
+    "npcId": 2847,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 29.07,
+      "y": 75.48
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jaquilina Dramet",
+    "npcId": 2483,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 35.75,
+      "y": 10.66
+    },
+    "title": "Superior Axecrafter",
+    "town": "Nesingwary's Expedition",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jutak",
+    "npcId": 2843,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 27.46,
+      "y": 77.55
+    },
+    "title": "Blade Trader",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kizz Bluntstrike",
+    "npcId": 2840,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.27,
+      "y": 75.22
+    },
+    "title": "Macecrafter",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Krakk",
+    "npcId": 1381,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 32.57,
+      "y": 27.95
+    },
+    "title": "Superior Armorer",
+    "town": "Grom'gol Base Camp",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Pix Xizzix",
+    "npcId": 227853,
+    "faction": null,
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.4,
+      "y": 75.8
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Qixdi Goodstitch",
+    "npcId": 2849,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.15,
+      "y": 77.56
+    },
+    "title": "Cloth Armor and Accessories",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rin'wosho the Trader",
+    "npcId": 14921,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 15.07,
+      "y": 16.0
+    },
+    "title": "Zandalar Supplies and Repair",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Rix Xizzix",
+    "npcId": 214954,
+    "faction": null,
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.4,
+      "y": 75.81
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Vharr",
+    "npcId": 1146,
+    "faction": "Horde",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 32.36,
+      "y": 27.95
+    },
+    "title": "Superior Weaponsmith",
+    "town": "Grom'gol Base Camp",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Zalgo the Explorer",
+    "npcId": 222413,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 15.2,
+      "y": 15.6
+    },
+    "title": "Purveyor of Lost Goods",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Zarena Cromwind",
+    "npcId": 2482,
+    "faction": "Both",
+    "position": {
+      "zone": "Stranglethorn Vale",
+      "mapId": 1434,
+      "x": 28.34,
+      "y": 75.46
+    },
+    "title": "Superior Weaponsmith",
+    "town": "Booty Bay",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gharash",
+    "npcId": 8176,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 45.46,
+      "y": 51.41
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Stonard",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grimnal",
+    "npcId": 980,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 45.08,
+      "y": 50.43
+    },
+    "title": "Mail & Plate Merchant",
+    "town": "Stonard",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hartash",
+    "npcId": 981,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 45.67,
+      "y": 50.92
+    },
+    "title": "Weapon Merchant",
+    "town": "Stonard",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Thralosh",
+    "npcId": 984,
+    "faction": "Horde",
+    "position": {
+      "zone": "Swamp of Sorrows",
+      "mapId": 1435,
+      "x": 45.06,
+      "y": 51.4
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Stonard",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Blizrik Buckshot",
+    "npcId": 8131,
+    "faction": "Both",
+    "position": {
+      "zone": "Tanaris",
+      "mapId": 1446,
+      "x": 50.74,
+      "y": 27.53
+    },
+    "title": "Gunsmith",
+    "town": "Gadgetzan",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Krinkle Goodsteel",
+    "npcId": 5411,
+    "faction": "Both",
+    "position": {
+      "zone": "Tanaris",
+      "mapId": 1446,
+      "x": 51.46,
+      "y": 28.81
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Gadgetzan",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Wrinkle Goodsteel",
+    "npcId": 8129,
+    "faction": "Both",
+    "position": {
+      "zone": "Tanaris",
+      "mapId": 1446,
+      "x": 50.8,
+      "y": 27.71
+    },
+    "title": "Superior Armor Crafter",
+    "town": "Gadgetzan",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Andiss",
+    "npcId": 3592,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 58.68,
+      "y": 39.84
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Shadowglen",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Brannol Eaglemoon",
+    "npcId": 3611,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.2,
+      "y": 60.2
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Freja Nightwing",
+    "npcId": 3591,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 58.99,
+      "y": 39.64
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Shadowglen",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Janna Brightmoon",
+    "npcId": 3590,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 59.46,
+      "y": 41.05
+    },
+    "title": "Clothier",
+    "town": "Shadowglen",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jeena Featherbow",
+    "npcId": 3610,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 55.89,
+      "y": 59.21
+    },
+    "title": "Bowyer",
+    "town": "Dolanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Keina",
+    "npcId": 3589,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 59.31,
+      "y": 41.09
+    },
+    "title": "Bowyer",
+    "town": "Shadowglen",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Khardan Proudblade",
+    "npcId": 3588,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 58.72,
+      "y": 39.67
+    },
+    "title": "Weaponsmith",
+    "town": "Shadowglen",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Meri Ironweave",
+    "npcId": 3613,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.29,
+      "y": 59.38
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Dolanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Shalomon",
+    "npcId": 3609,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.31,
+      "y": 59.49
+    },
+    "title": "Weaponsmith",
+    "town": "Dolanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sinda",
+    "npcId": 3612,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Teldrassil",
+      "mapId": 1438,
+      "x": 56.2,
+      "y": 59.52
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Bryanna Embreeze",
+    "npcId": 263569,
+    "faction": "Alliance",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 62.8,
+      "y": 58.89
+    },
+    "title": "Theramore Expeditionary Force Quartermaster",
+    "town": "Northwatch Hold",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Creeg Bothunk",
+    "npcId": 263570,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 65.05,
+      "y": 34.62
+    },
+    "title": "Darkspear Raiders Quartermaster",
+    "town": "Ratchet",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gor'mak",
+    "npcId": 248197,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 48.93,
+      "y": 29.62
+    },
+    "title": "Blacksmith",
+    "town": "The Crossroads",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grazlix",
+    "npcId": 3493,
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 62.21,
+      "y": 38.41
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Ratchet",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Halija Whitestrider",
+    "npcId": 3486,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 52.25,
+      "y": 31.86
+    },
+    "title": "Clothier",
+    "town": "The Crossroads",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hraq",
+    "npcId": 3477,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 51.13,
+      "y": 28.96
+    },
+    "title": "Blacksmithing Supplier",
+    "town": "The Crossroads",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ironzar",
+    "npcId": 3491,
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 62.24,
+      "y": 37.48
+    },
+    "title": "Weaponsmith",
+    "town": "Ratchet",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jahan Hawkwing",
+    "npcId": 3483,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 51.21,
+      "y": 29.05
+    },
+    "title": "Leather & Mail Armor Merchant",
+    "town": "The Crossroads",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kelm Hargunth",
+    "npcId": 14754,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 46.6,
+      "y": 8.41
+    },
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kiknikle",
+    "npcId": 3683,
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 41.79,
+      "y": 38.69
+    },
+    "title": "Stylish Clothier",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lizzarik",
+    "npcId": 3658,
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 61.76,
+      "y": 38.29
+    },
+    "title": "Weapon Dealer",
+    "town": "Ratchet",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nargal Deatheye",
+    "npcId": 3479,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 51.23,
+      "y": 29.15
+    },
+    "title": "Weaponsmith",
+    "town": "The Crossroads",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Pizznukle",
+    "npcId": 3684,
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 41.77,
+      "y": 38.62
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sanuye Runetotem",
+    "npcId": 10380,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 45.12,
+      "y": 59.01
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Camp Taurajo",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Uthrok",
+    "npcId": 3488,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 51.11,
+      "y": 29.06
+    },
+    "title": "Bowyer & Gunsmith",
+    "town": "The Crossroads",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Vexspindle",
+    "npcId": 3492,
+    "faction": "Both",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 62.16,
+      "y": 38.45
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Ratchet",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Vrang Wildgore",
+    "npcId": 3682,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Barrens",
+      "mapId": 1413,
+      "x": 43.8,
+      "y": 12.21
+    },
+    "title": "Weaponsmith & Armorcrafter",
+    "town": "The Dry Hills",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Harggan",
+    "npcId": 8161,
+    "faction": "Alliance",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 13.42,
+      "y": 44.14
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Aerie Peak",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Quartermaster Alandra",
+    "npcId": 222686,
+    "faction": "Both",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 61.4,
+      "y": 34.4
+    },
+    "title": null,
+    "town": "Seradane",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Smith Slagtree",
+    "npcId": 14737,
+    "faction": "Horde",
+    "position": {
+      "zone": "The Hinterlands",
+      "mapId": 1425,
+      "x": 77.23,
+      "y": 80.13
+    },
+    "title": "Blacksmithing Supplies",
+    "town": "Revantusk Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Starn",
+    "npcId": 9551,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thousand Needles",
+      "mapId": 1441,
+      "x": 44.89,
+      "y": 50.68
+    },
+    "title": "Gunsmith & Bowyer",
+    "town": "Freewind Post",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Synge",
+    "npcId": 3053,
+    "faction": "Both",
+    "position": {
+      "zone": "Thousand Needles",
+      "mapId": 1441,
+      "x": 80.4,
+      "y": 77.01
+    },
+    "title": "Gun Merchant",
+    "town": "The Shimmering Flats",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ahanu",
+    "npcId": 8359,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 45.77,
+      "y": 55.84
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Delgo Ragetotem",
+    "npcId": 3019,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 54.07,
+      "y": 57.23
+    },
+    "title": "Axe Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Elki",
+    "npcId": 8360,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 44.96,
+      "y": 56.59
+    },
+    "title": "Mail Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Etu Ragetotem",
+    "npcId": 3020,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 53.19,
+      "y": 58.29
+    },
+    "title": "Mace & Staff Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Fela",
+    "npcId": 3095,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 42.75,
+      "y": 44.8
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Grod",
+    "npcId": 3093,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 42.66,
+      "y": 43.51
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hewa",
+    "npcId": 8358,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 45.58,
+      "y": 56.6
+    },
+    "title": "Cloth Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Hogor Thunderhoof",
+    "npcId": 3018,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 55.55,
+      "y": 57.07
+    },
+    "title": "Guns Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jyn Stonehoof",
+    "npcId": 2997,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 41.42,
+      "y": 62.36
+    },
+    "title": "Weapons Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kard Ragetotem",
+    "npcId": 3021,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 52.98,
+      "y": 56.63
+    },
+    "title": "Sword and Dagger Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Kuna Thunderhorn",
+    "npcId": 3015,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 47.0,
+      "y": 45.7
+    },
+    "title": "Bowyer & Fletching Goods",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ohanko",
+    "npcId": 8398,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 52.89,
+      "y": 57.49
+    },
+    "title": "Two Handed Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sunn Ragetotem",
+    "npcId": 3022,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 49.63,
+      "y": 48.71
+    },
+    "title": "Staff Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sura Wildmane",
+    "npcId": 3023,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 51.59,
+      "y": 55.02
+    },
+    "title": "War Harness Vendor",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Tagain",
+    "npcId": 3092,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 43.44,
+      "y": 44.34
+    },
+    "title": "Cloth Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Taur Stonehoof",
+    "npcId": 2999,
+    "faction": "Horde",
+    "position": {
+      "zone": "Thunder Bluff",
+      "mapId": 1456,
+      "x": 39.82,
+      "y": 55.65
+    },
+    "title": "Blacksmithing Supplies",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Abe Winters",
+    "npcId": 2135,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 60.22,
+      "y": 53.1
+    },
+    "title": "Apprentice Armorer",
+    "town": "Brill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Angus Hammerhand",
+    "npcId": 276067,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 20.97,
+      "y": 46.41
+    },
+    "title": "Blacksmith",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Archibald Kava",
+    "npcId": 2113,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 32.41,
+      "y": 65.66
+    },
+    "title": "Cloth & Leather Armor Merchant",
+    "town": "Deathknell",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Argent Quartermaster Hasana",
+    "npcId": 10856,
+    "faction": "Both",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 83.26,
+      "y": 68.14
+    },
+    "title": "The Argent Dawn",
+    "town": "The Bulwark",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Blacksmith Rand",
+    "npcId": 2116,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 32.38,
+      "y": 66.23
+    },
+    "title": "Apprentice Armorer",
+    "town": "Deathknell",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Constance Brisboise",
+    "npcId": 3522,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 52.6,
+      "y": 55.77
+    },
+    "title": "Apprentice Clothier",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Eliza Callen",
+    "npcId": 2137,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 60.31,
+      "y": 52.82
+    },
+    "title": "Leather Armor Merchant",
+    "town": "Brill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Harold Raims",
+    "npcId": 2117,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 32.4,
+      "y": 66.43
+    },
+    "title": "Apprentice Weaponsmith",
+    "town": "Deathknell",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Oliver Dwor",
+    "npcId": 2136,
+    "faction": "Horde",
+    "position": {
+      "zone": "Tirisfal Glades",
+      "mapId": 1420,
+      "x": 60.12,
+      "y": 53.39
+    },
+    "title": "Apprentice Weaponsmith",
+    "town": "Brill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gibbert",
+    "npcId": 3000,
+    "faction": "Both",
+    "position": {
+      "zone": "Un'Goro Crater",
+      "mapId": 1449,
+      "x": 44.1,
+      "y": 7.19
+    },
+    "title": "Weapon Merchant",
+    "town": "Marshal's Refuge",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Abigail Sawyer",
+    "npcId": 4604,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 54.7,
+      "y": 38.76
+    },
+    "title": "Bow Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Benijah Fenner",
+    "npcId": 4602,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 58.82,
+      "y": 32.82
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Charles Seaton",
+    "npcId": 4569,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 77.08,
+      "y": 49.4
+    },
+    "title": "Blade Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Francis Eliot",
+    "npcId": 4601,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 59.0,
+      "y": 32.58
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Geoffrey Hartwell",
+    "npcId": 4600,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 58.67,
+      "y": 33.06
+    },
+    "title": "Weapon Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gillian Moore",
+    "npcId": 5820,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 70.34,
+      "y": 58.22
+    },
+    "title": "Leather Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Gordon Wendham",
+    "npcId": 4556,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 61.49,
+      "y": 41.79
+    },
+    "title": "Weapons Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lauren Newcomb",
+    "npcId": 4558,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 63.83,
+      "y": 37.97
+    },
+    "title": "Light Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Louis Warren",
+    "npcId": 4557,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 61.15,
+      "y": 40.88
+    },
+    "title": "Weapons Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Lucille Castleton",
+    "npcId": 4580,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 71.18,
+      "y": 29.59
+    },
+    "title": "Robe Vendor",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Mirelle Tremayne",
+    "npcId": 5819,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 61.64,
+      "y": 28.95
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nathaniel Steenwick",
+    "npcId": 4592,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 77.49,
+      "y": 49.63
+    },
+    "title": "Thrown Weapons Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nicholas Atwood",
+    "npcId": 4603,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 62.72,
+      "y": 26.76
+    },
+    "title": "Gun Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Samuel Van Brunt",
+    "npcId": 4597,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 61.41,
+      "y": 30.08
+    },
+    "title": "Blacksmithing Supplier",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sheldon Von Croy",
+    "npcId": 5821,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 70.36,
+      "y": 28.92
+    },
+    "title": "Cloth Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Sydney Upton",
+    "npcId": 4570,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 69.46,
+      "y": 27.44
+    },
+    "title": "Staff Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Timothy Weldon",
+    "npcId": 4559,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 62.62,
+      "y": 39.71
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Walter Ellingson",
+    "npcId": 4560,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 62.34,
+      "y": 38.67
+    },
+    "title": "Heavy Armor Merchant",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Zane Bradford",
+    "npcId": 5754,
+    "faction": "Horde",
+    "position": {
+      "zone": "Undercity",
+      "mapId": 1458,
+      "x": 69.56,
+      "y": 26.94
+    },
+    "title": "Wand Vendor",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Argent Quartermaster Lightspark",
+    "npcId": 10857,
+    "faction": "Both",
+    "position": {
+      "zone": "Western Plaguelands",
+      "mapId": 1422,
+      "x": 42.84,
+      "y": 83.72
+    },
+    "title": "The Argent Dawn",
+    "town": "Chillwind Camp",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Leonard Porter",
+    "npcId": 12942,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Western Plaguelands",
+      "mapId": 1422,
+      "x": 43.08,
+      "y": 84.31
+    },
+    "title": "Leatherworking Supplies",
+    "town": "Chillwind Camp",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Magnus Frostwake",
+    "npcId": 11278,
+    "faction": "Both",
+    "position": {
+      "zone": "Western Plaguelands",
+      "mapId": 1422,
+      "x": 68.12,
+      "y": 77.57
+    },
+    "title": null,
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Defias Profiteer",
+    "npcId": 1669,
+    "faction": "Both",
+    "position": {
+      "zone": "Westfall",
+      "mapId": 1436,
+      "x": 43.47,
+      "y": 66.76
+    },
+    "title": "Free Wheeling Merchant",
+    "town": "Moonbrook",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "William MacGregor",
+    "npcId": 1668,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Westfall",
+      "mapId": 1436,
+      "x": 57.71,
+      "y": 53.94
+    },
+    "title": "Bowyer",
+    "town": "Sentinel Hill",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Brahnmar",
+    "npcId": 1450,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 11.54,
+      "y": 59.86
+    },
+    "title": "Armorer",
+    "town": "Menethil Harbor",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Brak Durnad",
+    "npcId": 1441,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 11.44,
+      "y": 59.69
+    },
+    "title": "Weaponsmith",
+    "town": "Menethil Harbor",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Edwina Monzor",
+    "npcId": 1462,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 11.12,
+      "y": 58.32
+    },
+    "title": "Fletcher",
+    "town": "Menethil Harbor",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jennabink Powerseam",
+    "npcId": 1454,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 8.12,
+      "y": 55.84
+    },
+    "title": "Tailoring Supplies & Specialty Goods",
+    "town": "Menethil Harbor",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Murndan Derth",
+    "npcId": 1461,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 11.33,
+      "y": 59.59
+    },
+    "title": "Gunsmith",
+    "town": "Menethil Harbor",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Naela Trance",
+    "npcId": 1459,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 11.27,
+      "y": 58.43
+    },
+    "title": "Bowyer",
+    "town": "Menethil Harbor",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Wenna Silkbeard",
+    "npcId": 2679,
+    "faction": "Alliance",
+    "position": {
+      "zone": "Wetlands",
+      "mapId": 1437,
+      "x": 25.61,
+      "y": 25.8
+    },
+    "title": "Special Goods Dealer",
+    "town": "Sundown Marsh",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Blixxrak",
+    "npcId": 11183,
+    "faction": "Both",
+    "position": {
+      "zone": "Winterspring",
+      "mapId": 1452,
+      "x": 61.67,
+      "y": 37.83
+    },
+    "title": "Light Armor Merchant",
+    "town": "Everlook",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Nixxrak",
+    "npcId": 11182,
+    "faction": "Both",
+    "position": {
+      "zone": "Winterspring",
+      "mapId": 1452,
+      "x": 61.62,
+      "y": 37.87
+    },
+    "title": "Heavy Armor Merchant",
+    "town": "Everlook",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Wixxrak",
+    "npcId": 11184,
+    "faction": "Both",
+    "position": {
+      "zone": "Winterspring",
+      "mapId": 1452,
+      "x": 61.72,
+      "y": 38.03
+    },
+    "title": "Weaponsmith & Gunsmith",
+    "town": "Everlook",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Aedi Thriceforged",
+    "npcId": 251913,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 44.88,
+      "y": 44.37
+    },
+    "title": "Blacksmith",
+    "town": "Shen'dar Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Belann Windwood",
+    "npcId": 256507,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 62.89,
+      "y": 77.44
+    },
+    "title": "Staff Merchant",
+    "town": "Valanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Daeann Steelwind",
+    "npcId": 252479,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 65.47,
+      "y": 80.28
+    },
+    "title": "Blacksmith",
+    "town": "Valanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Destin Thriceforged",
+    "npcId": 251364,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.43,
+      "y": 23.5
+    },
+    "title": "Weapon Merchant",
+    "town": "Thendal Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Elaria Anvilwind",
+    "npcId": 271478,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.54,
+      "y": 76.14
+    },
+    "title": "Artisan Armorsmith",
+    "town": "Valanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Ergaan Eastwind",
+    "npcId": 271483,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.72,
+      "y": 75.95
+    },
+    "title": "Artisan Leather Goods",
+    "town": "Valanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Falfaan Halfwind",
+    "npcId": 271465,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.4,
+      "y": 75.73
+    },
+    "title": "Artisan Weapon Crafter",
+    "town": "Valanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Fenn Fairweather",
+    "npcId": 251992,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 45.02,
+      "y": 48.44
+    },
+    "title": "Fisherman",
+    "town": null,
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Fevrath Skyhammer",
+    "npcId": 251965,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.37,
+      "y": 23.44
+    },
+    "title": "Armorer & Shieldcrafter",
+    "town": "Thendal Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Genn Fairweather",
+    "npcId": 265756,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 53.83,
+      "y": 81.33
+    },
+    "title": "Stablemaster and Riding Trainer",
+    "town": "Fairweather Stables",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Indari Sunseam",
+    "npcId": 251993,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 44.68,
+      "y": 44.52
+    },
+    "title": "Leatherworker",
+    "town": "Shen'dar Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Jolee Brightmeadows",
+    "npcId": 251365,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 43.52,
+      "y": 23.6
+    },
+    "title": "Cloth & Leather Armor",
+    "town": "Thendal Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Railee Thriceforged",
+    "npcId": 257422,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 58.98,
+      "y": 75.46
+    },
+    "title": "Weapon Merchant",
+    "town": "Valanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Taliaa Brightsky",
+    "npcId": 271480,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 59.33,
+      "y": 76.24
+    },
+    "title": "Artisan Clothier",
+    "town": "Valanaar",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Tephri Thriceforged",
+    "npcId": 257421,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 44.79,
+      "y": 44.17
+    },
+    "title": "Weapon Merchant",
+    "town": "Shen'dar Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Uualia Suncrest",
+    "npcId": 251537,
+    "faction": "Both",
+    "position": {
+      "zone": "Zephras Isle",
+      "mapId": 2521,
+      "x": 42.75,
+      "y": 24.49
+    },
+    "title": "General Goods",
+    "town": "Thendal Village",
+    "positionType": "map_pin"
+  },
+  {
+    "name": "Archmage Bones",
+    "npcId": 228614,
+    "faction": null,
+    "position": null,
+    "positionType": "unknown"
+  },
+  {
+    "name": "Barebones",
+    "npcId": 209889,
+    "faction": null,
+    "position": null,
+    "positionType": "unknown"
+  },
+  {
+    "name": "Doctor Bones",
+    "npcId": 228616,
+    "faction": null,
+    "position": null,
+    "positionType": "unknown"
+  },
+  {
+    "name": "Field Repair Bot 74A",
+    "npcId": 14337,
+    "faction": null,
+    "position": null,
+    "positionType": "summoned"
+  },
+  {
+    "name": "Harrison Bones",
+    "npcId": 228615,
+    "faction": null,
+    "position": null,
+    "positionType": "unknown"
+  },
+  {
+    "name": "Zalgo the Explorer",
+    "npcId": 224328,
+    "faction": null,
+    "position": null,
+    "positionType": "unknown"
+  },
+  {
+    "name": "Ziri \"The Wrench\" Littlesprocket",
+    "npcId": 217689,
+    "faction": null,
+    "position": null,
+    "positionType": "unknown"
+  }
+]

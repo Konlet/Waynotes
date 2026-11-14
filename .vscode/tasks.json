@@ -2,6 +2,25 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Build Waynotes (export + deploy)",
+      "dependsOn": [
+        "Export Waynotes zip (Forever, curated guides)",
+        "Deploy Waynotes to Forever AddOns"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true,
+        "focus": false
+      }
+    },
+    {
       "label": "Export Waynotes zip (Forever, curated guides)",
       "type": "shell",
       "command": "powershell",
@@ -16,10 +35,6 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
       "presentation": {
         "reveal": "always",
         "panel": "shared",
@@ -45,7 +60,7 @@
       "presentation": {
         "reveal": "always",
         "panel": "shared",
-        "clear": true,
+        "clear": false,
         "focus": false
       }
     }

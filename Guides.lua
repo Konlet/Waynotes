@@ -264,9 +264,19 @@ local function cleanStep(step)
     copy.y = tonumber(step.y)
     if type(step.pins) == "table" then
         local pins = {}
+        -- Pins without a map share the step's map, else the first pin that names one.
+        local sharedMap = copy.map
+        if not sharedMap then
+            for _, pin in ipairs(step.pins) do
+                if type(pin) == "table" and tonumber(pin.map) then
+                    sharedMap = tonumber(pin.map)
+                    break
+                end
+            end
+        end
         for _, pin in ipairs(step.pins) do
             if type(pin) == "table" then
-                local map = tonumber(pin.map) or copy.map
+                local map = tonumber(pin.map) or sharedMap
                 local x = tonumber(pin.x)
                 local y = tonumber(pin.y)
                 if map and x and y then
@@ -304,6 +314,10 @@ local function cleanStep(step)
     if type(step.travel) == "table" or type(step.travel) == "string" or step.travel == true then
         copy.travel = step.travel
     end
+    local arriveYards = tonumber(step.arriveYards)
+    if arriveYards and arriveYards > 0 then
+        copy.arriveYards = arriveYards
+    end
     if type(step.fpath) == "string" and strtrim(step.fpath) ~= "" then
         copy.fpath = strtrim(step.fpath)
     end
@@ -327,7 +341,7 @@ local function cleanStep(step)
         end
     end
     copy.quests = quests
-    if step.when == "accepted" or step.when == "complete" or step.when == "objectives" then
+    if step.when == "accepted" or step.when == "complete" or step.when == "objectives" or step.when == "travel" then
         copy.when = step.when
     elseif #quests > 0 then
         copy.when = "objectives"
@@ -820,6 +834,59 @@ local function authoredObjectiveNames(step)
     return names
 end
 
+-- Bag count for authored collect lines that are not quest-log objectives
+-- (e.g. Sunscale Feather for The Angry Scytheclaws while farming Raptor Horns).
+local function itemCountByName(name)
+    if type(name) ~= "string" or name == "" then
+        return 0
+    end
+    if C_Item and C_Item.GetItemCount then
+        local ok, count = pcall(C_Item.GetItemCount, name, false, false)
+        if ok and type(count) == "number" then
+            return count
+        end
+    end
+    if type(GetItemCount) == "function" then
+        local ok, count = pcall(GetItemCount, name, false)
+        if ok and type(count) == "number" then
+            return count
+        end
+    end
+    return 0
+end
+
+-- "[LOOT]Sunscale Feather[/] (3)" -> "2/3 Sunscale Feather" when the quest
+-- log never supplies live n/m (bag-only collects). Match quest-log order
+-- ("x/y Name"). Never rewrite kill counts like "[ENEMY]Water Seeker[/] (6)".
+local function bagProgressLine(line)
+    if type(line) ~= "string" then
+        return nil
+    end
+    if not line:find("[LOOT]", 1, true) and not line:find("RB_LOOT_", 1, true) then
+        return nil
+    end
+    local plain = objectivePlain(line)
+    if plain:match("%d+%s*/%s*%d+") then
+        return nil
+    end
+    local name, need = plain:match("^(.-)%s*%((%d+)%)%s*$")
+    if not name then
+        return nil
+    end
+    name = strtrim(name)
+    need = tonumber(need)
+    if name == "" or not need or need < 1 then
+        return nil
+    end
+    local have = itemCountByName(name)
+    if have < 0 then
+        have = 0
+    elseif have > need then
+        have = need
+    end
+    return have .. "/" .. need .. " " .. name
+end
+
 local function objectiveListed(step, line)
     if not step or step.objective then
         return true
@@ -1247,12 +1314,24 @@ local function relevantQuests(step)
     return ids
 end
 
-local function isAutoStep(step)
+-- Quest-gated steps that advance from log / turn-in state.
+local function isQuestAutoStep(step)
     if not step then
         return false
     end
     local when = step.when
     return when == "accepted" or when == "complete" or when == "objectives"
+end
+
+-- Quest autos plus travel (arrive near the pin). Used to park the guide.
+local function isAutoStep(step)
+    if not step then
+        return false
+    end
+    if isQuestAutoStep(step) then
+        return true
+    end
+    return step.when == "travel"
 end
 
 -- True when every applicable quest-gated step in a linked guide is finished.
@@ -1264,7 +1343,7 @@ local function linkedGuideFinished(id)
     end
     local sawAuto = false
     for _, step in ipairs(guide.steps) do
-        if stepApplies(step) and isAutoStep(step) then
+        if stepApplies(step) and isQuestAutoStep(step) then
             sawAuto = true
             local when = step.when
             local listedQuests = step.quests or {}
@@ -1302,6 +1381,9 @@ end
 local function stepDone(step)
     if not step or not stepApplies(step) then
         return true
+    end
+    if step.when == "travel" then
+        return ns.TravelStepDone and ns.TravelStepDone(step) and true or false
     end
     if not isAutoStep(step) then
         -- Side-guide / next-guide pointer: skip once that guide's content is done.
@@ -1349,7 +1431,7 @@ local function laterAutoStepDone(guide, fromIndex)
     end
     for index = fromIndex + 1, #guide.steps do
         local step = guide.steps[index]
-        if stepApplies(step) and isAutoStep(step) then
+        if stepApplies(step) and isQuestAutoStep(step) then
             local listedQuests = step.quests or {}
             local ids = relevantQuests(step)
             if #ids == 0 then
@@ -1641,8 +1723,8 @@ local function atGuideEnd(guide, stepIndex)
     if stepDone(step) then
         return true
     end
-    -- Last applicable step with no quest gate: Next continues the chain.
-    return not isAutoStep(step)
+    -- Last applicable step with no quest gate (including travel): Next continues the chain.
+    return not isQuestAutoStep(step)
 end
 
 function ns.GuideCatchUp()
@@ -1666,7 +1748,7 @@ function ns.GuideCatchUp()
             guard = guard + 1
         elseif reviewKey == guide.id .. ":" .. entry.step then
             break
-        elseif stepDone(step) or (not isAutoStep(step) and laterAutoStepDone(guide, entry.step)) then
+        elseif stepDone(step) or (not isQuestAutoStep(step) and laterAutoStepDone(guide, entry.step)) then
             local hopped = neighbor(guide, entry.step, 1)
             if not hopped then
                 break
@@ -2267,8 +2349,8 @@ local function authoredPresentation(step)
     local seen = {}
     local text = scrubPlayerText(type(step.text) == "string" and step.text or "") or ""
     local headline = text
+    local sentences = {}
     if text ~= "" then
-        local sentences = {}
         local rest = text
         while rest ~= "" do
             local startAt, endAt = rest:find("%.%s+")
@@ -2287,20 +2369,24 @@ local function authoredPresentation(step)
         end
         if #sentences > 0 then
             headline = sentences[1]
-            local headlineKey = detailKey(headline)
-            for index = 2, #sentences do
-                addDetail(details, seen, sentences[index], headlineKey)
-            end
         end
     end
     local headlineKey = detailKey(headline)
     local noteFaction = playerFactionForNotes()
+    -- Authored notes before extra sentences / detail lists so they cannot be
+    -- dropped by the detail cap or buried under "+ more notes".
+    local guideNote = scrubPlayerText(filterFactionLabeledText(step.note, noteFaction))
+    if guideNote then
+        addDetail(details, seen, guideNote, headlineKey)
+    end
+    for index = 2, #sentences do
+        addDetail(details, seen, sentences[index], headlineKey)
+    end
     if type(step.details) == "table" then
         for _, line in ipairs(step.details) do
             addDetail(details, seen, filterFactionLabeledText(line, noteFaction), headlineKey)
         end
     end
-    addDetail(details, seen, filterFactionLabeledText(step.note, noteFaction), headlineKey)
     if headline == "" then
         local id = step.quests and step.quests[1]
         if id then
@@ -2310,7 +2396,7 @@ local function authoredPresentation(step)
         end
         headlineKey = detailKey(headline)
     end
-    return headline, details, seen, headlineKey
+    return headline, details, seen, headlineKey, guideNote
 end
 
 local function rememberGuideName(into, seen, name)
@@ -2516,7 +2602,7 @@ local function buildItem(step, full)
         primary = entries[1]
     end
 
-    local headline, details, seen, headlineKey = authoredPresentation(step)
+    local headline, details, seen, headlineKey, guideNote = authoredPresentation(step)
     local hasAuthoredText = type(step.text) == "string" and strtrim(step.text) ~= ""
 
     if full then
@@ -2565,6 +2651,15 @@ local function buildItem(step, full)
         elseif unresolved and not (ns.QuestieReady and ns.QuestieReady()) then
             addDetail(details, seen, "QuestieDB is not installed.", headlineKey)
         end
+        -- Authored "Item (N)" lines that the quest log never upgrades (bag-only
+        -- collects for another quest) still need live n/m so they show as
+        -- numbered objectives instead of static placeholders.
+        for index, line in ipairs(details) do
+            local upgraded = bagProgressLine(line)
+            if upgraded then
+                details[index] = upgraded
+            end
+        end
     end
 
     local names = {}
@@ -2599,6 +2694,7 @@ local function buildItem(step, full)
         number = step.index,
         headline = headline,
         details = details,
+        note = guideNote,
         actions = {},
         names = names,
         quests = quests,
@@ -2649,6 +2745,9 @@ local function buildItem(step, full)
 end
 
 function ns.GuideObjectives()
+    if ns.TravelBeginHints then
+        ns.TravelBeginHints()
+    end
     local guide = activeGuide()
     if not guide then
         return {
@@ -2665,6 +2764,14 @@ function ns.GuideObjectives()
                 stepQuests = {},
             },
         }
+    end
+    -- Travel steps advance on arrival; poll while the tracker is open.
+    do
+        local entry = progress(guide.id)
+        local step = guide.steps[entry.step]
+        if step and stepApplies(step) and step.when == "travel" then
+            ns.GuideCatchUp()
+        end
     end
     local entry = progress(guide.id)
     local count = #guide.steps
@@ -2755,6 +2862,65 @@ function ns.GuideObjectives()
         end
         return last
     end
+    -- Incomplete stickies stay listed only while they are near the current work
+    -- (or the player). Otherwise a south-oasis sticky rides along to a north
+    -- harpy step a thousand yards away.
+    local STICKY_NEAR_YARDS = 750
+    local function pinPairYards(a, b)
+        if not a or not b then
+            return nil
+        end
+        if ns.ZoneToWorld then
+            local ax, ay, ai = ns.ZoneToWorld(a.map, a.x, a.y)
+            local bx, by, bi = ns.ZoneToWorld(b.map, b.x, b.y)
+            if type(ax) == "number" and type(bx) == "number" and type(ay) == "number" and type(by) == "number" then
+                if type(ai) == "number" and type(bi) == "number" and ai ~= bi then
+                    return nil
+                end
+                local dx, dy = ax - bx, ay - by
+                return math.sqrt(dx * dx + dy * dy)
+            end
+        end
+        if a.map and b.map and a.map == b.map and type(a.x) == "number" and type(b.x) == "number" then
+            -- Rough same-map fallback when HBD world coords are missing (~40 yd/%).
+            local dx = (a.x - b.x) * 40
+            local dy = (a.y - b.y) * 40
+            return math.sqrt(dx * dx + dy * dy)
+        end
+        return nil
+    end
+    -- Multi-pin stickies count as nearby when any of their pins is close.
+    local function stickyIsNearby(step)
+        local stickyPins = authorPins(step)
+        if #stickyPins == 0 then
+            return true
+        end
+        if ns.PinZoneDistance then
+            for _, stickyPin in ipairs(stickyPins) do
+                local toPlayer = ns.PinZoneDistance(stickyPin.map, stickyPin.x, stickyPin.y, stickyPin.zone)
+                if type(toPlayer) == "number" and toPlayer <= STICKY_NEAR_YARDS then
+                    return true
+                end
+            end
+        end
+        local primaryPins = authorPins(primary)
+        if #primaryPins == 0 then
+            return true
+        end
+        local measured = false
+        for _, stickyPin in ipairs(stickyPins) do
+            for _, primaryPin in ipairs(primaryPins) do
+                local yards = pinPairYards(stickyPin, primaryPin)
+                if yards ~= nil then
+                    measured = true
+                    if yards <= STICKY_NEAR_YARDS then
+                        return true
+                    end
+                end
+            end
+        end
+        return not measured
+    end
     local function showSticky(index, step, blockedPrimary)
         if not step or not step.sticky or not stepApplies(step) or isDone(index) or waiting(index) then
             return false
@@ -2764,6 +2930,13 @@ function ns.GuideObjectives()
         end
         if index > primaryIndex and (not blockedPrimary or not stepQuestInLog(step)) then
             return false
+        end
+        if not stickyIsNearby(step) then
+            -- Far stickies that gate the current step still show so the block
+            -- reason is visible.
+            if not (blockedPrimary and questStepBlocks(step, primary)) then
+                return false
+            end
         end
         return true
     end
@@ -2907,6 +3080,63 @@ local function styleGuideMenu()
     return pad
 end
 
+local function groupCollapsedDefaults()
+    return {
+        Dungeons = true,
+        Professions = true,
+    }
+end
+
+local function groupCollapsedByDefault(group)
+    if type(group) ~= "string" or group == "" then
+        return false
+    end
+    local defaults = groupCollapsedDefaults()
+    if defaults[group] then
+        return true
+    end
+    -- Keep the player's faction leveling guides open; collapse the other side
+    -- when "show unrelated guides" lists both.
+    if group == "Alliance" or group == "Horde" then
+        local faction = playerFaction()
+        if faction and group ~= faction then
+            return true
+        end
+        return false
+    end
+    return false
+end
+
+local function guideMenuCollapsedStore()
+    local db = charDB()
+    if type(db.guideMenuCollapsed) ~= "table" then
+        db.guideMenuCollapsed = {}
+    end
+    return db.guideMenuCollapsed
+end
+
+local function isGuideMenuGroupCollapsed(group)
+    if type(group) ~= "string" or group == "" then
+        return false
+    end
+    local store = guideMenuCollapsedStore()
+    local saved = store[group]
+    if saved ~= nil then
+        return saved and true or false
+    end
+    return groupCollapsedByDefault(group)
+end
+
+local function toggleGuideMenuGroup(group)
+    if type(group) ~= "string" or group == "" then
+        return
+    end
+    local store = guideMenuCollapsedStore()
+    store[group] = not isGuideMenuGroupCollapsed(group)
+end
+
+local presentMenu
+
 local function acquireRow(index)
     local row = rows[index]
     if row then
@@ -2926,6 +3156,13 @@ local function acquireRow(index)
             end
             if ns.OpenOptions then
                 ns.OpenOptions()
+            end
+            return
+        end
+        if self.action == "toggleGroup" and self.groupName then
+            toggleGuideMenuGroup(self.groupName)
+            if presentMenu then
+                presentMenu(true)
             end
             return
         end
@@ -3199,7 +3436,7 @@ function ns.RestedXPGuideRows()
     return rows
 end
 
-local function presentMenu()
+presentMenu = function(keepScroll)
     local pad = styleGuideMenu()
     local y = 4
     local index = 0
@@ -3213,6 +3450,7 @@ local function presentMenu()
         detailR, detailG, detailB = ns.Color("detail")
         accentR, accentG, accentB = ns.Color("accent")
     end
+    local priorScroll = keepScroll and scroll and (scroll:GetVerticalScroll() or 0) or 0
     local function place(row, height)
         row:Show()
         row:ClearAllPoints()
@@ -3224,6 +3462,7 @@ local function presentMenu()
     local function resetRow(row)
         row.guideId = nil
         row.action = nil
+        row.groupName = nil
         row.rxpGroup = nil
         row.rxpName = nil
     end
@@ -3241,7 +3480,15 @@ local function presentMenu()
         end
         menu:SetHeight(shown)
         styleGuideMenu()
-        scroll:SetVerticalScroll(0)
+        if keepScroll then
+            local maxScroll = scroll:GetVerticalScrollRange() or 0
+            if priorScroll > maxScroll then
+                priorScroll = maxScroll
+            end
+            scroll:SetVerticalScroll(priorScroll)
+        else
+            scroll:SetVerticalScroll(0)
+        end
     end
 
     index = index + 1
@@ -3334,31 +3581,38 @@ local function presentMenu()
         end
         place(row, 20)
     end
+    local groupCollapsed = false
     for _, guide in ipairs(list) do
         if guide.group ~= lastGroup then
             lastGroup = guide.group
+            groupCollapsed = isGuideMenuGroupCollapsed(guide.group)
             index = index + 1
             local row = acquireRow(index)
             resetRow(row)
-            row:EnableMouse(false)
-            row.label:SetText(guide.group)
+            row.action = "toggleGroup"
+            row.groupName = guide.group
+            row:EnableMouse(true)
+            local marker = groupCollapsed and "+ " or "- "
+            row.label:SetText(marker .. guide.group)
             paintMenuLabel(row.label, accentR, accentG, accentB)
             place(row, 18)
         end
-        index = index + 1
-        local row = acquireRow(index)
-        resetRow(row)
-        row.guideId = guide.id
-        row:EnableMouse(true)
-        local mark = (recommended and recommended.id == guide.id) and "* " or ""
-        local suffix = guide.faction and (" (" .. guide.faction .. ")") or ""
-        row.label:SetText(mark .. guide.name .. suffix)
-        if ns.GuideId() == guide.id then
-            paintMenuLabel(row.label, accentR, accentG, accentB)
-        else
-            paintMenuLabel(row.label, textR, textG, textB)
+        if not groupCollapsed then
+            index = index + 1
+            local row = acquireRow(index)
+            resetRow(row)
+            row.guideId = guide.id
+            row:EnableMouse(true)
+            local mark = (recommended and recommended.id == guide.id) and "* " or ""
+            local suffix = guide.faction and (" (" .. guide.faction .. ")") or ""
+            row.label:SetText(mark .. guide.name .. suffix)
+            if ns.GuideId() == guide.id then
+                paintMenuLabel(row.label, accentR, accentG, accentB)
+            else
+                paintMenuLabel(row.label, textR, textG, textB)
+            end
+            place(row, 20)
         end
-        place(row, 20)
     end
     finishMenu()
 end
@@ -3909,8 +4163,8 @@ watcher:SetScript("OnEvent", function(_, event, name)
             if ns.UsingStandalone and ns.UsingStandalone() then
                 ns.GuideEnsure()
             end
-            queueCatchUp(0.5, false)
         end
+        queueCatchUp(0.5, false)
         queueDungeonCheck(0.75)
         return
     end

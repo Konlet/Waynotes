@@ -86,7 +86,7 @@ ns.RegisterGuide({
         },
         {
             races = { "Tauren" },
-            text = "Talk to [FRIENDLY]Sergra Darkthorn[/]. Turn in [QUEST]Sergra Darkthorn[/] if you have it. Accept [QUEST]Plainstrider Menace[/].",
+            text = "Talk to [FRIENDLY]Sergra Darkthorn[/]. Turn in [QUEST]Sergra Darkthorn[/]. Accept [QUEST]Plainstrider Menace[/].",
             quest = 844,
             when = "accepted",
             map = 1413,
@@ -414,7 +414,7 @@ ns.RegisterGuide({
             y = 37.5,
         },
         {
-            text = "Talk to [FRIENDLY]Brewmaster Drohn[/]. Turn in [QUEST]Chen's Empty Keg[/] if you have it. Accept the follow-up.",
+            text = "Talk to [FRIENDLY]Brewmaster Drohn[/]. Turn in [QUEST]Chen's Empty Keg[/]. Accept the follow-up.",
             quest = 821,
             when = "accepted",
             map = 1413,
@@ -608,7 +608,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Kolkar Leaders[/]. Accept [QUEST]Verog the Dervish[/]. Turn in [QUEST]Centaur Bracers[/] if finished.",
+            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Kolkar Leaders[/]. Accept [QUEST]Verog the Dervish[/]. Turn in [QUEST]Centaur Bracers[/].",
             quest = 851,
             when = "accepted",
             map = 1413,
@@ -616,7 +616,7 @@ ns.RegisterGuide({
             y = 28.4,
             details = {
                 "Turn in [QUEST]Kolkar Leaders[/]",
-                "Turn in [QUEST]Centaur Bracers[/] if complete",
+                "Turn in [QUEST]Centaur Bracers[/]",
             },
         },
         {
@@ -783,7 +783,7 @@ ns.RegisterGuide({
             y = 31.6,
         },
         {
-            text = "Talk to [FRIENDLY]Gazrog[/]. Turn in [QUEST]Raptor Thieves[/] if finished. Accept [QUEST]Stolen Silver[/].",
+            text = "Talk to [FRIENDLY]Gazrog[/]. Turn in [QUEST]Raptor Thieves[/]. Accept [QUEST]Stolen Silver[/].",
             quest = 3281,
             when = "accepted",
             map = 1413,
@@ -834,23 +834,41 @@ ns.RegisterGuide({
             details = {
                 "[LOOT]Verog's Head[/] (1)",
             },
-            note = "Camp his spawn if contested. Skip and return later if needed.",
+            note = "Camp his spawn if contested. Skip and return later.",
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Sunscale Scytheclaws[/] for [LOOT]Intact Raptor Horns[/] and feathers while you place nest feathers.",
+            text = "Kill [ENEMY]Sunscale Scytheclaws[/].",
             quest = 865,
             when = "objectives",
             map = 1413,
             x = 52.0,
             y = 46.5,
+            pins = {
+                {
+                    text = "Sunscale Scytheclaws",
+                    x = 52.0,
+                    y = 46.5,
+                },
+                {
+                    text = "Sunscale Scytheclaws",
+                    x = 48.2,
+                    y = 49.8,
+                },
+                {
+                    text = "Sunscale Scytheclaws",
+                    x = 44.6,
+                    y = 44.4,
+                },
+            },
             details = {
                 "[LOOT]Intact Raptor Horn[/] (5)",
                 "[LOOT]Sunscale Feather[/] (3)",
             },
+            note = "These guys are very spread out in central Barrens. Keep an eye out for them as you go. Skip for now if you can't find them.",
         },
         {
-            text = "Place feathers on the blue, yellow, and red nests for [QUEST]The Angry Scytheclaws[/]. Finish [QUEST]Raptor Thieves[/] if needed.",
+            text = "Place feathers on the blue, yellow, and red nests for [QUEST]The Angry Scytheclaws[/].",
             quest = 905,
             when = "objectives",
             map = 1413,
@@ -858,7 +876,7 @@ ns.RegisterGuide({
             y = 46.5,
             details = {
                 "Visit the 3 nests",
-                "[LOOT]Raptor Head[/] (12) if unfinished",
+                "[LOOT]Raptor Head[/] (12)",
             },
         },
         {
@@ -890,7 +908,7 @@ ns.RegisterGuide({
             y = 59.2,
         },
         {
-            text = "Talk to [FRIENDLY]Innkeeper Byula[/]. Set your Hearthstone to Camp Taurajo if you want this as a southern hub.",
+            text = "Talk to [FRIENDLY]Innkeeper Byula[/]. Set your Hearthstone to Camp Taurajo.",
             map = 1413,
             x = 45.6,
             y = 59.0,
@@ -905,7 +923,7 @@ ns.RegisterGuide({
             y = 59.3,
         },
         {
-            text = "Optional: if you find [ENEMY]Lakota'mani[/] nearby, loot the hoof and accept [QUEST]Lakota'mani[/], then turn it in at [FRIENDLY]Jorn Skyseer[/].",
+            text = "Optional: if you find [ENEMY]Lakota'mani[/] nearby, kill him. Loot the hoof and accept [QUEST]Lakota'mani[/].",
             quest = 883,
             when = "accepted",
             map = 1413,
@@ -929,7 +947,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Verog the Dervish[/]. Accept [QUEST]Hezrul Bloodmark[/]. Finish [QUEST]Centaur Bracers[/] if you still need it.",
+            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Verog the Dervish[/]. Accept [QUEST]Hezrul Bloodmark[/].",
             quest = 852,
             when = "accepted",
             map = 1413,
@@ -938,47 +956,6 @@ ns.RegisterGuide({
             details = {
                 "Turn in [QUEST]Verog the Dervish[/]",
             },
-        },
-        {
-            sticky = true,
-            text = "At Lushwater Oasis, kill [ENEMY]Oasis Snapjaws[/] for [LOOT]Altered Snapjaw Shells[/].",
-            quest = 880,
-            when = "objectives",
-            map = 1413,
-            x = 46.0,
-            y = 46.0,
-            details = {
-                "[LOOT]Altered Snapjaw Shell[/] (8)",
-            },
-        },
-        {
-            text = "Kill [ENEMY]Hezrul Bloodmark[/] as he patrols Lushwater Oasis. Loot his head. Finish [LOOT]Centaur Bracers[/] here.",
-            quest = 852,
-            when = "objectives",
-            map = 1413,
-            x = 46.0,
-            y = 41.1,
-            details = {
-                "[LOOT]Hezrul's Head[/] (1)",
-                "[LOOT]Centaur Bracers[/] (15) if unfinished",
-            },
-        },
-        {
-            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Hezrul Bloodmark[/] and [QUEST]Centaur Bracers[/].",
-            quests = { 852, 855 },
-            when = "complete",
-            map = 1413,
-            x = 45.3,
-            y = 28.4,
-        },
-        {
-            text = "[WARN]Optional group:[/] Accept [QUEST]Counterattack![/] from Regthar. Kill [ENEMY]Warlord Krom'zar[/] when he spawns and loot the banner piece.",
-            quest = 4021,
-            when = "complete",
-            map = 1413,
-            x = 45.3,
-            y = 28.4,
-            note = "Elite. Skip or return at 20+ with a group. Kite around Regthar's bunker.",
         },
         {
             text = "Kill [ENEMY]Witchwing Slayers[/] for [LOOT]Harpy Lieutenant Rings[/].",
@@ -1026,6 +1003,47 @@ ns.RegisterGuide({
             },
         },
         {
+            sticky = true,
+            text = "At Lushwater Oasis, kill [ENEMY]Oasis Snapjaws[/] for [LOOT]Altered Snapjaw Shells[/].",
+            quest = 880,
+            when = "objectives",
+            map = 1413,
+            x = 46.0,
+            y = 39.5,
+            details = {
+                "[LOOT]Altered Snapjaw Shell[/] (8)",
+            },
+        },
+        {
+            text = "Kill [ENEMY]Hezrul Bloodmark[/] as he patrols Lushwater Oasis. Loot his head. Finish [LOOT]Centaur Bracers[/] here.",
+            quest = 852,
+            when = "objectives",
+            map = 1413,
+            x = 46.0,
+            y = 41.1,
+            details = {
+                "[LOOT]Hezrul's Head[/] (1)",
+                "[LOOT]Centaur Bracers[/] (15)",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Hezrul Bloodmark[/] and [QUEST]Centaur Bracers[/].",
+            quests = { 852, 855 },
+            when = "complete",
+            map = 1413,
+            x = 45.3,
+            y = 28.4,
+        },
+        {
+            text = "[WARN]Optional group:[/] Accept [QUEST]Counterattack![/] from Regthar. Kill [ENEMY]Warlord Krom'zar[/] when he spawns and loot the banner piece.",
+            quest = 4021,
+            when = "complete",
+            map = 1413,
+            x = 45.3,
+            y = 28.4,
+            note = "Elite. Skip or return at 20+ with a group. Kite around Regthar's bunker.",
+        },
+        {
             text = "Talk to [FRIENDLY]Tonga Runetotem[/]. Turn in [QUEST]Altered Beings[/]. Accept [QUEST]Hamuul Runetotem[/] and [QUEST]Mura Runetotem[/].",
             quests = { 1489, 3301 },
             when = "accepted",
@@ -1052,7 +1070,7 @@ ns.RegisterGuide({
             map = 1413,
             x = 51.1,
             y = 29.6,
-            note = "Field of Giants is on the 20-25 pass.",
+            note = "Keep for 20-25. This will come up later.",
         },
         {
             text = "Talk to [FRIENDLY]Thork[/]. Accept [QUEST]Report to Kadrak[/].",
@@ -1061,10 +1079,10 @@ ns.RegisterGuide({
             map = 1413,
             x = 51.5,
             y = 30.9,
-            note = "Keep for Ashenvale. Turn in at Mor'shan / the Ashenvale border later.",
+            note = "Keep for Ashenvale. This will come up later.",
         },
         {
-            text = "Fly to Ratchet. Talk to [FRIENDLY]Sputtervalve[/]. Turn in [QUEST]Samophlange[/] and [QUEST]The Escape[/] if you have it. Accept [QUEST]Ziz Fizziks[/] and [QUEST]Wenikee Boltbucket[/].",
+            text = "Fly to Ratchet. Talk to [FRIENDLY]Sputtervalve[/]. Turn in [QUEST]Samophlange[/] and [QUEST]The Escape[/]. Accept [QUEST]Ziz Fizziks[/] and [QUEST]Wenikee Boltbucket[/].",
             quests = { 1483, 3921 },
             when = "accepted",
             map = 1413,
@@ -1076,7 +1094,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Wharfmaster Dizzywig[/]. Turn in [QUEST]Miner's Fortune[/] if you finished it.",
+            text = "Talk to [FRIENDLY]Wharfmaster Dizzywig[/]. Turn in [QUEST]Miner's Fortune[/].",
             quest = 896,
             when = "complete",
             map = 1413,
@@ -1084,7 +1102,7 @@ ns.RegisterGuide({
             y = 38.5,
         },
         {
-            text = "Talk to [FRIENDLY]Mebok Mizzyrix[/]. Turn in [QUEST]Raptor Horns[/] if finished.",
+            text = "Talk to [FRIENDLY]Mebok Mizzyrix[/]. Turn in [QUEST]Raptor Horns[/].",
             quest = 865,
             when = "complete",
             map = 1413,
@@ -1092,7 +1110,7 @@ ns.RegisterGuide({
             y = 37.6,
         },
         {
-            text = "Talk to [FRIENDLY]Brewmaster Drohn[/]. Turn in [QUEST]Chen's Empty Keg[/] if you have the lion tusks, plainstrider kidneys, and thunder lizard horn.",
+            text = "Talk to [FRIENDLY]Brewmaster Drohn[/]. Turn in [QUEST]Chen's Empty Keg[/].",
             quest = 821,
             when = "complete",
             map = 1413,
@@ -1101,7 +1119,7 @@ ns.RegisterGuide({
             note = "Accept the final Chen follow-up if offered. Finish materials on the southern pass.",
         },
         {
-            text = "Optional: talk to [FRIENDLY]Wenikee Boltbucket[/] near Mor'shan and turn in [QUEST]Wenikee Boltbucket[/], then press Next.",
+            text = "Optional: Talk to [FRIENDLY]Wenikee Boltbucket[/] near Mor'shan and turn in [QUEST]Wenikee Boltbucket[/].",
             quest = 3921,
             when = "complete",
             map = 1413,
@@ -1152,7 +1170,7 @@ ns.RegisterGuide({
             map = 1413,
             x = 44.9,
             y = 59.1,
-            note = "Everyone else can pick this up from Senani in Ashenvale later.",
+            note = "Hunter only. Everyone else can pick this up from [FRIENDLY]Senani[/] in Ashenvale later.",
         },
         {
             text = "Talk to [FRIENDLY]Tatternack Steelforge[/]. Accept [QUEST]Weapons of Choice[/].",
@@ -1200,7 +1218,7 @@ ns.RegisterGuide({
                 "Turn in [QUEST]Tribes at War[/]",
                 "Turn in [QUEST]Blood Shards of Agamaggan[/]",
             },
-            note = "Spend extra Blood Shards on buffs if you want. Save a few for later.",
+            note = "Save a few Blood Shards for later.",
         },
         {
             text = "Talk to [FRIENDLY]Jorn Skyseer[/]. Turn in [QUEST]Ishamuhale[/]. Accept [QUEST]Enraged Thunder Lizards[/].",
@@ -1215,7 +1233,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill thunder lizards for [LOOT]Thunder Lizard Blood[/] and a [LOOT]Thunder Lizard Horn[/] for Chen if needed.",
+            text = "Kill thunder lizards for [LOOT]Thunder Lizard Blood[/] and a [LOOT]Thunder Lizard Horn[/] for Chen.",
             quest = 907,
             when = "objectives",
             map = 1413,
@@ -1379,6 +1397,14 @@ ns.RegisterGuide({
             y = 57.7,
         },
         {
+            text = "Talk to [FRIENDLY]Jorn Skyseer[/]. Turn in [QUEST]Lakota'mani[/].",
+            quest = 883,
+            when = "complete",
+            map = 1413,
+            x = 44.9,
+            y = 59.1,
+        },
+        {
             text = "At Northwatch Hold, kill [ENEMY]Captain Fairmount[/], [ENEMY]Cannoneer Whessan[/], and [ENEMY]Cannoneer Smythe[/], and loot [LOOT]Theramore Medals[/].",
             quest = 891,
             when = "objectives",
@@ -1403,14 +1429,14 @@ ns.RegisterGuide({
             note = "Skip if it is contested or you are undergeared.",
         },
         {
-            text = "Talk to [FRIENDLY]Captain Thalo'thas Brightsun[/] in Ratchet. Turn in [QUEST]The Guns of Northwatch[/] and [QUEST]Free From the Hold[/] if you finished it.",
+            text = "Talk to [FRIENDLY]Captain Thalo'thas Brightsun[/] in Ratchet. Turn in [QUEST]The Guns of Northwatch[/] and [QUEST]Free From the Hold[/].",
             quest = 891,
             when = "complete",
             map = 1413,
             x = 62.3,
             y = 39.0,
             details = {
-                "Turn in [QUEST]Free From the Hold[/] if complete",
+                "Turn in [QUEST]Free From the Hold[/]",
             },
         },
         {
@@ -1474,7 +1500,7 @@ ns.RegisterGuide({
             y = 29.6,
         },
         {
-            text = "If you still have the timed [QUEST]Apothecary Zamah[/], fly Camp Taurajo to Thunder Bluff and turn it in at [FRIENDLY]Apothecary Zamah[/] in the Spirit Rise pools. Also turn in [QUEST]Hamuul Runetotem[/] on Elder Rise if you have it.",
+            text = "Fly Camp Taurajo to Thunder Bluff. Talk to [FRIENDLY]Apothecary Zamah[/] in the Spirit Rise pools. Turn in [QUEST]Apothecary Zamah[/]. Also turn in [QUEST]Hamuul Runetotem[/] on Elder Rise.",
             quest = 853,
             when = "complete",
             map = 1456,

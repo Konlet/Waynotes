@@ -20,7 +20,7 @@ ns.RegisterGuide({
     steps = {
         {
             races = { "Night Elf" },
-            text = "Talk to [FRIENDLY]Laird[/] on the Auberdine dock. Turn in [QUEST]Flight to Auberdine[/]. Accept [QUEST]Return to Nessa[/] if offered, then press Next.",
+            text = "Talk to [FRIENDLY]Laird[/] on the Auberdine dock. Turn in [QUEST]Flight to Auberdine[/]. Accept [QUEST]Return to Nessa[/] if offered.",
             map = 1439,
             x = 36.8,
             y = 44.3,
@@ -36,7 +36,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Druid" },
-            text = "Druids: open the side guide Darkshore Druid Body and Heart if you still need Lunaclaw, finish it, then resume here.",
+            text = "Druids: open the side guide Darkshore Druid Body and Heart, finish Lunaclaw, then resume here.",
             note = "Finish the Druid Body and Heart side guide, then resume here.",
             guide = "alliance-darkshore-druid-body",
         },
@@ -329,7 +329,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Jai'vhanel[/] if you have [QUEST]WANTED: Jai'vhanel[/].",
+            text = "Kill [ENEMY]Jai'vhanel[/] for [QUEST]WANTED: Jai'vhanel[/].",
             map = 1439,
             x = 39.0,
             y = 53.0,
@@ -397,7 +397,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Tharnariun Treetender[/]. Turn in [QUEST]Cleansing of the Infected[/] if finished. Accept [QUEST]Tharnariun's Hope[/] and [QUEST]A Lost Master[/].",
+            text = "Talk to [FRIENDLY]Tharnariun Treetender[/]. Turn in [QUEST]Cleansing of the Infected[/]. Accept [QUEST]Tharnariun's Hope[/] and [QUEST]A Lost Master[/].",
             map = 1439,
             x = 38.8,
             y = 43.4,
@@ -406,7 +406,7 @@ ns.RegisterGuide({
             details = {
                 "Turn in [QUEST]Cleansing of the Infected[/]",
             },
-            note = "Finish rabid bear kills first if needed.",
+            note = "Finish rabid bear kills first.",
         },
         {
             text = "Talk to [FRIENDLY]Terenthis[/]. Accept [QUEST]The Tower of Althalaxx[/].",
@@ -515,7 +515,7 @@ ns.RegisterGuide({
         },
         {
             races = { "Night Elf" },
-            text = "Talk to [FRIENDLY]Alanndarian Nightsong[/]. Accept [QUEST]Expanding Horizons[/] if offered, then press Next.",
+            text = "Talk to [FRIENDLY]Alanndarian Nightsong[/]. Accept [QUEST]Expanding Horizons[/] if offered.",
             map = 1439,
             x = 37.7,
             y = 40.7,
@@ -560,7 +560,7 @@ ns.RegisterGuide({
             note = "Pick up any missing Auberdine quests before heading south.",
         },
         {
-            text = "Talk to [FRIENDLY]Onu[/] at the Grove of the Ancients. Turn in [QUEST]Grove of the Ancients[/] if you have it and [QUEST]Onu[/]. Accept [QUEST]The Master's Glaive[/].",
+            text = "Talk to [FRIENDLY]Onu[/] at the Grove of the Ancients. Turn in [QUEST]Grove of the Ancients[/] and [QUEST]Onu[/]. Accept [QUEST]The Master's Glaive[/].",
             map = 1439,
             x = 43.5,
             y = 76.3,
@@ -641,7 +641,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Hearth or return to Auberdine. Turn in beached remains, Murkdeep, Fun and Games if you have it, and Remtravel's follow-up at Hollee. Accept [QUEST]The Absent Minded Prospector[/] for Darnassus.",
+            text = "Hearth or return to Auberdine. Turn in beached remains, Murkdeep, Fun and Games, and Remtravel's follow-up at Hollee. Accept [QUEST]The Absent Minded Prospector[/] for Darnassus.",
             map = 1439,
             x = 37.44,
             y = 41.84,

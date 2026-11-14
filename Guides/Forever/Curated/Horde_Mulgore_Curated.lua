@@ -78,7 +78,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Finish [QUEST]The Hunt Begins[/] on Plainstriders if needed, then return to camp.",
+            text = "Finish [QUEST]The Hunt Begins[/] on Plainstriders, then return to camp.",
             map = 1412,
             x = 46.58,
             y = 82.54,
@@ -179,7 +179,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Finish cougar pelts if needed, then return to [FRIENDLY]Grull Hawkwind[/]. Turn in [QUEST]The Hunt Continues[/]. Accept [QUEST]The Battleboars[/].",
+            text = "Finish cougar pelts, then return to [FRIENDLY]Grull Hawkwind[/]. Turn in [QUEST]The Hunt Continues[/]. Accept [QUEST]The Battleboars[/].",
             map = 1412,
             x = 44.49,
             y = 77.53,
@@ -677,7 +677,8 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Maur Raincaller[/]. Turn in [QUEST]Mazzranache[/] if complete (or finish the rares later).",
+            text = "Talk to [FRIENDLY]Maur Raincaller[/]. Turn in [QUEST]Mazzranache[/].",
+            note = "Rare parts can be finished later if you still need them.",
             map = 1412,
             x = 46.24,
             y = 60.83,
@@ -708,7 +709,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Harken Windtotem[/]. Turn in [QUEST]Swoop Hunting[/] if finished.",
+            text = "Talk to [FRIENDLY]Harken Windtotem[/]. Turn in [QUEST]Swoop Hunting[/].",
             map = 1412,
             x = 47.66,
             y = 62.67,
@@ -843,7 +844,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Finish [ENEMY]Swoops[/] for quills if still needed.",
+            text = "Finish [ENEMY]Swoops[/] for quills.",
             map = 1412,
             x = 46.66,
             y = 63.42,
@@ -851,7 +852,7 @@ ns.RegisterGuide({
             when = "objectives",
         },
         {
-            text = "Finish [LOOT]Mazzranache[/] rares if still needed, then return to Bloodhoof Village.",
+            text = "Finish [LOOT]Mazzranache[/] rares, then return to Bloodhoof Village.",
             map = 1412,
             x = 46.66,
             y = 63.42,
@@ -859,7 +860,7 @@ ns.RegisterGuide({
             when = "objectives",
         },
         {
-            text = "Talk to [FRIENDLY]Skorn Whitecloud[/]. Turn in [QUEST]The Demon Scarred Cloak[/] if you have it. Accept [QUEST]The Hunter's Way[/].",
+            text = "Talk to [FRIENDLY]Skorn Whitecloud[/]. Turn in [QUEST]The Demon Scarred Cloak[/]. Accept [QUEST]The Hunter's Way[/].",
             map = 1412,
             x = 46.08,
             y = 63.42,
@@ -1084,7 +1085,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Druid" },
-            text = "Talk to [FRIENDLY]Arch Druid Hamuul Runetotem[/]. Accept [QUEST]The Barrens Oases[/] if you still need it, then press Next.",
+            text = "Talk to [FRIENDLY]Arch Druid Hamuul Runetotem[/]. Accept [QUEST]The Barrens Oases[/].",
             map = 1456,
             x = 78.6,
             y = 28.5,
@@ -1171,7 +1172,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Melor Stonehoof[/] if you still need [QUEST]Sergra Darkthorn[/].",
+            text = "Talk to [FRIENDLY]Melor Stonehoof[/]. Accept [QUEST]Sergra Darkthorn[/].",
             map = 1456,
             x = 61.3,
             y = 80.9,
@@ -1179,7 +1180,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Exit Thunder Bluff. At Bloodhoof, turn in [QUEST]Wildmane Cleansing[/] at [FRIENDLY]Mull[/] if still open, then take the road into The Barrens.",
+            text = "Exit Thunder Bluff. At Bloodhoof, turn in [QUEST]Wildmane Cleansing[/] at [FRIENDLY]Mull[/], then take the road into The Barrens.",
             map = 1412,
             x = 47.52,
             y = 63.58,

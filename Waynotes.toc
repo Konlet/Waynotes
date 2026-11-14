@@ -16,6 +16,7 @@ Data/Innkeepers.lua
 Data/FlightMasters.lua
 Data/BoatsZeppelins.lua
 Data/Banks.lua
+Data/Repairs.lua
 Data/AuctionHouses.lua
 Data/Mailboxes.lua
 Data/ClassTrainers.lua
