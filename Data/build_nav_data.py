@@ -279,6 +279,130 @@ def build_class_trainers() -> int:
     return len(rows)
 
 
+def _dock_world(stop: dict) -> tuple[float, float, float, int] | None:
+    """Prefer boardingPosition for aiming; fall back to dock position."""
+    for key in ("boardingPosition", "position"):
+        pos = stop.get(key)
+        if not isinstance(pos, dict):
+            continue
+        if not isinstance(pos.get("mapId"), int):
+            continue
+        if not isinstance(pos.get("x"), (int, float)) or not isinstance(pos.get("y"), (int, float)):
+            continue
+        z = pos.get("z", 0)
+        if not isinstance(z, (int, float)):
+            z = 0
+        return float(pos["x"]), float(pos["y"]), float(z), int(pos["mapId"])
+    return None
+
+
+def build_boats_zeppelins() -> tuple[int, int, int]:
+    routes = load_json("wow-forever-boats-zeppelins.json")
+    lines = [
+        "local _, ns = ...",
+        "",
+        "-- Generated from Data/wow-forever-boats-zeppelins.json",
+        "-- World coordinates use continent mapId 0 (EK) / 1 (Kalimdor) / Forever instances.",
+        "-- Dock wx/wy prefer boardingPosition when present.",
+        "",
+        "ns.NavTransports = {",
+    ]
+    docks: list[dict] = []
+    legs: list[dict] = []
+    for route in sorted(routes, key=lambda r: r.get("routeId") or 0):
+        route_id = route.get("routeId")
+        if not isinstance(route_id, int):
+            continue
+        parts = [
+            f"routeId = {route_id}",
+            f"name = {lua_str(route.get('name') or '')}",
+            f"type = {lua_str(route.get('type') or 'boat')}",
+            f"faction = {faction_lua(route.get('faction'))}",
+            f"cycleSeconds = {float(route.get('estimatedCycleSeconds') or 0)}",
+        ]
+        lines.append("    { " + ", ".join(parts) + " },")
+        for stop in route.get("stops") or []:
+            dock_id = stop.get("dockId")
+            world = _dock_world(stop)
+            if not isinstance(dock_id, int) or world is None:
+                continue
+            wx, wy, wz, instance = world
+            docks.append(
+                {
+                    "dockId": dock_id,
+                    "routeId": route_id,
+                    "name": stop.get("name") or "",
+                    "zone": stop.get("zone") or "",
+                    "uiMapId": stop.get("uiMapId"),
+                    "wx": wx,
+                    "wy": wy,
+                    "wz": wz,
+                    "instance": instance,
+                    "dwellSeconds": float(stop.get("dwellSeconds") or 60),
+                    "faction": route.get("faction"),
+                    "type": route.get("type") or "boat",
+                    "routeName": route.get("name") or "",
+                    "cycleSeconds": float(route.get("estimatedCycleSeconds") or 0),
+                }
+            )
+        for leg in route.get("legs") or []:
+            a, b = leg.get("fromDockId"), leg.get("toDockId")
+            sec = leg.get("estimatedSeconds")
+            if isinstance(a, int) and isinstance(b, int) and isinstance(sec, (int, float)):
+                legs.append(
+                    {
+                        "from": a,
+                        "to": b,
+                        "seconds": float(sec),
+                        "routeId": route_id,
+                        "faction": route.get("faction"),
+                        "type": route.get("type") or "boat",
+                        "routeName": route.get("name") or "",
+                    }
+                )
+    lines.append("}")
+    lines.append("")
+    lines.append("ns.NavTransportDocks = {")
+    for d in sorted(docks, key=lambda x: x["dockId"]):
+        parts = [
+            f"dockId = {d['dockId']}",
+            f"routeId = {d['routeId']}",
+            f"name = {lua_str(d['name'])}",
+            f"zone = {lua_str(d['zone'])}",
+            f"faction = {faction_lua(d.get('faction'))}",
+            f"type = {lua_str(d.get('type') or 'boat')}",
+            f"routeName = {lua_str(d.get('routeName') or '')}",
+            f"wx = {d['wx']}",
+            f"wy = {d['wy']}",
+            f"wz = {d['wz']}",
+            f"instance = {d['instance']}",
+            f"dwellSeconds = {d['dwellSeconds']}",
+            f"cycleSeconds = {d['cycleSeconds']}",
+            "forever = true",
+        ]
+        if isinstance(d.get("uiMapId"), int):
+            parts.insert(4, f"map = {d['uiMapId']}")
+        lines.append("    { " + ", ".join(parts) + " },")
+    lines.append("}")
+    lines.append("")
+    lines.append("ns.NavTransportLegs = {")
+    for leg in sorted(legs, key=lambda x: (x["routeId"], x["from"], x["to"])):
+        parts = [
+            f"from = {leg['from']}",
+            f"to = {leg['to']}",
+            f"seconds = {leg['seconds']}",
+            f"routeId = {leg['routeId']}",
+            f"faction = {faction_lua(leg.get('faction'))}",
+            f"type = {lua_str(leg.get('type') or 'boat')}",
+            f"routeName = {lua_str(leg.get('routeName') or '')}",
+        ]
+        lines.append("    { " + ", ".join(parts) + " },")
+    lines.append("}")
+    lines.append("")
+    write_lines(DATA / "BoatsZeppelins.lua", lines)
+    return len(routes), len(docks), len(legs)
+
+
 def main() -> None:
     inns = build_innkeepers()
     flights, connections = build_flight_masters()
@@ -286,9 +410,11 @@ def main() -> None:
     auctions = build_simple_zone_table("wow-forever-auction-houses.json", "AuctionHouses.lua", "NavAuctionHouses")
     mail = build_simple_zone_table("wow-forever-mailboxes.json", "Mailboxes.lua", "NavMailboxes", npc_field=None)
     trainers = build_class_trainers()
+    routes, docks, transport_legs = build_boats_zeppelins()
     print(
         f"Wrote {inns} inns, {flights} flight masters, {connections} connections, "
-        f"{banks} banks, {auctions} auctioneers, {mail} mailboxes, {trainers} class trainers"
+        f"{banks} banks, {auctions} auctioneers, {mail} mailboxes, {trainers} class trainers, "
+        f"{routes} boat/zeppelin routes ({docks} docks, {transport_legs} legs)"
     )
     missing = sorted(
         {

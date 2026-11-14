@@ -262,14 +262,50 @@ local function cleanStep(step)
     copy.map = tonumber(step.map)
     copy.x = tonumber(step.x)
     copy.y = tonumber(step.y)
+    if type(step.pins) == "table" then
+        local pins = {}
+        for _, pin in ipairs(step.pins) do
+            if type(pin) == "table" then
+                local map = tonumber(pin.map) or copy.map
+                local x = tonumber(pin.x)
+                local y = tonumber(pin.y)
+                if map and x and y then
+                    local entry = { map = map, x = x, y = y }
+                    if type(pin.note) == "string" and pin.note ~= "" then
+                        entry.note = pin.note
+                    elseif type(pin.label) == "string" and pin.label ~= "" then
+                        entry.note = pin.label
+                    end
+                    pins[#pins + 1] = entry
+                end
+            end
+        end
+        if #pins > 0 then
+            copy.pins = pins
+            if not copy.map then
+                copy.map = pins[1].map
+            end
+            if not copy.x then
+                copy.x = pins[1].x
+                copy.y = pins[1].y
+            end
+        end
+    end
     if step.forever then
         copy.forever = true
     end
     if step.sticky then
         copy.sticky = true
     end
+    local objective = tonumber(step.objective)
+    if objective and objective >= 1 then
+        copy.objective = math.floor(objective)
+    end
     if type(step.travel) == "table" or type(step.travel) == "string" or step.travel == true then
         copy.travel = step.travel
+    end
+    if type(step.fpath) == "string" and strtrim(step.fpath) ~= "" then
+        copy.fpath = strtrim(step.fpath)
     end
     if type(step.guide) == "string" and strtrim(step.guide) ~= "" then
         copy.guide = strtrim(step.guide)
@@ -572,25 +608,28 @@ local function questCompleted(id)
     return false
 end
 
-local function logObjectives(id)
+local function logObjectives(id, objectiveIndex)
+    objectiveIndex = tonumber(objectiveIndex)
+    if objectiveIndex and objectiveIndex < 1 then
+        objectiveIndex = nil
+    end
     if C_QuestLog and C_QuestLog.GetQuestObjectives then
         local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
         if ok and type(list) == "table" then
             local lines = {}
-            for _, info in ipairs(list) do
-                if type(info) == "table" then
-                    local text = info.text
-                    if type(text) ~= "string" or text == "" then
-                        if type(info.numRequired) == "number" and info.numRequired > 0 then
-                            text = string.format("%d/%d", info.numFulfilled or 0, info.numRequired)
+            for index, info in ipairs(list) do
+                if not objectiveIndex or index == objectiveIndex then
+                    if type(info) == "table" then
+                        local text = info.text
+                        if type(text) ~= "string" or text == "" then
+                            if type(info.numRequired) == "number" and info.numRequired > 0 then
+                                text = string.format("%d/%d", info.numFulfilled or 0, info.numRequired)
+                            end
+                        end
+                        if type(text) == "string" and text ~= "" then
+                            lines[#lines + 1] = text
                         end
                     end
-                    if type(text) == "string" and text ~= "" then
-                        lines[#lines + 1] = text
-                    end
-                end
-                if #lines >= 4 then
-                    break
                 end
             end
             if #lines > 0 then
@@ -615,12 +654,11 @@ local function logObjectives(id)
             local lines = {}
             local boards = GetNumQuestLeaderBoards and GetNumQuestLeaderBoards(index) or 0
             for board = 1, boards do
-                local text = GetQuestLogLeaderBoard(board, index)
-                if type(text) == "string" and text ~= "" then
-                    lines[#lines + 1] = text
-                end
-                if #lines >= 4 then
-                    break
+                if not objectiveIndex or board == objectiveIndex then
+                    local text = GetQuestLogLeaderBoard(board, index)
+                    if type(text) == "string" and text ~= "" then
+                        lines[#lines + 1] = text
+                    end
                 end
             end
             if #lines > 0 then
@@ -629,6 +667,222 @@ local function logObjectives(id)
             return nil
         end
     end
+end
+
+local function logObjectiveStates(id)
+    if C_QuestLog and C_QuestLog.GetQuestObjectives then
+        local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
+        if ok and type(list) == "table" and #list > 0 then
+            local states = {}
+            for index, info in ipairs(list) do
+                if type(info) == "table" then
+                    local text = info.text
+                    if type(text) ~= "string" or text == "" then
+                        if type(info.numRequired) == "number" and info.numRequired > 0 then
+                            text = string.format("%d/%d", info.numFulfilled or 0, info.numRequired)
+                        else
+                            text = ""
+                        end
+                    end
+                    local finished = info.finished and true or false
+                    if not finished and type(info.numRequired) == "number" and info.numRequired > 0 then
+                        finished = (info.numFulfilled or 0) >= info.numRequired
+                    end
+                    states[#states + 1] = {
+                        index = index,
+                        text = text,
+                        finished = finished,
+                    }
+                end
+            end
+            if #states > 0 then
+                return states
+            end
+        end
+    end
+    if not GetNumQuestLogEntries or not GetQuestLogTitle or not GetQuestLogLeaderBoard then
+        return nil
+    end
+    local count = GetNumQuestLogEntries()
+    for index = 1, count do
+        local _, _, _, isHeader, _, isComplete, _, questID = GetQuestLogTitle(index)
+        local qid = questID
+        if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+            local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+            if ok and type(value) == "number" then
+                qid = value
+            end
+        end
+        if not isHeader and qid == id then
+            local complete = isComplete == 1 or isComplete == -1 or isComplete == true
+            local states = {}
+            local boards = GetNumQuestLeaderBoards and GetNumQuestLeaderBoards(index) or 0
+            for board = 1, boards do
+                local text, _, finished = GetQuestLogLeaderBoard(board, index)
+                states[#states + 1] = {
+                    index = board,
+                    text = type(text) == "string" and text or "",
+                    finished = complete or (finished and true) or false,
+                }
+            end
+            if #states > 0 then
+                return states
+            end
+            return nil
+        end
+    end
+end
+
+-- Detail lines like "[LOOT]Hyacinth Mushroom[/] (7)" name the requirements
+-- this step owns. Other objectives on the same quest stay on their own steps.
+local OBJECTIVE_SKIP = {
+    the = true,
+    ["and"] = true,
+    ["for"] = true,
+    from = true,
+    with = true,
+    ["then"] = true,
+    kill = true,
+    collect = true,
+    slain = true,
+    loot = true,
+}
+
+local function objectivePlain(text)
+    if type(text) ~= "string" then
+        return ""
+    end
+    local plain = text:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+    plain = plain:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    return strtrim(plain)
+end
+
+local function objectiveToken(word)
+    word = word:lower()
+    if #word > 4 and word:sub(-3) == "ies" then
+        return word:sub(1, -4) .. "y"
+    end
+    if #word > 4 and word:sub(-1) == "s" and word:sub(-2) ~= "ss" then
+        return word:sub(1, -2)
+    end
+    return word
+end
+
+local function objectiveTokens(text)
+    local plain = objectivePlain(text)
+    plain = plain:gsub("%d+%s*/%s*%d+", " ")
+    plain = plain:gsub("%(%d+%)", " ")
+    plain = plain:gsub("%d+", " ")
+    local tokens = {}
+    local seen = {}
+    for word in plain:gmatch("%a+") do
+        if #word >= 3 then
+            local token = objectiveToken(word)
+            if not OBJECTIVE_SKIP[token] and not seen[token] then
+                seen[token] = true
+                tokens[#tokens + 1] = token
+            end
+        end
+    end
+    return tokens
+end
+
+local function tokensCover(have, need)
+    if #need == 0 then
+        return false
+    end
+    local set = {}
+    for _, token in ipairs(have) do
+        set[token] = true
+    end
+    for _, token in ipairs(need) do
+        if not set[token] then
+            return false
+        end
+    end
+    return true
+end
+
+local function authoredObjectiveNames(step)
+    local names = {}
+    if type(step.details) ~= "table" then
+        return names
+    end
+    for _, line in ipairs(step.details) do
+        local name = objectivePlain(line):match("^(.-)%s*%(%d+%)%s*$")
+        if name then
+            name = strtrim(name)
+            if name ~= "" then
+                names[#names + 1] = name
+            end
+        end
+    end
+    return names
+end
+
+local function objectiveListed(step, line)
+    if not step or step.objective then
+        return true
+    end
+    local names = authoredObjectiveNames(step)
+    if #names == 0 then
+        return true
+    end
+    local live = objectiveTokens(line)
+    for _, name in ipairs(names) do
+        if tokensCover(live, objectiveTokens(name)) then
+            return true
+        end
+    end
+    return false
+end
+
+-- nil: this step does not name a subset, so the whole quest still decides.
+local function authoredObjectivesDone(step, questId)
+    if not step or step.objective then
+        return nil
+    end
+    local names = authoredObjectiveNames(step)
+    if #names == 0 then
+        return nil
+    end
+    if questCompleted(questId) then
+        return true
+    end
+    if not questOn(questId) then
+        return nil
+    end
+    local states = logObjectiveStates(questId)
+    if not states then
+        return nil
+    end
+    local matched = 0
+    for _, name in ipairs(names) do
+        local need = objectiveTokens(name)
+        local hit = false
+        local finished = true
+        for _, info in ipairs(states) do
+            if tokensCover(objectiveTokens(info.text), need) then
+                hit = true
+                if not info.finished then
+                    finished = false
+                end
+            end
+        end
+        if hit then
+            matched = matched + 1
+            if not finished then
+                return false
+            end
+        end
+    end
+    if matched == 0 then
+        return nil
+    end
+    if #(step.quests or {}) <= 1 and matched < #names then
+        return nil
+    end
+    return true
 end
 
 local function questName(id)
@@ -861,6 +1115,52 @@ local function questApplies(id)
     return true
 end
 
+local function questObjectiveFinished(id, objectiveIndex)
+    if questCompleted(id) then
+        return true
+    end
+    if not questOn(id) then
+        return false
+    end
+    objectiveIndex = tonumber(objectiveIndex)
+    if not objectiveIndex or objectiveIndex < 1 then
+        return false
+    end
+    if C_QuestLog and C_QuestLog.GetQuestObjectives then
+        local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
+        if ok and type(list) == "table" and #list > 0 then
+            local info = list[objectiveIndex]
+            return type(info) == "table" and info.finished and true or false
+        end
+    end
+    if not GetNumQuestLogEntries or not GetQuestLogTitle or not GetNumQuestLeaderBoards or not GetQuestLogLeaderBoard then
+        return false
+    end
+    local count = GetNumQuestLogEntries()
+    for index = 1, count do
+        local _, _, _, isHeader, _, isComplete, _, questID = GetQuestLogTitle(index)
+        local qid = questID
+        if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+            local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+            if ok and type(value) == "number" then
+                qid = value
+            end
+        end
+        if not isHeader and qid == id then
+            if isComplete == 1 or isComplete == -1 or isComplete == true then
+                return true
+            end
+            local boards = GetNumQuestLeaderBoards(index) or 0
+            if objectiveIndex > boards then
+                return false
+            end
+            local _, _, finished = GetQuestLogLeaderBoard(objectiveIndex, index)
+            return finished and true or false
+        end
+    end
+    return false
+end
+
 local function questObjectivesDone(id)
     if questCompleted(id) then
         return true
@@ -918,12 +1218,21 @@ local function questObjectivesDone(id)
     return false
 end
 
-local function questSatisfied(id, when)
+local function questSatisfied(id, when, objectiveIndex, step)
     if when == "complete" then
         return questCompleted(id)
     end
     if when == "accepted" then
         return questOn(id) or questCompleted(id)
+    end
+    if objectiveIndex then
+        return questObjectiveFinished(id, objectiveIndex)
+    end
+    if step and (when == "objectives" or when == nil) then
+        local partial = authoredObjectivesDone(step, id)
+        if partial ~= nil then
+            return partial
+        end
     end
     return questObjectivesDone(id)
 end
@@ -969,7 +1278,7 @@ local function linkedGuideFinished(id)
                 if useAny then
                     local any = false
                     for _, questId in ipairs(ids) do
-                        if questSatisfied(questId, when) then
+                        if questSatisfied(questId, when, step.objective, step) then
                             any = true
                             break
                         end
@@ -979,7 +1288,7 @@ local function linkedGuideFinished(id)
                     end
                 else
                     for _, questId in ipairs(ids) do
-                        if not questSatisfied(questId, when) then
+                        if not questSatisfied(questId, when, step.objective, step) then
                             return false
                         end
                     end
@@ -999,9 +1308,15 @@ local function stepDone(step)
         if type(step.guide) == "string" and step.guide ~= "" and linkedGuideFinished(step.guide) then
             return true
         end
+        -- Flight-path pickup steps ("Get the Crossroads flight path" / fpath) advance
+        -- once that node is unlocked, including when you already had it.
+        if ns.TravelFlightPathStepDone and ns.TravelFlightPathStepDone(step) then
+            return true
+        end
         return false
     end
     local when = step.when
+    local objectiveIndex = step.objective
     local listedQuests = step.quests or {}
     local ids = relevantQuests(step)
     if #ids == 0 then
@@ -1012,14 +1327,14 @@ local function stepDone(step)
     local useAny = not (ns.QuestieReady and ns.QuestieReady()) and #listedQuests > 1
     if useAny then
         for _, id in ipairs(ids) do
-            if questSatisfied(id, when) then
+            if questSatisfied(id, when, objectiveIndex, step) then
                 return true
             end
         end
         return false
     end
     for _, id in ipairs(ids) do
-        if not questSatisfied(id, when) then
+        if not questSatisfied(id, when, objectiveIndex, step) then
             return false
         end
     end
@@ -1052,6 +1367,202 @@ local function laterAutoStepDone(guide, fromIndex)
         end
     end
     return false
+end
+
+-- A later step stays off the tracker while an earlier step is still the work
+-- it depends on. Same quest: accept before objectives before turn-in, and a
+-- single objective before the turn-in of that quest. Different objectives of
+-- one quest do not block each other. Different quest: Questie's preQuestGroup
+-- (all) and preQuestSingle (any) must be turned in first. An objectives step
+-- only counts once that quest is in the log, so an unoffered optional sticky
+-- does not freeze the guide.
+local WHEN_RANK = {
+    accepted = 1,
+    objectives = 2,
+    complete = 3,
+}
+local prereqCache = {}
+local nextCache = {}
+
+local function questIdList(value)
+    if type(value) == "number" and value > 0 then
+        return { value }
+    end
+    if type(value) ~= "table" then
+        return nil
+    end
+    local list = {}
+    for _, id in ipairs(value) do
+        id = tonumber(id)
+        if id and id > 0 then
+            list[#list + 1] = id
+        end
+    end
+    if #list == 0 then
+        return nil
+    end
+    return list
+end
+
+local function questField(id, name)
+    if type(QuestDB) ~= "table" then
+        return nil
+    end
+    local getter = QuestDB[name]
+    if type(getter) == "function" then
+        local ok, value = pcall(getter, id)
+        if ok then
+            return value
+        end
+    end
+    if type(QuestDB.Get) == "function" then
+        local ok, value = pcall(QuestDB.Get, id, name)
+        if ok then
+            return value
+        end
+    end
+end
+
+local function questPrereqs(id)
+    local cached = prereqCache[id]
+    if cached ~= nil then
+        return cached or nil
+    end
+    if not ns.QuestieReady or not ns.QuestieReady() then
+        return nil
+    end
+    local group = questIdList(questField(id, "preQuestGroup"))
+    local single = questIdList(questField(id, "preQuestSingle"))
+    if not group and not single then
+        prereqCache[id] = false
+        return nil
+    end
+    local info = {
+        group = group,
+        single = single,
+    }
+    prereqCache[id] = info
+    return info
+end
+
+local function nextQuest(id)
+    local cached = nextCache[id]
+    if cached ~= nil then
+        return cached or nil
+    end
+    if not ns.QuestieReady or not ns.QuestieReady() then
+        return nil
+    end
+    local value = tonumber(questField(id, "nextQuestInChain"))
+    if not value or value <= 0 then
+        nextCache[id] = false
+        return nil
+    end
+    nextCache[id] = value
+    return value
+end
+
+local function laterNeedsEarlierQuest(laterId, earlierId)
+    if laterId == earlierId or questCompleted(earlierId) then
+        return false
+    end
+    local info = questPrereqs(laterId)
+    if not info then
+        return nextQuest(earlierId) == laterId
+    end
+    if info.group then
+        for _, pre in ipairs(info.group) do
+            if pre == earlierId then
+                return true
+            end
+        end
+    end
+    if info.single then
+        for _, pre in ipairs(info.single) do
+            if questCompleted(pre) then
+                return false
+            end
+        end
+        for _, pre in ipairs(info.single) do
+            if pre == earlierId then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function questListed(step, questId)
+    for _, id in ipairs(step.quests or {}) do
+        if id == questId then
+            return true
+        end
+    end
+    return false
+end
+
+-- Accept steps are pending until the quest is taken. Objective and turn-in
+-- steps are pending only while that quest is in the log.
+local function questLive(step, questId)
+    if questCompleted(questId) then
+        return false
+    end
+    if step.when == "accepted" then
+        return true
+    end
+    return questOn(questId)
+end
+
+local function stepQuestInLog(step)
+    for _, id in ipairs(step.quests or {}) do
+        if questOn(id) then
+            return true
+        end
+    end
+    return false
+end
+
+local function sameQuestBlocks(earlier, later)
+    local earlierRank = WHEN_RANK[earlier.when]
+    local laterRank = WHEN_RANK[later.when]
+    if not earlierRank or not laterRank or earlierRank > laterRank then
+        return false
+    end
+    for _, id in ipairs(earlier.quests or {}) do
+        if questListed(later, id) and questLive(earlier, id) then
+            if earlierRank < laterRank then
+                return true
+            end
+            if earlierRank == 2 and laterRank == 2 then
+                local earlierObjective = earlier.objective
+                local laterObjective = later.objective
+                if earlierObjective and (not laterObjective or earlierObjective == laterObjective) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+local function chainBlocks(earlier, later)
+    for _, earlierId in ipairs(earlier.quests or {}) do
+        if questLive(earlier, earlierId) then
+            for _, laterId in ipairs(later.quests or {}) do
+                if laterNeedsEarlierQuest(laterId, earlierId) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+local function questStepBlocks(earlier, later)
+    if not earlier or not later then
+        return false
+    end
+    return sameQuestBlocks(earlier, later) or chainBlocks(earlier, later)
 end
 
 progressCounts = function(guide, current)
@@ -1576,6 +2087,7 @@ local function detailKey(text)
         return nil
     end
     local plain = text:lower()
+    plain = plain:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
     plain = plain:gsub("|cRB_[A-Z]+_", "")
     plain = plain:gsub("|cRXP_[A-Z]+_", "")
     plain = plain:gsub("|c%x%x%x%x%x%x%x%x", "")
@@ -1665,12 +2177,13 @@ local function scrubPlayerText(text)
     cleaned = cleaned:gsub("|c%x%x%x%x%x%x%x%x%s*|r", "")
     cleaned = cleaned:gsub("|cRB_[%w_]+_%s*|r", "")
     cleaned = cleaned:gsub("|cRB_WARN_%s+", "|cRB_WARN_")
+    cleaned = cleaned:gsub("%[%a+%]%s*%[%/%a*%]", "")
     cleaned = cleaned:gsub("%s+", " ")
     cleaned = strtrim(cleaned)
     cleaned = cleaned:gsub("^[%.,;:%-%s]+", "")
     cleaned = cleaned:gsub("[%.,;:%-%s]+$", "")
     cleaned = strtrim(cleaned)
-    if cleaned == "" or cleaned == "|cRB_WARN_|r" or cleaned:match("^|cRB_WARN_%.?|r$") then
+    if cleaned == "" or cleaned == "|cRB_WARN_|r" or cleaned:match("^|cRB_WARN_%.?|r$") or cleaned:match("^%[%a+%]%[%/%a*%]$") then
         return nil
     end
     return cleaned
@@ -1689,20 +2202,31 @@ local function addDetail(details, seen, text, headlineKey)
     if not key or seen[key] then
         return
     end
-    if headlineKey and detailCovers(headlineKey, key) then
-        return
+    local function progressPlain(line)
+        local plain = line:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+        plain = plain:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        return strtrim(plain)
     end
-    local function looksProgress(line)
-        local plain = line:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-        plain = strtrim(plain)
-        return plain:match("%d+%s*/%s*%d+") ~= nil
+    -- Live quest log: "Fel Moss: 3/8". Authored gather counts: "Fel Moss (8)".
+    local function looksLiveProgress(line)
+        return progressPlain(line):match("%d+%s*/%s*%d+") ~= nil
+    end
+    local function looksCount(line)
+        local plain = progressPlain(line)
+        return plain:match("%d+%s*/%s*%d+") ~= nil or plain:match("%S.+%(%d+%)%s*$") ~= nil
+    end
+    -- Headlines often name the same item ("Kill grellkin for Fel Moss"), but the
+    -- count line still carries the amount. Never drop progress/count details as
+    -- redundant with the headline.
+    if headlineKey and detailCovers(headlineKey, key) and not looksCount(text) then
+        return
     end
     for index, existing in ipairs(details) do
         local existingKey = detailKey(existing)
         if existingKey then
             if detailCovers(existingKey, key) then
                 -- Prefer live n/m objective text over authored "Item (N)" counts.
-                if looksProgress(text) and not looksProgress(existing) then
+                if looksLiveProgress(text) and not looksLiveProgress(existing) then
                     details[index] = text
                     seen[existingKey] = nil
                     seen[key] = true
@@ -1727,14 +2251,14 @@ local function whoLine(who, turnIn)
     end
     if who.kind == "object" then
         if turnIn then
-            return "Turn in at |cRB_PICK_" .. who.name .. "|r"
+            return "Turn in at [PICK]" .. who.name .. "[/]"
         end
-        return "Accept at |cRB_PICK_" .. who.name .. "|r"
+        return "Accept at [PICK]" .. who.name .. "[/]"
     end
     if turnIn then
-        return "Turn in to |cRB_FRIENDLY_" .. who.name .. "|r"
+        return "Turn in to [FRIENDLY]" .. who.name .. "[/]"
     end
-    return "Accept from |cRB_FRIENDLY_" .. who.name .. "|r"
+    return "Accept from [FRIENDLY]" .. who.name .. "[/]"
 end
 
 -- Split "Talk to X. Turn in Y. Accept Z." into a short headline plus detail lines.
@@ -1793,6 +2317,7 @@ local function rememberGuideName(into, seen, name)
     if type(name) ~= "string" then
         return
     end
+    name = strtrim(name:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1"))
     name = strtrim(name:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|r", ""):gsub("|c%x%x%x%x%x%x%x%x", ""))
     if name == "" or #name < 3 then
         return
@@ -1809,7 +2334,29 @@ local function collectTaggedGuideNames(raw, into, seen)
     if type(raw) ~= "string" then
         return
     end
-    for _, tag in ipairs({ "RB_ENEMY_", "RB_FRIENDLY_", "RB_LOOT_", "RB_PICK_", "RB_BUY_", "RB_QUEST_" }) do
+    for _, tag in ipairs({ "ENEMY", "FRIENDLY", "LOOT", "PICK", "BUY", "QUEST", "SKILL" }) do
+        local startAt = 1
+        local open = "[" .. tag .. "]"
+        while true do
+            local found, finish = raw:find(open, startAt, true)
+            if not found then
+                break
+            end
+            local closeNamed = raw:find("[/" .. tag .. "]", finish + 1, true)
+            local closeShort = raw:find("[/]", finish + 1, true)
+            local close, closeEnd
+            if closeNamed and (not closeShort or closeNamed <= closeShort) then
+                close, closeEnd = closeNamed, closeNamed + #tag + 2
+            elseif closeShort then
+                close, closeEnd = closeShort, closeShort + 2
+            else
+                break
+            end
+            rememberGuideName(into, seen, raw:sub(finish + 1, close - 1))
+            startAt = closeEnd + 1
+        end
+    end
+    for _, tag in ipairs({ "RB_ENEMY_", "RB_FRIENDLY_", "RB_LOOT_", "RB_PICK_", "RB_BUY_", "RB_QUEST_", "RB_SKILL_" }) do
         local startAt = 1
         local marker = "|c" .. tag
         while true do
@@ -1827,27 +2374,92 @@ local function collectTaggedGuideNames(raw, into, seen)
     end
 end
 
-local function authorPin(step)
-    if type(step.map) ~= "number" or type(step.x) ~= "number" or type(step.y) ~= "number" then
-        return nil
-    end
-    local x, y = step.x, step.y
+local function remapPinXY(step, map, x, y)
     -- Curated Forever guides already store Forever percents. Classic-authored
     -- guides (Zygor, etc.) still need Era→Forever remapping when available.
     if not step.forever and ns.IsForever and ns.IsForever() and LibQuestieDB and type(LibQuestieDB.EraToForeverByUiMapId) == "function" then
-        local ok, nx, ny = pcall(LibQuestieDB.EraToForeverByUiMapId, step.map, x, y)
+        local ok, nx, ny = pcall(LibQuestieDB.EraToForeverByUiMapId, map, x, y)
         if ok and type(nx) == "number" and type(ny) == "number" then
-            x, y = nx, ny
+            return nx, ny
         end
     end
-    local zone = (ns.MapName and ns.MapName(step.map)) or (ns.MapZoneName and ns.MapZoneName(step.map)) or nil
-    return {
-        map = step.map,
+    return x, y
+end
+
+local function makeAuthorPin(step, map, x, y, note)
+    if type(map) ~= "number" or type(x) ~= "number" or type(y) ~= "number" then
+        return nil
+    end
+    x, y = remapPinXY(step, map, x, y)
+    local zone = (ns.MapName and ns.MapName(map)) or (ns.MapZoneName and ns.MapZoneName(map)) or nil
+    local pin = {
+        map = map,
         x = x,
         y = y,
         zone = zone,
         forever = step.forever and true or nil,
     }
+    if type(note) == "string" and note ~= "" then
+        pin.note = note
+    end
+    return pin
+end
+
+local function authorPins(step)
+    local pins = {}
+    if type(step.pins) == "table" then
+        for _, entry in ipairs(step.pins) do
+            if type(entry) == "table" then
+                local pin = makeAuthorPin(step, entry.map or step.map, entry.x, entry.y, entry.note or entry.label)
+                if pin then
+                    pins[#pins + 1] = pin
+                end
+            end
+        end
+    end
+    if #pins == 0 then
+        local pin = makeAuthorPin(step, step.map, step.x, step.y)
+        if pin then
+            pins[1] = pin
+        end
+    end
+    return pins
+end
+
+local function authorPin(step)
+    return authorPins(step)[1]
+end
+
+-- Kill and collect objectives share an area pin: show NEAR within KILL_AREA_YARDS.
+local function stepIsAreaObjective(step)
+    if step.when ~= "objectives" then
+        return false
+    end
+    local function hasAreaTag(text)
+        if type(text) ~= "string" then
+            return false
+        end
+        return text:find("[ENEMY]", 1, true)
+            or text:find("[LOOT]", 1, true)
+            or text:find("[PICK]", 1, true)
+            or text:find("RB_ENEMY_", 1, true)
+            or text:find("RB_LOOT_", 1, true)
+            or text:find("RB_PICK_", 1, true)
+            or text:find("|cffff5722", 1, true)
+            or text:find("|cff00bcd4", 1, true)
+            or text:find("|cffdb2eef", 1, true)
+    end
+    if hasAreaTag(step.text) then
+        return true
+    end
+    if type(step.details) == "table" then
+        for _, line in ipairs(step.details) do
+            if hasAreaTag(line) then
+                return true
+            end
+        end
+    end
+    return false
 end
 
 local function pinForStep(step)
@@ -1922,10 +2534,12 @@ local function buildItem(step, full)
                 allDone = false
                 -- Live log objectives only while the quest is in the log.
                 if step.when == "objectives" or step.when == nil then
-                    local lines = logObjectives(id)
+                    local lines = logObjectives(id, step.objective)
                     if lines then
                         for _, line in ipairs(lines) do
-                            addDetail(details, seen, line, headlineKey)
+                            if objectiveListed(step, line) then
+                                addDetail(details, seen, line, headlineKey)
+                            end
                         end
                     end
                 end
@@ -1935,8 +2549,10 @@ local function buildItem(step, full)
                 if step.when == "objectives" then
                     local questFacts = ns.QuestFacts and ns.QuestFacts(id)
                     if questFacts and questFacts.lines then
-                        for _, line in ipairs(questFacts.lines) do
-                            addDetail(details, seen, line, headlineKey)
+                        for index, line in ipairs(questFacts.lines) do
+                            if (not step.objective or index == step.objective) and objectiveListed(step, line) then
+                                addDetail(details, seen, line, headlineKey)
+                            end
                         end
                     else
                         unresolved = true
@@ -1988,6 +2604,7 @@ local function buildItem(step, full)
         quests = quests,
         stepIndex = step.index,
         sticky = step.sticky and true or false,
+        kill = stepIsAreaObjective(step) or nil,
         stepQuests = entries,
         questId = primary and primary.id,
         questName = primary and primary.name,
@@ -2002,15 +2619,27 @@ local function buildItem(step, full)
         end
     end
     if full then
-        local pin = pinForStep(step)
-        if pin then
-            item.place = {
-                map = pin.map,
-                x = pin.x,
-                y = pin.y,
-                zone = pin.zone,
-            }
-            item.waypoint = worldPoint(pin)
+        local pins = authorPins(step)
+        if #pins == 0 then
+            local fallback = pinForStep(step)
+            if fallback then
+                pins[1] = fallback
+            end
+        end
+        if #pins > 0 then
+            local places = {}
+            for index, pin in ipairs(pins) do
+                places[index] = {
+                    map = pin.map,
+                    x = pin.x,
+                    y = pin.y,
+                    zone = pin.zone,
+                    note = pin.note,
+                }
+            end
+            item.places = places
+            item.place = places[1]
+            item.waypoint = worldPoint(pins[1])
         end
         if ns.TravelApplyToItem then
             item = ns.TravelApplyToItem(item, step) or item
@@ -2050,7 +2679,10 @@ function ns.GuideObjectives()
             entry.step = hopped
         end
     end
-    -- Primary step plus any incomplete sticky steps already passed (concurrent).
+    -- Primary step plus incomplete stickies already passed.
+    -- A step is left off while an earlier step it depends on is still open,
+    -- so a turn-in is not listed beside the objectives that have to finish first.
+    -- Parallel stickies that do not gate the step stay on screen.
     local items = {}
     local primaryIndex = entry.step
     local primary = guide.steps[primaryIndex]
@@ -2074,16 +2706,137 @@ function ns.GuideObjectives()
             end
         end
     end
-    if primary and stepApplies(primary) then
-        items[#items + 1] = buildItem(primary, true)
-        items[#items].sticky = false
+    local doneCache = {}
+    local function isDone(index)
+        local known = doneCache[index]
+        if known ~= nil then
+            return known
+        end
+        local result = stepDone(guide.steps[index])
+        doneCache[index] = result
+        return result
     end
-    if not (ns.db and ns.db.simpleMode) and primary then
-        for index = 1, primaryIndex do
+    local waitingCache = {}
+    local function waiting(index)
+        local known = waitingCache[index]
+        if known ~= nil then
+            return known
+        end
+        local step = guide.steps[index]
+        if not step or not stepApplies(step) or not isAutoStep(step) or isDone(index) then
+            waitingCache[index] = false
+            return false
+        end
+        for earlierIndex = 1, index - 1 do
+            local earlier = guide.steps[earlierIndex]
+            if earlier and stepApplies(earlier) and isAutoStep(earlier) and not isDone(earlierIndex) and questStepBlocks(earlier, step) then
+                waitingCache[index] = true
+                return true
+            end
+        end
+        waitingCache[index] = false
+        return false
+    end
+    -- Stickies after a gated step still show when their quest is already in the log
+    -- (the follow-up was picked up). Stop before the next step that can be done now.
+    local function stickyHorizon(blockedPrimary)
+        local last = primaryIndex
+        if not blockedPrimary then
+            return last
+        end
+        for index = primaryIndex + 1, count do
             local step = guide.steps[index]
-            if stepApplies(step) and step.sticky and not stepDone(step) and index ~= primaryIndex then
-                items[#items + 1] = buildItem(step, true)
-                items[#items].sticky = true
+            if stepApplies(step) and not isDone(index) then
+                if not step.sticky and not waiting(index) then
+                    break
+                end
+                last = index
+            end
+        end
+        return last
+    end
+    local function showSticky(index, step, blockedPrimary)
+        if not step or not step.sticky or not stepApplies(step) or isDone(index) or waiting(index) then
+            return false
+        end
+        if index == primaryIndex then
+            return false
+        end
+        if index > primaryIndex and (not blockedPrimary or not stepQuestInLog(step)) then
+            return false
+        end
+        return true
+    end
+    local simple = ns.db and ns.db.simpleMode
+    if primary and stepApplies(primary) then
+        local primaryWaiting = waiting(primaryIndex)
+        local horizon = stickyHorizon(primaryWaiting)
+        local function addStep(step, asSticky)
+            items[#items + 1] = buildItem(step, true)
+            items[#items].sticky = asSticky and true or false
+        end
+        if simple then
+            -- Simple mode shows only the earliest incomplete active step,
+            -- including stickies that would otherwise stay concurrent.
+            -- A gated turn-in yields to the earliest sticky that is blocking it.
+            local showStep = nil
+            if primaryWaiting then
+                for index = 1, horizon do
+                    local step = guide.steps[index]
+                    if showSticky(index, step, true) and questStepBlocks(step, primary) then
+                        showStep = step
+                        break
+                    end
+                end
+            end
+            if not showStep then
+                for index = 1, primaryIndex - 1 do
+                    local step = guide.steps[index]
+                    if showSticky(index, step, primaryWaiting) then
+                        showStep = step
+                        break
+                    end
+                end
+            end
+            if not showStep and not primaryWaiting then
+                showStep = primary
+            end
+            if not showStep and primaryWaiting then
+                for index = primaryIndex + 1, horizon do
+                    local step = guide.steps[index]
+                    if showSticky(index, step, true) then
+                        showStep = step
+                        break
+                    end
+                end
+            end
+            if showStep then
+                addStep(showStep, showStep ~= primary)
+            end
+        else
+            if not primaryWaiting then
+                addStep(primary, false)
+            end
+            local gates = {}
+            local others = {}
+            for index = 1, horizon do
+                local step = guide.steps[index]
+                if showSticky(index, step, primaryWaiting) then
+                    if primaryWaiting and questStepBlocks(step, primary) then
+                        gates[#gates + 1] = step
+                    else
+                        others[#others + 1] = step
+                    end
+                end
+            end
+            for _, step in ipairs(gates) do
+                addStep(step, true)
+            end
+            for _, step in ipairs(others) do
+                addStep(step, true)
+            end
+            if #items == 0 then
+                addStep(primary, false)
             end
         end
     end

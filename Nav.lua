@@ -74,6 +74,34 @@ do
             end
         end
     end
+
+    local docks = ns.NavTransportDocks
+    if type(docks) == "table" then
+        for index = 1, #docks do
+            local entry = docks[index]
+            if type(entry) == "table" and type(entry.wx) == "number" and type(entry.wy) == "number" and type(entry.instance) == "number" then
+                local kind = entry.type
+                if kind ~= "boat" and kind ~= "zeppelin" and kind ~= "skycutter" then
+                    kind = "transport"
+                end
+                PRESETS[#PRESETS + 1] = {
+                    kind = kind,
+                    faction = entry.faction,
+                    name = entry.name,
+                    zone = entry.zone,
+                    forever = true,
+                    dockId = entry.dockId,
+                    routeId = entry.routeId,
+                    routeName = entry.routeName,
+                    wx = entry.wx,
+                    wy = entry.wy,
+                    wz = entry.wz,
+                    instance = entry.instance,
+                    map = entry.map,
+                }
+            end
+        end
+    end
 end
 
 local KIND_LABEL = {
@@ -83,6 +111,10 @@ local KIND_LABEL = {
     mail = "Mailbox",
     flight = "Flight Master",
     trainer = "Class Trainer",
+    boat = "Boat",
+    zeppelin = "Zeppelin",
+    skycutter = "Skycutter",
+    transport = "Transport",
 }
 
 local TRAINER_CLASSES = {
@@ -425,6 +457,193 @@ function ns.MapZoneName(map)
     return mapName(map)
 end
 
+-- Forever remaps classic UiMap ids. Remember the live map while the player is
+-- standing in a zone so other-zone pins can reuse that id later.
+local liveMapByClassic = {}
+local liveMapByZone = {}
+
+local function rememberLiveMap(pmap, pzone)
+    if not isNumber(pmap) then
+        return
+    end
+    local zoneKey = normalizeZoneName(pzone)
+    if zoneKey then
+        liveMapByZone[zoneKey] = pmap
+    end
+    for classicId, name in pairs(CLASSIC_MAP_ZONE) do
+        if zonesMatch(pzone, name) then
+            liveMapByClassic[classicId] = pmap
+        end
+    end
+end
+
+-- Continent yards from C_Map.GetWorldPosFromMapPos .x/.y.
+-- HereBeDragons reads GetXY() as (top, left) and returns (left, top). That pair
+-- does not match UnitPosition, so cross-zone arrows and yards were wrong until
+-- the pin shared the player's zone. .x/.y are one continent space for both.
+local function cmapXY(worldPos)
+    if type(worldPos) ~= "table" then
+        return nil
+    end
+    if isNumber(worldPos.x) and isNumber(worldPos.y) then
+        return worldPos.x, worldPos.y
+    end
+    if type(worldPos.GetXY) == "function" then
+        local a, b = worldPos:GetXY()
+        if isNumber(a) and isNumber(b) then
+            return a, b
+        end
+    end
+end
+
+local function mapWorld(map, x, y)
+    if not C_Map or not C_Map.GetWorldPosFromMapPos or not isNumber(map) or not isNumber(x) or not isNumber(y) then
+        return nil
+    end
+    local zx, zy = toFraction(x), toFraction(y)
+    if not isNumber(zx) or not isNumber(zy) then
+        return nil
+    end
+    local vector
+    if CreateVector2D then
+        vector = CreateVector2D(zx, zy)
+    else
+        vector = { x = zx, y = zy }
+    end
+    local ok, continent, worldPos = pcall(C_Map.GetWorldPosFromMapPos, map, vector)
+    if not ok then
+        return nil
+    end
+    local wx, wy = cmapXY(worldPos)
+    if not wx then
+        return nil
+    end
+    return wx, wy, continent
+end
+
+local function pinMapsForWorld(map, zone)
+    local list = {}
+    local seen = {}
+    local function add(id)
+        if isNumber(id) and not seen[id] then
+            seen[id] = true
+            list[#list + 1] = id
+        end
+    end
+    add(map)
+    if isNumber(map) then
+        add(liveMapByClassic[map])
+    end
+    local zoneKey = normalizeZoneName(zone or mapName(map))
+    if zoneKey then
+        add(liveMapByZone[zoneKey])
+    end
+    return list
+end
+
+-- Cross-zone vector in C_Map world space. Nil when the pin is already same-zone
+-- (callers keep the zone-percent arrow) or when either map will not convert.
+function ns.CrossZoneVector(map, x, y, zone)
+    local pzx, pzy, pmap = playerZonePos()
+    if not isNumber(pzx) or not isNumber(pmap) or not isNumber(x) or not isNumber(y) then
+        return nil
+    end
+    local pzone = playerZoneName()
+    local pinZone = zone or mapName(map)
+    if (isNumber(map) and map == pmap) or zonesMatch(pzone, pinZone) then
+        return nil
+    end
+    local pwx, pwy, pcont = mapWorld(pmap, pzx, pzy)
+    if not pwx then
+        return nil
+    end
+    local twx, twy, tcont
+    for _, pinMap in ipairs(pinMapsForWorld(map, pinZone)) do
+        twx, twy, tcont = mapWorld(pinMap, x, y)
+        if twx then
+            break
+        end
+    end
+    if not twx then
+        return nil
+    end
+    if isNumber(pcont) and isNumber(tcont) and pcont ~= tcont then
+        return nil
+    end
+    local dx, dy = twx - pwx, twy - pwy
+    local dist = (dx * dx + dy * dy) ^ 0.5
+
+    local function axis(which)
+        local amount = 0.02
+        local sx, sy = pzx, pzy
+        if which == "x" then
+            if sx > 0.9 then
+                amount = -0.02
+            end
+            sx = sx + amount
+        else
+            if sy > 0.9 then
+                amount = -0.02
+            end
+            sy = sy + amount
+        end
+        local wx, wy = mapWorld(pmap, sx, sy)
+        if not wx then
+            return nil
+        end
+        return (wx - pwx) / amount, (wy - pwy) / amount
+    end
+
+    local east, south
+    local ex, ey = axis("x")
+    local sx, sy = axis("y")
+    if ex and sx then
+        local elen = ex * ex + ey * ey
+        local slen = sx * sx + sy * sy
+        if elen > 1 and slen > 1 then
+            east = (dx * ex + dy * ey) / elen
+            south = (dx * sx + dy * sy) / slen
+        end
+    end
+    return {
+        dist = dist,
+        east = east,
+        south = south,
+    }
+end
+
+local mapConvertsCache = {}
+
+local function mapConverts(map)
+    if not isNumber(map) then
+        return false
+    end
+    local cached = mapConvertsCache[map]
+    if cached ~= nil then
+        return cached
+    end
+    local wx = worldPoint(map, 0.5, 0.5)
+    cached = wx ~= nil
+    mapConvertsCache[map] = cached
+    return cached
+end
+
+-- Prefer a map id that actually converts on this client (live Forever id over
+-- classic Era id when the latter is inert).
+local function resolvePinMap(map, zone)
+    if isNumber(map) and mapConverts(map) then
+        return map
+    end
+    if isNumber(map) and liveMapByClassic[map] then
+        return liveMapByClassic[map]
+    end
+    local zoneKey = normalizeZoneName(zone or mapName(map))
+    if zoneKey and liveMapByZone[zoneKey] then
+        return liveMapByZone[zoneKey]
+    end
+    return map
+end
+
 -- Classic HereBeDragons builds map axes from GetWorldPosFromMapPos():GetXY()
 -- assigned as (top, left). Zone→world X/Y then come out swapped against
 -- UnitPosition. Standing on Kaltunk (Durotar 43.3, 68.5) that swap is ~5150 yd:
@@ -444,6 +663,31 @@ local function axesAreCrossed(map, zx, zy, px, py)
     return crossed < direct and crossed < (AXIS_MATCH_YARDS * AXIS_MATCH_YARDS)
 end
 
+-- Forever outdoor maps: measure the UnitPosition ↔ map-world axis swap on the
+-- player's LIVE map only. Cross-zone checks against the destination map fail
+-- (projected player is thousands of yards from UnitPosition), so arrows and
+-- distances stayed wrong until the player entered the pin's zone.
+local function playerAxesCrossed(pmap, pzx, pzy, px, py)
+    if not isNumber(pmap) or not isNumber(pzx) or not isNumber(pzy) or not isNumber(px) or not isNumber(py) then
+        return false
+    end
+    return axesAreCrossed(pmap, pzx, pzy, px, py)
+end
+
+local function mapWorldToUnit(mx, my, crossed)
+    if crossed then
+        return my, mx
+    end
+    return mx, my
+end
+
+local function unitToMapWorld(ux, uy, crossed)
+    if crossed then
+        return uy, ux
+    end
+    return ux, uy
+end
+
 local function alignMapWorld(mx, my, map, zx, zy, px, py)
     if axesAreCrossed(map, zx, zy, px, py) then
         return my, mx
@@ -454,7 +698,7 @@ end
 -- Forever: UnitPosition (player world) and UiMap zone→world can disagree by
 -- an axis swap or a few hundred yards of origin. Build the waypoint in
 -- UnitPosition space by applying the zone-space delta between the player and the pin.
-local function pinWorldFromZoneDelta(map, pinX, pinY, pzx, pzy, px, py, pinstance)
+local function pinWorldFromZoneDelta(map, pinX, pinY, pzx, pzy, px, py, pinstance, crossed)
     if not isNumber(map) or not isNumber(pinX) or not isNumber(pzx) or not isNumber(px) or not isNumber(py) then
         return nil
     end
@@ -465,9 +709,14 @@ local function pinWorldFromZoneDelta(map, pinX, pinY, pzx, pzy, px, py, pinstanc
     if not playerMx or not pinMx then
         return nil
     end
-    playerMx, playerMy = alignMapWorld(playerMx, playerMy, map, pzx, pzy, px, py)
-    pinMx, pinMy = alignMapWorld(pinMx, pinMy, map, pzx, pzy, px, py)
-    return px + (pinMx - playerMx), py + (pinMy - playerMy), pinstance or pinInstance
+    if crossed == nil then
+        playerMx, playerMy = alignMapWorld(playerMx, playerMy, map, pzx, pzy, px, py)
+        pinMx, pinMy = alignMapWorld(pinMx, pinMy, map, pzx, pzy, px, py)
+        return px + (pinMx - playerMx), py + (pinMy - playerMy), pinstance or pinInstance
+    end
+    -- Explicit crossed flag: convert map-space delta into UnitPosition space.
+    local dUx, dUy = mapWorldToUnit(pinMx - playerMx, pinMy - playerMy, crossed)
+    return px + dUx, py + dUy, pinstance or pinInstance
 end
 
 -- When HBD cannot convert a map at all, approximate the pin in UnitPosition
@@ -495,9 +744,13 @@ function ns.PinToPlayerWorld(map, x, y, zone)
     local pzone = playerZoneName()
     local hbd = getHBD()
     local pinZone = zone or mapName(map)
+    rememberLiveMap(pmap, pzone)
+    map = resolvePinMap(map, pinZone)
+
+    local crossed = playerAxesCrossed(pmap, pzx, pzy, px, py)
 
     local function deltaOn(useMap, useX, useY)
-        return pinWorldFromZoneDelta(useMap, x, y, useX, useY, px, py, pinstance)
+        return pinWorldFromZoneDelta(useMap, x, y, useX, useY, px, py, pinstance, crossed)
     end
 
     local sameZone = (isNumber(map) and isNumber(pmap) and map == pmap)
@@ -517,12 +770,11 @@ function ns.PinToPlayerWorld(map, x, y, zone)
             end
         end
 
-        if isNumber(map) and hbd and type(hbd.GetZoneCoordinatesFromWorld) == "function" then
-            -- Map data may store X/Y swapped versus UnitPosition. Feed it map-world order.
-            local worldX, worldY = px, py
-            if isNumber(pmap) and isNumber(pzx) and axesAreCrossed(pmap, pzx, pzy, px, py) then
-                worldX, worldY = py, px
-            end
+        -- Other-zone: project the player onto the destination map in map-world
+        -- space, then apply the pin delta back in UnitPosition space. Never reuse
+        -- the player's zone percents on a different map.
+        if not sameZone and isNumber(map) and hbd and type(hbd.GetZoneCoordinatesFromWorld) == "function" then
+            local worldX, worldY = unitToMapWorld(px, py, crossed)
             local ok, zx, zy = pcall(hbd.GetZoneCoordinatesFromWorld, hbd, worldX, worldY, map, true)
             if ok and isNumber(zx) and isNumber(zy) then
                 local wx, wy, instance = deltaOn(map, zx, zy)
@@ -532,7 +784,7 @@ function ns.PinToPlayerWorld(map, x, y, zone)
             end
         end
 
-        if isNumber(map) then
+        if sameZone and isNumber(map) and map ~= pmap then
             local wx, wy, instance = deltaOn(map, pzx, pzy)
             if wx then
                 return wx, wy, instance
@@ -553,11 +805,15 @@ function ns.PinToPlayerWorld(map, x, y, zone)
         end
     end
 
-    local wx, wy, instance = worldPoint(map, x, y)
-    if wx and isNumber(map) and isNumber(px) and isNumber(py) and isNumber(pzx) and isNumber(pzy) then
-        wx, wy = alignMapWorld(wx, wy, map, pzx, pzy, px, py)
+    local mx, my, instance = worldPoint(map, x, y)
+    if not mx then
+        return nil
     end
-    return wx, wy, instance
+    -- Always align absolute converts into UnitPosition space when we know the
+    -- live-map axis relationship. Leaving raw map-world coords here was the
+    -- cross-zone arrow/distance failure mode.
+    local wx, wy = mapWorldToUnit(mx, my, crossed)
+    return wx, wy, pinstance or instance
 end
 
 -- Zone yards for UI when a world waypoint cannot be built yet.
@@ -602,14 +858,16 @@ function ns.PinZoneDistance(map, x, y, zone)
 end
 
 -- Prefer a UnitPosition-relative waypoint when possible; otherwise the closest
--- raw zone→world conversion.
+-- axis-aligned zone→world conversion.
 local function closestPinWorld(pin, pmap, pzx, pzy, px, py, pinstance)
     if type(pin) ~= "table" or not isNumber(pin.x) or not isNumber(pin.y) then
         return nil
     end
 
+    local crossed = playerAxesCrossed(pmap, pzx, pzy, px, py)
+
     if isNumber(pmap) and isNumber(pzx) and isNumber(px) then
-        local wx, wy, instance = pinWorldFromZoneDelta(pmap, pin.x, pin.y, pzx, pzy, px, py, pinstance)
+        local wx, wy, instance = pinWorldFromZoneDelta(pmap, pin.x, pin.y, pzx, pzy, px, py, pinstance, crossed)
         if wx then
             local dist = worldDistance(getHBD(), pinstance, px, py, wx, wy)
             return wx, wy, instance or pinstance, dist
@@ -621,10 +879,11 @@ local function closestPinWorld(pin, pmap, pzx, pzy, px, py, pinstance)
         if not isNumber(map) then
             return
         end
-        local wx, wy, instance = pinWorld(map, pin.x, pin.y)
-        if not wx then
+        local mx, my, instance = pinWorld(map, pin.x, pin.y)
+        if not mx then
             return
         end
+        local wx, wy = mapWorldToUnit(mx, my, crossed)
         local dist = isNumber(px) and worldDistance(getHBD(), pinstance, px, py, wx, wy) or nil
         if not bestWx or (isNumber(dist) and (not isNumber(bestDist) or dist < bestDist)) then
             bestWx, bestWy, bestInstance, bestDist = wx, wy, instance or pinstance, dist
@@ -816,17 +1075,22 @@ local function destWorld(dest)
     if type(dest) ~= "table" then
         return nil
     end
+    -- Prefer UnitPosition-aligned coords so NavDistance / NavFacing match tracker arrows.
+    if isNumber(dest.map) and isNumber(dest.x) and isNumber(dest.y) then
+        local wx, wy, instance = ns.PinToPlayerWorld(dest.map, dest.x, dest.y, dest.zone)
+        if wx then
+            dest.waypoint = { wx = wx, wy = wy, instance = instance }
+            return wx, wy, instance
+        end
+    end
     if type(dest.waypoint) == "table" and isNumber(dest.waypoint.wx) and isNumber(dest.waypoint.wy) then
         return dest.waypoint.wx, dest.waypoint.wy, dest.waypoint.instance
     end
-    local wx, wy, instance = pinWorld(dest.map, dest.x, dest.y)
-    if not wx and isNumber(dest.wx) and isNumber(dest.wy) then
-        wx, wy, instance = dest.wx, dest.wy, dest.instance
+    if isNumber(dest.wx) and isNumber(dest.wy) then
+        dest.waypoint = { wx = dest.wx, wy = dest.wy, instance = dest.instance }
+        return dest.wx, dest.wy, dest.instance
     end
-    if wx then
-        dest.waypoint = { wx = wx, wy = wy, instance = instance }
-    end
-    return wx, wy, instance
+    return nil
 end
 
 local function copyResolved(entry, pin, wx, wy, instance)
@@ -970,6 +1234,12 @@ function ns.NavDistance(dest)
     if type(dest) ~= "table" then
         return nil
     end
+    if isNumber(dest.x) and isNumber(dest.y) then
+        local cross = ns.CrossZoneVector(dest.map, dest.x, dest.y, dest.zone)
+        if cross and isNumber(cross.dist) then
+            return cross.dist
+        end
+    end
     local hbd = getHBD()
     local px, py, pinstance = playerPoint()
     if not hbd or not px then
@@ -1035,12 +1305,12 @@ local function styleNavFrame(frame)
     })
     local panelR, panelG, panelB = 0.04, 0.04, 0.04
     local edgeR, edgeG, edgeB = 1, 0.82, 0
-    local background = 0.96
+    local background = 0.94
     if ns.Color then
         panelR, panelG, panelB = ns.Color("background")
         edgeR, edgeG, edgeB = ns.Color("accent")
     end
-    if ns.db and type(ns.db.trackerBackground) == "number" then
+    if ns.db and type(ns.db.trackerBackground) == "number" and ns.db.trackerBackground > background then
         background = ns.db.trackerBackground
     end
     frame:SetBackdropColor(panelR, panelG, panelB, background)
@@ -1134,6 +1404,8 @@ local function presentMenu()
         { text = KIND_LABEL.auction, kind = "auction" },
         { text = KIND_LABEL.mail, kind = "mail" },
         { text = KIND_LABEL.flight, kind = "flight" },
+        { text = KIND_LABEL.boat, kind = "boat" },
+        { text = KIND_LABEL.zeppelin, kind = "zeppelin" },
         { text = "Class Trainers  >", submenu = true },
     }
     if target then
@@ -1237,4 +1509,75 @@ function ns.ToggleNavMenu(anchor)
     menu:ClearAllPoints()
     menu:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -2)
     menu:Show()
+end
+
+-- Clear the nav strip when the player opens a dialogue with its target NPC.
+local function unitNpcId(unit)
+    if not UnitGUID then
+        return nil
+    end
+    local guid = UnitGUID(unit)
+    if type(guid) ~= "string" or guid == "" then
+        return nil
+    end
+    local id = select(6, strsplit("-", guid))
+    return tonumber(id)
+end
+
+local function unitMatchesDest(unit, dest)
+    if type(dest) ~= "table" or not UnitExists or not UnitExists(unit) then
+        return false
+    end
+    local npcId = tonumber(dest.npc)
+    if npcId then
+        local id = unitNpcId(unit)
+        if id and id == npcId then
+            return true
+        end
+    end
+    if type(dest.name) == "string" and dest.name ~= "" and UnitName then
+        local name = UnitName(unit)
+        if name and name == dest.name then
+            return true
+        end
+    end
+    return false
+end
+
+function ns.NavClearIfSpeakingToTarget()
+    local dest = target
+    if type(dest) ~= "table" then
+        return false
+    end
+    if unitMatchesDest("npc", dest) or unitMatchesDest("target", dest) then
+        ns.NavClearTarget()
+        return true
+    end
+    return false
+end
+
+do
+    local watcher = CreateFrame("Frame")
+    local events = {
+        "GOSSIP_SHOW",
+        "MERCHANT_SHOW",
+        "TRAINER_SHOW",
+        "BANKFRAME_OPENED",
+        "MAIL_SHOW",
+        "AUCTION_HOUSE_SHOW",
+        "TAXIMAP_OPENED",
+        "QUEST_DETAIL",
+        "QUEST_GREETING",
+        "QUEST_PROGRESS",
+        "QUEST_COMPLETE",
+    }
+    for index = 1, #events do
+        pcall(watcher.RegisterEvent, watcher, events[index])
+    end
+    watcher:SetScript("OnEvent", function(_, event)
+        if event == "TRAINER_SHOW" and IsTradeskillTrainer and IsTradeskillTrainer() then
+            return
+        end
+        ns.NavClearIfSpeakingToTarget()
+    end)
 end

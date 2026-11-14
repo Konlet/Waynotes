@@ -58,6 +58,10 @@ local function plainText(text)
     if not text then
         return nil
     end
+    -- Keep the body of [FRIENDLY]Name[/] / [FRIENDLY]Name[/FRIENDLY] authoring tags.
+    text = text:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+    text = text:gsub("|cRB_[A-Z]+_", "")
+    text = text:gsub("|cRXP_[A-Z]+_", "")
     text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
     text = text:gsub("|r", "")
     text = text:gsub("|c", "")
@@ -1031,18 +1035,22 @@ local function collectObjectives()
             primaryIndex = index
         end
     end
-    if not primaryIndex and ns.db and ns.db.simpleMode then
+    if ns.db and ns.db.simpleMode then
+        -- Show the earliest active step, sticky or not.
+        local showIndex = primaryIndex
         for index, step in ipairs(steps) do
             if step and not step.tip then
-                primaryIndex = index
+                showIndex = index
                 break
             end
         end
-    end
-    if primaryIndex then
-        order[#order + 1] = primaryIndex
-    end
-    if not (ns.db and ns.db.simpleMode) then
+        if showIndex then
+            order[#order + 1] = showIndex
+        end
+    else
+        if primaryIndex then
+            order[#order + 1] = primaryIndex
+        end
         for index, step in ipairs(steps) do
             if index ~= primaryIndex and step and not step.tip then
                 order[#order + 1] = index

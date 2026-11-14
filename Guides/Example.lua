@@ -8,6 +8,9 @@ local _, ns = ...
 -- when = "complete" advances once every listed quest is turned in.
 -- when = "objectives" advances once objectives are finished (also the
 --        default when a quest is set and when is left out).
+-- objective = N advances an objectives step once quest objective N is
+--        done (1-based leaderboard index). Use this to split multi-enemy
+--        quests onto different pins when spawn camps are not nearby.
 -- Leave when out with no quest and the step waits for the next button.
 --
 -- Optional guide fields for recommendations:
@@ -16,6 +19,21 @@ local _, ns = ...
 -- map, x, y are an optional pin. map is a UiMap ID. Elwynn Forest is 1429.
 -- Write Era coordinates. On Forever, QuestieDB converts the zones it knows
 -- about. Leave the pin out and the step uses the quest giver's spawn.
+-- pins = { { x = 10, y = 20 }, { x = 30, y = 40, note = "Pond" } } lists
+-- several spots (map inherited from the step). The arrow goes to the nearest
+-- unvisited pin, then the next when you reach it.
+--
+-- Color tags (preferred authoring form):
+--   [FRIENDLY]Deputy Willem[/]   NPCs
+--   [ENEMY]Kobold Vermin[/]      mobs
+--   [QUEST]A Threat Within[/]   quest names
+--   [LOOT]Gold Coin[/]          items you loot
+--   [PICK]Box of Spells[/]      objects you click
+--   [BUY]Tough Jerky[/]         vendor goods
+--   [SKILL]Battle Shout[/]      spells and abilities
+--   [WARN]Do not die[/]         warnings
+-- Closing [/TAG] also works, e.g. [ENEMY]Foo[/ENEMY].
+-- Legacy |cRB_FRIENDLY_Name|r tags still expand the same way.
 
 ns.RegisterGuide({
     id = "example-northshire",
