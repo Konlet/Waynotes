@@ -16,7 +16,7 @@ ns.RegisterGuide({
     steps = {
         {
             faction = "Horde",
-            text = "Train |cRB_LOOT_Herbalism|r and learn Find Herbs. Buy an herb pouch if offered.",
+            text = "Train [LOOT]Herbalism[/] and learn Find Herbs. Buy an herb pouch if offered.",
             note = "Horde: Mishiki (Durotar), Faruza (Tirisfal), Komin Winterhoof (Thunder Bluff), Jandi (Orgrimmar). Also on Zephras Isle.",
             map = 1454,
             x = 55.4,
@@ -24,57 +24,57 @@ ns.RegisterGuide({
         },
         {
             faction = "Alliance",
-            text = "Train |cRB_LOOT_Herbalism|r and learn Find Herbs. Buy an herb pouch if offered.",
+            text = "Train [LOOT]Herbalism[/] and learn Find Herbs. Buy an herb pouch if offered.",
             note = "Alliance: Herbalist Pomeroy (Elwynn), Malorne Bladeleaf (Teldrassil), Reyna Stonebranch (Ironforge). Also on Zephras Isle.",
             map = 1453,
             x = 55.6,
             y = 85.0,
         },
         {
-            text = "Skill 1-70: pick |cRB_LOOT_Peacebloom|r, |cRB_LOOT_Silverleaf|r, and |cRB_LOOT_Earthroot|r (from 15).",
+            text = "Skill 1-70: pick [LOOT]Peacebloom[/], [LOOT]Silverleaf[/], and [LOOT]Earthroot[/] (from 15).",
             note = "Any starting zone. Horde: Durotar, Mulgore, Tirisfal, or Zephras Isle. Alliance: Elwynn, Dun Morogh, Teldrassil, or Zephras Isle. Train Journeyman at 50 (level 10).",
             details = {
                 "Incense Candle (camp) unlocks at Herbalism 20.",
             },
         },
         {
-            text = "Skill 70-115: pick |cRB_LOOT_Mageroyal|r, |cRB_LOOT_Briarthorn|r, and |cRB_LOOT_Stranglekelp|r (85, underwater).",
+            text = "Skill 70-115: pick [LOOT]Mageroyal[/], [LOOT]Briarthorn[/], and [LOOT]Stranglekelp[/] (85, underwater).",
             note = "Horde: Silverpine Forest or The Barrens. Alliance: Westfall, Loch Modan, or Darkshore. Keep Swiftthistle and Frilled Lichen.",
         },
         {
-            text = "Skill 115-170: pick |cRB_LOOT_Bruiseweed|r, |cRB_LOOT_Wild Steelbloom|r, |cRB_LOOT_Kingsblood|r (125), and |cRB_LOOT_Liferoot|r (150).",
+            text = "Skill 115-170: pick [LOOT]Bruiseweed[/], [LOOT]Wild Steelbloom[/], [LOOT]Kingsblood[/] (125), and [LOOT]Liferoot[/] (150).",
             note = "Horde: Hillsbrad, Stonetalon, or Ashenvale. Alliance: Wetlands, Redridge, Ashenvale, or Hillsbrad. Train Expert at 125 (level 20).",
         },
         {
-            text = "Skill 170-205: pick |cRB_LOOT_Fadeleaf|r, |cRB_LOOT_Goldthorn|r, |cRB_LOOT_Khadgar's Whisker|r (185), plus leftover Kingsblood and Liferoot.",
+            text = "Skill 170-205: pick [LOOT]Fadeleaf[/], [LOOT]Goldthorn[/], [LOOT]Khadgar's Whisker[/] (185), plus leftover Kingsblood and Liferoot.",
             note = "Stranglethorn Vale or Arathi Highlands. Train Artisan at 200 (level 35).",
             map = 1434,
             x = 35.0,
             y = 30.0,
         },
         {
-            text = "Skill 205-230: pick |cRB_LOOT_Firebloom|r, |cRB_LOOT_Purple Lotus|r, and |cRB_LOOT_Wintersbite|r (Alterac only).",
+            text = "Skill 205-230: pick [LOOT]Firebloom[/], [LOOT]Purple Lotus[/], and [LOOT]Wintersbite[/] (Alterac only).",
             note = "Tanaris, Searing Gorge, Badlands, or Alterac for Wintersbite. Purple Lotus can drop Wildvine.",
             map = 1446,
             x = 50.0,
             y = 50.0,
         },
         {
-            text = "Skill 230-260: pick |cRB_LOOT_Sungrass|r, |cRB_LOOT_Blindweed|r, |cRB_LOOT_Ghost Mushroom|r (245, caves), and leftover Purple Lotus.",
+            text = "Skill 230-260: pick [LOOT]Sungrass[/], [LOOT]Blindweed[/], [LOOT]Ghost Mushroom[/] (245, caves), and leftover Purple Lotus.",
             note = "Feralas, The Hinterlands, or Swamp of Sorrows for Blindweed. Greenhouse (camp) needs skill 140.",
             map = 1444,
             x = 50.0,
             y = 50.0,
         },
         {
-            text = "Skill 260-285: pick |cRB_LOOT_Golden Sansam|r, |cRB_LOOT_Dreamfoil|r (270), |cRB_LOOT_Mountain Silversage|r (280), and Sungrass.",
+            text = "Skill 260-285: pick [LOOT]Golden Sansam[/], [LOOT]Dreamfoil[/] (270), [LOOT]Mountain Silversage[/] (280), and Sungrass.",
             note = "Un'Goro Crater or Felwood. Felwood also has Gromsblood, Arthas' Tears, and Plaguebloom.",
             map = 1448,
             x = 50.0,
             y = 50.0,
         },
         {
-            text = "Skill 285-300: pick |cRB_LOOT_Plaguebloom|r, |cRB_LOOT_Icecap|r (290), Dreamfoil, and Mountain Silversage.",
+            text = "Skill 285-300: pick [LOOT]Plaguebloom[/], [LOOT]Icecap[/] (290), Dreamfoil, and Mountain Silversage.",
             note = "Felwood, Eastern/Western Plaguelands, or Winterspring for Icecap. Black Lotus at 300 in Burning Steppes, EPL, Silithus, Winterspring.",
             details = {
                 "Seed Hybridizer (camp) unlocks at Herbalism 300.",
@@ -97,7 +97,7 @@ ns.RegisterGuide({
     steps = {
         {
             faction = "Horde",
-            text = "Train |cRB_LOOT_Mining|r, buy a |cRB_LOOT_Mining Pick|r, and learn Find Minerals.",
+            text = "Train [LOOT]Mining[/], buy a [LOOT]Mining Pick[/], and learn Find Minerals.",
             note = "Horde: Makaru (Orgrimmar), Brek Stonehoof (Thunder Bluff), Brom Killian (Undercity). Smelt as you go for extra skill.",
             map = 1454,
             x = 73.0,
@@ -105,36 +105,36 @@ ns.RegisterGuide({
         },
         {
             faction = "Alliance",
-            text = "Train |cRB_LOOT_Mining|r, buy a |cRB_LOOT_Mining Pick|r, and learn Find Minerals.",
+            text = "Train [LOOT]Mining[/], buy a [LOOT]Mining Pick[/], and learn Find Minerals.",
             note = "Alliance: Brock Stoneseeker (Loch Modan), Dank Drizzlecut (Dun Morogh), Geofram Bouldertoe (Ironforge). Smelt as you go for extra skill.",
             map = 1455,
             x = 50.0,
             y = 26.0,
         },
         {
-            text = "Skill 1-65: mine |cRB_LOOT_Copper Vein|r. Smelt Copper at a forge.",
+            text = "Skill 1-65: mine [LOOT]Copper Vein[/]. Smelt Copper at a forge.",
             note = "Horde: Durotar, The Barrens, or Silverpine. Alliance: Elwynn, Dun Morogh, or Westfall. Train Journeyman at 50 (level 10).",
         },
         {
-            text = "Skill 65-125: mine |cRB_LOOT_Tin Vein|r and |cRB_LOOT_Silver Vein|r (75). Smelt Tin, Bronze, and Silver.",
+            text = "Skill 65-125: mine [LOOT]Tin Vein[/] and [LOOT]Silver Vein[/] (75). Smelt Tin, Bronze, and Silver.",
             note = "Horde: Hillsbrad, Ashenvale, or Wetlands / Redridge / Loch Modan if you go east. Alliance: Wetlands, Redridge, Loch Modan, or Darkshore. Train Expert at 125 (level 20).",
         },
         {
-            text = "Skill 125-175: mine |cRB_LOOT_Iron Deposit|r and |cRB_LOOT_Gold Vein|r (155). Smelt Iron, Gold, and Steel.",
+            text = "Skill 125-175: mine [LOOT]Iron Deposit[/] and [LOOT]Gold Vein[/] (155). Smelt Iron, Gold, and Steel.",
             note = "Arathi Highlands, Alterac Mountains, or Stranglethorn Vale.",
             map = 1417,
             x = 50.0,
             y = 50.0,
         },
         {
-            text = "Skill 175-245: mine |cRB_LOOT_Mithril Deposit|r, |cRB_LOOT_Truesilver Deposit|r (230), and |cRB_LOOT_Dark Iron Deposit|r (230).",
+            text = "Skill 175-245: mine [LOOT]Mithril Deposit[/], [LOOT]Truesilver Deposit[/] (230), and [LOOT]Dark Iron Deposit[/] (230).",
             note = "Badlands, Alterac, Arathi, or Searing Gorge. Train Artisan at 200 (level 35).",
             map = 1418,
             x = 50.0,
             y = 50.0,
         },
         {
-            text = "Skill 245-300: mine |cRB_LOOT_Small Thorium Vein|r and |cRB_LOOT_Rich Thorium Vein|r (275), plus leftover Mithril and Truesilver.",
+            text = "Skill 245-300: mine [LOOT]Small Thorium Vein[/] and [LOOT]Rich Thorium Vein[/] (275), plus leftover Mithril and Truesilver.",
             note = "Un'Goro Crater, Winterspring, Burning Steppes, or Searing Gorge. Smelt Thorium at a forge.",
             details = {
                 "Forever also adds Lodestone, Rock Garden, Molten Foundry, and late Azerothium / Heavy Thorium smelts.",
@@ -157,7 +157,7 @@ ns.RegisterGuide({
     steps = {
         {
             faction = "Horde",
-            text = "Train |cRB_LOOT_Skinning|r and buy a |cRB_LOOT_Skinning Knife|r.",
+            text = "Train [LOOT]Skinning[/] and buy a [LOOT]Skinning Knife[/].",
             note = "Horde: Mooranta / Yonn Deepcut (Mulgore), Thuwd (Orgrimmar), Killian Hagey (Undercity). Skin any looted beast, including other players' kills.",
             map = 1454,
             x = 62.0,
@@ -165,7 +165,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Alliance",
-            text = "Train |cRB_LOOT_Skinning|r and buy a |cRB_LOOT_Skinning Knife|r.",
+            text = "Train [LOOT]Skinning[/] and buy a [LOOT]Skinning Knife[/].",
             note = "Alliance: Helene Peltskinner (Elwynn), Maris Granger (Stormwind), Eladriel (Darnassus). Skin any looted beast, including other players' kills.",
             map = 1453,
             x = 71.6,
@@ -224,7 +224,7 @@ ns.RegisterGuide({
     steps = {
         {
             faction = "Horde",
-            text = "Train |cRB_LOOT_Fishing|r. Buy a |cRB_LOOT_Fishing Pole|r and a lure (|cRB_LOOT_Shiny Bauble|r).",
+            text = "Train [LOOT]Fishing[/]. Buy a [LOOT]Fishing Pole[/] and a lure ([LOOT]Shiny Bauble[/]).",
             note = "Horde: Lumak (Orgrimmar), Kah Mistrunner (Thunder Bluff), Armand Cromwell (Undercity). Equip the pole and attach the lure.",
             map = 1454,
             x = 69.8,
@@ -232,7 +232,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Alliance",
-            text = "Train |cRB_LOOT_Fishing|r. Buy a |cRB_LOOT_Fishing Pole|r and a lure (|cRB_LOOT_Shiny Bauble|r).",
+            text = "Train [LOOT]Fishing[/]. Buy a [LOOT]Fishing Pole[/] and a lure ([LOOT]Shiny Bauble[/]).",
             note = "Alliance: Lee Brown (Elwynn), Arnold Leland (Stormwind), Grimnur Stonebrand (Ironforge). Equip the pole and attach the lure.",
             map = 1453,
             x = 54.9,

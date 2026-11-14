@@ -325,42 +325,145 @@ end
 
 local function createThemes(parent)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(78)
+    holder:SetHeight(44)
 
     local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     label:SetPoint("TOPLEFT", 0, 0)
     label:SetText("Theme")
 
-    local buttons = {}
-    for index, theme in ipairs(ns.themeList) do
-        local col = (index - 1) % 4
-        local row = math.floor((index - 1) / 4)
-        local button = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
-        button:SetSize(112, 22)
-        button:SetPoint("TOPLEFT", col * 118, -20 - row * 26)
-        button:SetText(theme.name)
-        button:SetScript("OnClick", function()
-            ns.ApplyTheme(theme.id)
-        end)
-        button:SetScript("OnEnter", function(self)
+    local dropdown = CreateFrame("Frame", "WaynotesThemeMenu", holder, "UIDropDownMenuTemplate")
+    dropdown:SetPoint("TOPLEFT", -14, -16)
+    UIDropDownMenu_SetWidth(dropdown, 184)
+    UIDropDownMenu_JustifyText(dropdown, "LEFT")
+
+    local previewState = nil
+    local previewCommitted = false
+
+    local function captureState()
+        return {
+            theme = ns.db.theme,
+            activeProfile = ns.db.activeProfile,
+            trackerBackground = ns.db.trackerBackground,
+            colors = ns.CopyTheme(ns.db.colors),
+        }
+    end
+
+    local function restoreState(state)
+        if not state or not ns.db then
+            return
+        end
+        ns.db.theme = state.theme
+        ns.db.activeProfile = state.activeProfile
+        ns.db.trackerBackground = state.trackerBackground
+        ns.db.colors = state.colors
+        ns.Apply()
+        if ns.RefreshOptions then
+            ns.RefreshOptions()
+        end
+    end
+
+    local function previewTheme(id)
+        local theme = ns.themesById[id]
+        if not theme or not ns.db then
+            return
+        end
+        if not previewState then
+            previewState = captureState()
+        end
+        previewCommitted = false
+        ns.db.theme = id
+        ns.db.activeProfile = nil
+        ns.db.colors = ns.CopyTheme(theme)
+        if type(theme.backgroundAlpha) == "number" then
+            ns.db.trackerBackground = theme.backgroundAlpha
+        end
+        ns.Apply()
+        if ns.RefreshOptions then
+            ns.RefreshOptions()
+        end
+    end
+
+    local function endPreview()
+        if previewCommitted then
+            previewCommitted = false
+            previewState = nil
+            return
+        end
+        if not previewState then
+            return
+        end
+        local state = previewState
+        previewState = nil
+        restoreState(state)
+    end
+
+    local function commitTheme(id)
+        previewCommitted = true
+        previewState = nil
+        ns.ApplyTheme(id)
+    end
+
+    local function ensureHideHook()
+        local list = _G.DropDownList1
+        if not list or list.waynotesThemeHideHooked then
+            return
+        end
+        list.waynotesThemeHideHooked = true
+        list:HookScript("OnHide", endPreview)
+    end
+
+    ensureHideHook()
+
+    UIDropDownMenu_Initialize(dropdown, function()
+        previewCommitted = false
+        ensureHideHook()
+        for index, theme in ipairs(ns.themeList) do
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = theme.name
+            info.value = theme.id
+            info.checked = ns.db and ns.db.theme == theme.id
+            info.func = function()
+                commitTheme(theme.id)
+            end
+            UIDropDownMenu_AddButton(info)
+
+            local button = _G["DropDownList1Button" .. index]
+            if button then
+                button.waynotesPreviewTheme = theme.id
+                if not button.waynotesPreviewHooked then
+                    button.waynotesPreviewHooked = true
+                    button:HookScript("OnEnter", function(self)
+                        if UIDROPDOWNMENU_OPEN_MENU ~= dropdown then
+                            return
+                        end
+                        if self.waynotesPreviewTheme then
+                            previewTheme(self.waynotesPreviewTheme)
+                        end
+                    end)
+                end
+            end
+        end
+    end)
+
+    local dropButton = _G[dropdown:GetName() .. "Button"]
+    if dropButton then
+        dropButton:HookScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText(theme.name, 1, 1, 1)
-            GameTooltip:AddLine("Applies this palette to the tracker. Individual colors can be changed afterward.", 0.9, 0.9, 0.9, true)
+            GameTooltip:SetText("Theme", 1, 1, 1)
+            GameTooltip:AddLine("Hover a theme to preview it on the tracker. Click to apply. Individual colors can be changed afterward.", 0.9, 0.9, 0.9, true)
             ns.FinishTooltip()
         end)
-        button:SetScript("OnLeave", GameTooltip_Hide)
-        buttons[#buttons + 1] = button
-        buttons[button] = theme.id
+        dropButton:HookScript("OnLeave", GameTooltip_Hide)
     end
 
     function holder:Refresh()
-        for _, button in ipairs(buttons) do
-            if buttons[button] == ns.db.theme then
-                button:LockHighlight()
-            else
-                button:UnlockHighlight()
-            end
+        local id = ns.db and ns.db.theme
+        if id == "custom" then
+            UIDropDownMenu_SetText(dropdown, "Custom")
+            return
         end
+        local theme = id and ns.themesById[id]
+        UIDropDownMenu_SetText(dropdown, theme and theme.name or "Select a theme")
     end
 
     addRefresher(holder)
@@ -697,7 +800,7 @@ local function build(parent)
     replace:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 
-    local simple = createCheck(parent, "Simple mode", "Shows only the current step. Sticky and extra steps stay hidden.", "simpleMode")
+    local simple = createCheck(parent, "Simple mode", "Shows only one step at a time: the earliest incomplete active step, including sticky steps.", "simpleMode")
     simple:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 
@@ -707,11 +810,15 @@ local function build(parent)
 
     local flightTimer = createCheck(parent, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. Uses Forever flight-time data by default, then updates your local times after each flight.", "showFlightTimer")
     flightTimer:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local trainReminders = createCheck(parent, "Train spell reminders", "At even levels, shows a closable note at the bottom of the guide. Click it to navigate to your nearest class trainer.", "showTrainReminders")
+    trainReminders:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 36
 
     local themes = createThemes(parent)
     place(themes, parent, y)
-    y = y - 86
+    y = y - 52
 
     local colors = createColors(parent)
     place(colors, parent, y)

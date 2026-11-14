@@ -1,7 +1,6 @@
 local _, ns = ...
 
 -- Generated from Data/wow-forever-flight-connections.json
--- Connection seconds match Data/wow-forever-flight-times.json.
 -- World coordinates use continent mapId 0 (EK) / 1 (Kalimdor).
 
 ns.NavFlightMasters = {

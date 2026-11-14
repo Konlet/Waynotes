@@ -1,0 +1,771 @@
+[
+  {
+    "routeId": 241,
+    "name": "The Maiden's Fancy",
+    "type": "boat",
+    "faction": "Both",
+    "estimatedCycleSeconds": 350.818,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 1,
+        "name": "Ratchet",
+        "zone": "The Barrens",
+        "uiMapId": 1413,
+        "position": {
+          "mapId": 1,
+          "x": -1005.6,
+          "y": -3841.6,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": -1007.0,
+          "y": -3824.9,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 66.861,
+        "departureOffsetSeconds": 126.887,
+        "dwellSeconds": 60.026
+      },
+      {
+        "dockId": 2,
+        "name": "Booty Bay",
+        "zone": "Stranglethorn Vale",
+        "uiMapId": 1434,
+        "position": {
+          "mapId": 0,
+          "x": -14277.7,
+          "y": 582.9,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 0,
+          "x": -14284.6,
+          "y": 561.2,
+          "z": 8.0
+        },
+        "arrivalOffsetSeconds": 233.741,
+        "departureOffsetSeconds": 293.768,
+        "dwellSeconds": 60.027
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 1,
+        "toDockId": 2,
+        "estimatedSeconds": 106.854
+      },
+      {
+        "fromDockId": 2,
+        "toDockId": 1,
+        "estimatedSeconds": 123.911
+      }
+    ]
+  },
+  {
+    "routeId": 285,
+    "name": "The Iron Eagle",
+    "type": "zeppelin",
+    "faction": "Horde",
+    "estimatedCycleSeconds": 303.463,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 3,
+        "name": "Grom'gol Base Camp",
+        "zone": "Stranglethorn Vale",
+        "uiMapId": 1434,
+        "position": {
+          "mapId": 0,
+          "x": -12464.0,
+          "y": 231.6,
+          "z": 49.5
+        },
+        "boardingPosition": null,
+        "arrivalOffsetSeconds": 38.573,
+        "departureOffsetSeconds": 98.603,
+        "dwellSeconds": 60.03
+      },
+      {
+        "dockId": 4,
+        "name": "Orgrimmar",
+        "zone": "Durotar",
+        "uiMapId": 1411,
+        "position": {
+          "mapId": 1,
+          "x": 1360.9,
+          "y": -4631.3,
+          "z": 71.9
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": 1405.0,
+          "y": -4605.0,
+          "z": 70.0
+        },
+        "arrivalOffsetSeconds": 203.559,
+        "departureOffsetSeconds": 263.589,
+        "dwellSeconds": 60.03
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 3,
+        "toDockId": 4,
+        "estimatedSeconds": 104.956
+      },
+      {
+        "fromDockId": 4,
+        "toDockId": 3,
+        "estimatedSeconds": 78.447
+      }
+    ]
+  },
+  {
+    "routeId": 292,
+    "name": "The Lady Mehley",
+    "type": "boat",
+    "faction": "Alliance",
+    "estimatedCycleSeconds": 329.313,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 5,
+        "name": "Menethil Harbor",
+        "zone": "Wetlands",
+        "uiMapId": 1437,
+        "position": {
+          "mapId": 0,
+          "x": -3905.2,
+          "y": -585.8,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 0,
+          "x": -3904.5,
+          "y": -601.0,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 54.297,
+        "departureOffsetSeconds": 114.325,
+        "dwellSeconds": 60.028
+      },
+      {
+        "dockId": 6,
+        "name": "Theramore Isle",
+        "zone": "Dustwallow Marsh",
+        "uiMapId": 1445,
+        "position": {
+          "mapId": 1,
+          "x": -4016.4,
+          "y": -4740.6,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": -4008.0,
+          "y": -4732.3,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 217.967,
+        "departureOffsetSeconds": 277.995,
+        "dwellSeconds": 60.028
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 5,
+        "toDockId": 6,
+        "estimatedSeconds": 103.642
+      },
+      {
+        "fromDockId": 6,
+        "toDockId": 5,
+        "estimatedSeconds": 105.615
+      }
+    ]
+  },
+  {
+    "routeId": 293,
+    "name": "The Moonspray",
+    "type": "boat",
+    "faction": "Alliance",
+    "estimatedCycleSeconds": 316.251,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 7,
+        "name": "Rut'theran Village",
+        "zone": "Teldrassil",
+        "uiMapId": 1438,
+        "position": {
+          "mapId": 1,
+          "x": 8532.0,
+          "y": 1023.7,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": 8553.2,
+          "y": 1022.9,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 42.039,
+        "departureOffsetSeconds": 102.08,
+        "dwellSeconds": 60.041
+      },
+      {
+        "dockId": 8,
+        "name": "Auberdine",
+        "zone": "Darkshore",
+        "uiMapId": 1439,
+        "position": {
+          "mapId": 1,
+          "x": 6594.4,
+          "y": 759.8,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": 6579.1,
+          "y": 760.2,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 206.368,
+        "departureOffsetSeconds": 266.41,
+        "dwellSeconds": 60.042
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 7,
+        "toDockId": 8,
+        "estimatedSeconds": 104.288
+      },
+      {
+        "fromDockId": 8,
+        "toDockId": 7,
+        "estimatedSeconds": 91.88
+      }
+    ]
+  },
+  {
+    "routeId": 301,
+    "name": "The Purple Princess",
+    "type": "zeppelin",
+    "faction": "Horde",
+    "estimatedCycleSeconds": 333.044,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 11,
+        "name": "Grom'gol Base Camp",
+        "zone": "Stranglethorn Vale",
+        "uiMapId": 1434,
+        "position": {
+          "mapId": 0,
+          "x": -12406.9,
+          "y": 211.8,
+          "z": 49.7
+        },
+        "boardingPosition": null,
+        "arrivalOffsetSeconds": 53.81,
+        "departureOffsetSeconds": 113.84,
+        "dwellSeconds": 60.03
+      },
+      {
+        "dockId": 12,
+        "name": "Undercity",
+        "zone": "Tirisfal Glades",
+        "uiMapId": 1420,
+        "position": {
+          "mapId": 0,
+          "x": 2062.6,
+          "y": 235.3,
+          "z": 117.7
+        },
+        "boardingPosition": null,
+        "arrivalOffsetSeconds": 230.877,
+        "departureOffsetSeconds": 290.907,
+        "dwellSeconds": 60.03
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 11,
+        "toDockId": 12,
+        "estimatedSeconds": 117.037
+      },
+      {
+        "fromDockId": 12,
+        "toDockId": 11,
+        "estimatedSeconds": 95.947
+      }
+    ]
+  },
+  {
+    "routeId": 302,
+    "name": "The Thundercaller",
+    "type": "zeppelin",
+    "faction": "Horde",
+    "estimatedCycleSeconds": 356.284,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 13,
+        "name": "Orgrimmar",
+        "zone": "Durotar",
+        "uiMapId": 1411,
+        "position": {
+          "mapId": 1,
+          "x": 1318.1,
+          "y": -4658.0,
+          "z": 71.9
+        },
+        "boardingPosition": null,
+        "arrivalOffsetSeconds": 49.775,
+        "departureOffsetSeconds": 109.793,
+        "dwellSeconds": 60.018
+      },
+      {
+        "dockId": 14,
+        "name": "Undercity",
+        "zone": "Tirisfal Glades",
+        "uiMapId": 1420,
+        "position": {
+          "mapId": 0,
+          "x": 2062.4,
+          "y": 293.0,
+          "z": 115.0
+        },
+        "boardingPosition": null,
+        "arrivalOffsetSeconds": 240.706,
+        "departureOffsetSeconds": 300.725,
+        "dwellSeconds": 60.019
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 13,
+        "toDockId": 14,
+        "estimatedSeconds": 130.913
+      },
+      {
+        "fromDockId": 14,
+        "toDockId": 13,
+        "estimatedSeconds": 105.334
+      }
+    ]
+  },
+  {
+    "routeId": 303,
+    "name": "Feathermoon Ferry",
+    "type": "boat",
+    "faction": "Alliance",
+    "estimatedCycleSeconds": 317.038,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 15,
+        "name": "The Forgotten Coast",
+        "zone": "Feralas",
+        "uiMapId": 1444,
+        "position": {
+          "mapId": 1,
+          "x": -4197.3,
+          "y": 3286.6,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": -4214.9,
+          "y": 3283.6,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 287.026,
+        "departureOffsetSeconds": 30.012,
+        "dwellSeconds": 60.024
+      },
+      {
+        "dockId": 16,
+        "name": "Feathermoon Stronghold",
+        "zone": "Feralas",
+        "uiMapId": 1444,
+        "position": {
+          "mapId": 1,
+          "x": -4347.8,
+          "y": 2444.4,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": -4350.2,
+          "y": 2423.9,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 90.127,
+        "departureOffsetSeconds": 150.15,
+        "dwellSeconds": 60.023
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 15,
+        "toDockId": 16,
+        "estimatedSeconds": 60.115
+      },
+      {
+        "fromDockId": 16,
+        "toDockId": 15,
+        "estimatedSeconds": 136.876
+      }
+    ]
+  },
+  {
+    "routeId": 11167,
+    "name": "The Bravery",
+    "type": "boat",
+    "faction": "Alliance",
+    "estimatedCycleSeconds": 486.183,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 9,
+        "name": "Menethil Harbor",
+        "zone": "Wetlands",
+        "uiMapId": 1437,
+        "position": {
+          "mapId": 0,
+          "x": -3709.5,
+          "y": -575.1,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 0,
+          "x": -3721.4,
+          "y": -585.1,
+          "z": 4.0
+        },
+        "arrivalOffsetSeconds": 43.533,
+        "departureOffsetSeconds": 103.56,
+        "dwellSeconds": 60.027
+      },
+      {
+        "dockId": 17,
+        "name": "Southshore",
+        "zone": "Hillsbrad Foothills",
+        "uiMapId": 1424,
+        "position": {
+          "mapId": 0,
+          "x": -1102.6,
+          "y": -554.7,
+          "z": -0.1
+        },
+        "boardingPosition": {
+          "mapId": 0,
+          "x": -1086.6,
+          "y": -553.2,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 245.612,
+        "departureOffsetSeconds": 305.639,
+        "dwellSeconds": 60.027
+      },
+      {
+        "dockId": 10,
+        "name": "Auberdine",
+        "zone": "Darkshore",
+        "uiMapId": 1439,
+        "position": {
+          "mapId": 1,
+          "x": 6406.2,
+          "y": 823.1,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": 6419.9,
+          "y": 815.9,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 390.219,
+        "departureOffsetSeconds": 450.246,
+        "dwellSeconds": 60.027
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 9,
+        "toDockId": 17,
+        "estimatedSeconds": 142.052
+      },
+      {
+        "fromDockId": 17,
+        "toDockId": 10,
+        "estimatedSeconds": 84.58
+      },
+      {
+        "fromDockId": 10,
+        "toDockId": 9,
+        "estimatedSeconds": 79.47
+      }
+    ]
+  },
+  {
+    "routeId": 11391,
+    "name": "Steamwheedle Port to Powderfuse Port",
+    "type": "boat",
+    "faction": "Both",
+    "estimatedCycleSeconds": 271.107,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 18,
+        "name": "Steamwheedle Port",
+        "zone": "Tanaris",
+        "uiMapId": 1446,
+        "position": {
+          "mapId": 1,
+          "x": -6932.6,
+          "y": -4950.8,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": -6929.4,
+          "y": -4931.3,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 37.915,
+        "departureOffsetSeconds": 97.942,
+        "dwellSeconds": 60.027
+      },
+      {
+        "dockId": 19,
+        "name": "Powderfuse Port",
+        "zone": "Riverglades",
+        "uiMapId": 2548,
+        "position": {
+          "mapId": 0,
+          "x": -8232.3,
+          "y": -5800.8,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 0,
+          "x": -8226.9,
+          "y": -5783.1,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 174.425,
+        "departureOffsetSeconds": 234.452,
+        "dwellSeconds": 60.027
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 18,
+        "toDockId": 19,
+        "estimatedSeconds": 76.483
+      },
+      {
+        "fromDockId": 19,
+        "toDockId": 18,
+        "estimatedSeconds": 74.57
+      }
+    ]
+  },
+  {
+    "routeId": 11398,
+    "name": "Valanaar to Dalaran",
+    "type": "skycutter",
+    "faction": "Alliance",
+    "estimatedCycleSeconds": 358.693,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 20,
+        "name": "Dalaran",
+        "zone": "Alterac Mountains",
+        "uiMapId": 1416,
+        "position": {
+          "mapId": 0,
+          "x": 544.8,
+          "y": 424.2,
+          "z": 107.0
+        },
+        "boardingPosition": {
+          "mapId": 0,
+          "x": 537.3,
+          "y": 417.9,
+          "z": 111.0
+        },
+        "arrivalOffsetSeconds": 85.107,
+        "departureOffsetSeconds": 145.134,
+        "dwellSeconds": 60.027
+      },
+      {
+        "dockId": 21,
+        "name": "Valanaar Skydocks",
+        "zone": "Zephras Isle",
+        "uiMapId": 2521,
+        "position": {
+          "mapId": 2991,
+          "x": 1848.3,
+          "y": 569.1,
+          "z": 642.7
+        },
+        "boardingPosition": {
+          "mapId": 2991,
+          "x": 1858.7,
+          "y": 569.2,
+          "z": 644.0
+        },
+        "arrivalOffsetSeconds": 252.651,
+        "departureOffsetSeconds": 312.678,
+        "dwellSeconds": 60.027
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 20,
+        "toDockId": 21,
+        "estimatedSeconds": 107.517
+      },
+      {
+        "fromDockId": 21,
+        "toDockId": 20,
+        "estimatedSeconds": 131.122
+      }
+    ]
+  },
+  {
+    "routeId": 11457,
+    "name": "Valanaar to Skywatcher Plateau",
+    "type": "zeppelin",
+    "faction": "Horde",
+    "estimatedCycleSeconds": 320.436,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 22,
+        "name": "Skywatcher Plateau",
+        "zone": "Mulgore",
+        "uiMapId": 1412,
+        "position": {
+          "mapId": 1,
+          "x": -802.0,
+          "y": 366.5,
+          "z": 188.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": -792.0,
+          "y": 370.1,
+          "z": 190.0
+        },
+        "arrivalOffsetSeconds": 78.417,
+        "departureOffsetSeconds": 138.444,
+        "dwellSeconds": 60.027
+      },
+      {
+        "dockId": 23,
+        "name": "Valanaar Skydocks",
+        "zone": "Zephras Isle",
+        "uiMapId": 2521,
+        "position": {
+          "mapId": 2991,
+          "x": 1952.5,
+          "y": 1019.1,
+          "z": 659.9
+        },
+        "boardingPosition": {
+          "mapId": 2991,
+          "x": 1962.2,
+          "y": 1014.9,
+          "z": 664.0
+        },
+        "arrivalOffsetSeconds": 222.209,
+        "departureOffsetSeconds": 252.223,
+        "dwellSeconds": 30.014
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 22,
+        "toDockId": 23,
+        "estimatedSeconds": 83.765
+      },
+      {
+        "fromDockId": 23,
+        "toDockId": 22,
+        "estimatedSeconds": 146.63
+      }
+    ]
+  },
+  {
+    "routeId": 11616,
+    "name": "Stormwind Harbor to Auberdine",
+    "type": "boat",
+    "faction": "Alliance",
+    "estimatedCycleSeconds": 247.096,
+    "timingSource": "client_path_transport_model",
+    "stops": [
+      {
+        "dockId": 24,
+        "name": "Auberdine",
+        "zone": "Darkshore",
+        "uiMapId": 1439,
+        "position": {
+          "mapId": 1,
+          "x": 6548.3,
+          "y": 942.2,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 1,
+          "x": 6547.3,
+          "y": 927.4,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 34.804,
+        "departureOffsetSeconds": 94.831,
+        "dwellSeconds": 60.027
+      },
+      {
+        "dockId": 25,
+        "name": "Stormwind Harbor",
+        "zone": "Stormwind City",
+        "uiMapId": 1453,
+        "position": {
+          "mapId": 0,
+          "x": -8654.5,
+          "y": 1344.4,
+          "z": 0.0
+        },
+        "boardingPosition": {
+          "mapId": 0,
+          "x": -8640.8,
+          "y": 1333.3,
+          "z": 6.0
+        },
+        "arrivalOffsetSeconds": 162.089,
+        "departureOffsetSeconds": 222.116,
+        "dwellSeconds": 60.027
+      }
+    ],
+    "legs": [
+      {
+        "fromDockId": 24,
+        "toDockId": 25,
+        "estimatedSeconds": 67.258
+      },
+      {
+        "fromDockId": 25,
+        "toDockId": 24,
+        "estimatedSeconds": 59.784
+      }
+    ]
+  }
+]

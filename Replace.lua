@@ -15,6 +15,7 @@ local UI = {
     WHITE = "Interface\\BUTTONS\\WHITE8X8",
     FLIGHT_STRIP = 26,
     NAV_STRIP = 28,
+    TRAIN_STRIP = 28,
     ARROW_TEXTURE = nil,
     ARROW_COLUMN = 48,
     PROGRESS_BAR_HEIGHT = 6,
@@ -33,6 +34,7 @@ local UI = {
         RB_PICK_ = "FFDB2EEF",
         RB_BUY_ = "FF0E8312",
         RB_QUEST_ = "FFFFD100",
+        RB_SKILL_ = "FF7EB6FF",
     },
 }
 
@@ -56,7 +58,11 @@ State.hardcoreWas = false
 State.elapsed = 0
 State.flight = { chrome = 0 }
 State.nav = { chrome = 0 }
+State.train = { chrome = 0 }
 State.mapPins = { frames = {}, signature = nil }
+State.stickyShown = {}
+State.completing = {}
+State.pinVisits = {}
 
 
 local tracker = CreateFrame("Frame", "WaynotesTracker", UIParent, "BackdropTemplate")
@@ -181,6 +187,24 @@ local function media(file)
 end
 
 UI.ARROW_TEXTURE = media("arrow.tga")
+UI.GPS_ARROW = media("gps_arrow.png")
+UI.GPS_PIN = media("gps_pin.png")
+UI.GPS_CHECK = media("gps_check.png")
+-- gps_arrow.png is drawn tip-up-right, 45 degrees northeast.
+-- Aim math treats rotation 0 as tip-up. SetRotation turns counterclockwise
+-- (a positive quarter-turn aims the up-arrow header chevron to the left).
+UI.GPS_ARROW_OFFSET = math.pi / 4
+-- The arrow art is inset so a cardinal rotation keeps the tip inside the frame.
+-- These sizes restore the on-screen arrow to the previous 14 / 15 / 20 px.
+UI.GPS_ARROW_NAV = 17
+UI.GPS_ARROW_ROW = 18
+UI.GPS_ARROW_MAIN = 24
+-- Same-zone yards at which a kill objective swaps the arrow for the pin.
+UI.KILL_AREA_YARDS = 100
+-- Sticky complete: brief hold on the green check, then fade the row out.
+UI.STICKY_COMPLETE_HOLD = 0.15
+UI.STICKY_COMPLETE_FADE = 0.45
+UI.STICKY_COMPLETE_GREEN = { 0.2, 0.85, 0.35 }
 
 local function clampCornerRadius(radius)
     radius = math.floor((radius or 0) + 0.5)
@@ -944,6 +968,7 @@ divider:Hide()
 
 local updateFlightStrip
 local updateNavStrip
+local updateTrainStrip
 local placeBottomChrome
 
 do
@@ -1023,10 +1048,13 @@ do
     end
 
     placeBottomChrome = function()
-        local bottom = 10 + (State.flight.chrome or 0) + (State.nav.chrome or 0)
+        local bottom = 10 + (State.flight.chrome or 0) + (State.nav.chrome or 0) + (State.train.chrome or 0)
         placeScroller(bottom)
         if State.nav.layout then
             State.nav.layout()
+        end
+        if State.train.layout then
+            State.train.layout()
         end
     end
 
@@ -1362,14 +1390,14 @@ do
     paintTexture(navRule, 1, 0.82, 0, 0.45)
 
     local arrow = strip:CreateTexture(nil, "OVERLAY")
-    arrow:SetSize(14, 14)
-    arrow:SetPoint("LEFT", 8, -1)
-    arrow:SetTexture(media("arrow.tga"))
+    arrow:SetSize(UI.GPS_ARROW_NAV, UI.GPS_ARROW_NAV)
+    arrow:SetPoint("RIGHT", strip, "RIGHT", -28, -1)
+    arrow:SetTexture(UI.GPS_ARROW)
     arrow:SetDrawLayer("OVERLAY", 2)
 
     local title = strip:CreateFontString(nil, "OVERLAY")
-    title:SetPoint("TOPLEFT", 26, -3)
-    title:SetPoint("RIGHT", strip, "RIGHT", -78, 0)
+    title:SetPoint("TOPLEFT", 8, -3)
+    title:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
     title:SetHeight(12)
     title:SetJustifyH("LEFT")
     title:SetJustifyV("MIDDLE")
@@ -1380,8 +1408,8 @@ do
     title:SetTextColor(0.9, 0.9, 0.86)
 
     local detail = strip:CreateFontString(nil, "OVERLAY")
-    detail:SetPoint("TOPLEFT", 26, -14)
-    detail:SetPoint("RIGHT", strip, "RIGHT", -78, 0)
+    detail:SetPoint("TOPLEFT", 8, -14)
+    detail:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
     detail:SetHeight(11)
     detail:SetJustifyH("LEFT")
     detail:SetJustifyV("MIDDLE")
@@ -1392,7 +1420,8 @@ do
     detail:SetTextColor(0.82, 0.82, 0.82)
 
     local distText = strip:CreateFontString(nil, "OVERLAY")
-    distText:SetPoint("TOPRIGHT", -28, -4)
+    distText:SetPoint("TOPRIGHT", -46, -4)
+    distText:SetWidth(52)
     distText:SetHeight(12)
     distText:SetJustifyH("RIGHT")
     distText:SetJustifyV("MIDDLE")
@@ -1655,8 +1684,316 @@ do
         lastTitle, lastDetail, lastDist = nil, nil, nil
         if tracker:IsShown() then
             updateNavStrip()
+            if updateTrainStrip then
+                updateTrainStrip()
+            end
         end
     end
+end
+
+do
+    local strip = CreateFrame("Frame", nil, tracker)
+    strip:SetHeight(UI.TRAIN_STRIP)
+    strip:SetPoint("BOTTOMLEFT", 1, 1)
+    strip:SetPoint("BOTTOMRIGHT", -1, 1)
+    strip:Hide()
+    strip:EnableMouse(true)
+
+    local trainRule = strip:CreateTexture(nil, "ARTWORK")
+    trainRule:SetPoint("TOPLEFT", 8, 0)
+    trainRule:SetPoint("TOPRIGHT", -8, 0)
+    trainRule:SetHeight(1)
+    useSolid(trainRule)
+    paintTexture(trainRule, 1, 0.82, 0, 0.45)
+
+    local title = strip:CreateFontString(nil, "OVERLAY")
+    title:SetPoint("TOPLEFT", 8, -3)
+    title:SetPoint("RIGHT", strip, "RIGHT", -28, 0)
+    title:SetHeight(12)
+    title:SetJustifyH("LEFT")
+    title:SetJustifyV("MIDDLE")
+    if title.SetWordWrap then
+        title:SetWordWrap(false)
+    end
+    RG.applyFont(title, 11, "")
+    title:SetTextColor(0.9, 0.9, 0.86)
+
+    local detail = strip:CreateFontString(nil, "OVERLAY")
+    detail:SetPoint("TOPLEFT", 8, -14)
+    detail:SetPoint("RIGHT", strip, "RIGHT", -28, 0)
+    detail:SetHeight(11)
+    detail:SetJustifyH("LEFT")
+    detail:SetJustifyV("MIDDLE")
+    if detail.SetWordWrap then
+        detail:SetWordWrap(false)
+    end
+    RG.applyFont(detail, 10, "")
+    detail:SetTextColor(0.82, 0.82, 0.82)
+
+    local close = CreateFrame("Button", nil, strip)
+    close:SetSize(16, 16)
+    close:SetPoint("TOPRIGHT", -8, -5)
+    close:SetFrameLevel(strip:GetFrameLevel() + 5)
+    close:RegisterForClicks("LeftButtonUp")
+    close.text = close:CreateFontString(nil, "OVERLAY")
+    close.text:SetPoint("CENTER", 0, 0)
+    RG.applyFont(close.text, 12, "OUTLINE")
+    close.text:SetText("x")
+
+    State.train.strip = strip
+    State.train.rule = trainRule
+    State.train.title = title
+    State.train.detail = detail
+    State.train.close = close
+    State.train.level = nil
+
+    local function trainDB()
+        if type(WaynotesCharDB) ~= "table" then
+            WaynotesCharDB = {}
+        end
+        if type(WaynotesCharDB.trainDismissed) ~= "table" then
+            WaynotesCharDB.trainDismissed = {}
+        end
+        return WaynotesCharDB.trainDismissed
+    end
+
+    local function currentTrainLevel()
+        local level = UnitLevel and UnitLevel("player") or 0
+        if type(level) ~= "number" or level < 2 then
+            return nil
+        end
+        local trainLevel = math.floor(level / 2) * 2
+        if trainLevel < 2 then
+            return nil
+        end
+        if trainLevel > 60 then
+            trainLevel = 60
+        end
+        return trainLevel
+    end
+
+    local function isDismissed(level)
+        if not level then
+            return true
+        end
+        return trainDB()[level] and true or false
+    end
+
+    local function dismissLevel(level)
+        if not level then
+            return
+        end
+        trainDB()[level] = true
+        State.train.level = nil
+    end
+
+    State.train.layout = function()
+        local lift = (State.flight.chrome or 0) + (State.nav.chrome or 0)
+        strip:ClearAllPoints()
+        strip:SetPoint("BOTTOMLEFT", 1, 1 + lift)
+        strip:SetPoint("BOTTOMRIGHT", -1, 1 + lift)
+    end
+
+    local function setTrainChrome(want)
+        want = want or 0
+        if State.train.chrome == want then
+            return
+        end
+        State.train.chrome = want
+        if placeBottomChrome then
+            placeBottomChrome()
+        end
+        State.remeasure = true
+        State.lastSignature = nil
+        if tracker:IsShown() and ns.RefreshTracker then
+            ns.RefreshTracker(true)
+        end
+    end
+
+    local function showTrain(on)
+        if on then
+            strip:Show()
+            setTrainChrome(UI.TRAIN_STRIP)
+        else
+            strip:Hide()
+            setTrainChrome(0)
+        end
+    end
+
+    local painted = false
+    local lastTitle, lastDetail
+
+    local function paintTrain(force)
+        if not ns.db then
+            return
+        end
+        if painted and not force then
+            return
+        end
+        painted = true
+        local edgeR, edgeG, edgeB = ns.Color("accent")
+        local textR, textG, textB = ns.Color("secondary")
+        local detailR, detailG, detailB = ns.Color("detail")
+        paintTexture(trainRule, edgeR, edgeG, edgeB, 0.45)
+        title:SetTextColor(textR, textG, textB)
+        detail:SetTextColor(detailR, detailG, detailB)
+        close.text:SetTextColor(edgeR, edgeG, edgeB)
+    end
+
+    State.train.paint = function()
+        painted = false
+        paintTrain(true)
+    end
+
+    local function trainerHint()
+        local className = ns.PlayerClass and ns.PlayerClass() or nil
+        local dest = ns.NavFindNearest and ns.NavFindNearest("trainer", className) or nil
+        if not dest then
+            return "Click to navigate to your class trainer."
+        end
+        local where = dest.zone or dest.name or "trainer"
+        if dest.name and dest.zone and dest.name ~= dest.zone then
+            return "Click for " .. dest.name .. " · " .. dest.zone
+        end
+        return "Click for " .. where
+    end
+
+    local function goToTrainer()
+        if ns.NavChoose then
+            ns.NavChoose("trainer")
+        end
+    end
+
+    close:SetScript("OnClick", function()
+        dismissLevel(State.train.level or currentTrainLevel())
+        lastTitle, lastDetail = nil, nil
+        updateTrainStrip()
+    end)
+    local tipShown = false
+    local tipElapsed = 0
+
+    local function placeTrainTip(owner)
+        if State.placeCursorTooltip then
+            State.placeCursorTooltip(owner)
+        end
+    end
+
+    close:SetScript("OnEnter", function(self)
+        tipShown = false
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetText("Dismiss for this level", r, g, b)
+        ns.FinishTooltip()
+        placeTrainTip(self)
+        tipShown = true
+    end)
+    close:SetScript("OnLeave", function()
+        tipShown = false
+        GameTooltip:Hide()
+        if strip:IsMouseOver() then
+            strip:GetScript("OnEnter")(strip)
+        end
+    end)
+
+    strip:SetScript("OnMouseUp", function(_, button)
+        if button ~= "LeftButton" then
+            return
+        end
+        if close:IsMouseOver() then
+            return
+        end
+        goToTrainer()
+    end)
+    strip:SetScript("OnEnter", function(self)
+        if close:IsMouseOver() then
+            return
+        end
+        tipShown = true
+        tipElapsed = 0
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetText("Train class spells", r, g, b)
+        GameTooltip:AddLine("Left-click to navigate to your nearest class trainer.", 1, 1, 1, true)
+        ns.FinishTooltip()
+        placeTrainTip(self)
+    end)
+    strip:SetScript("OnLeave", function(self)
+        if close:IsMouseOver() then
+            return
+        end
+        tipShown = false
+        GameTooltip:Hide()
+    end)
+    strip:SetScript("OnUpdate", function(self, delta)
+        if not tipShown then
+            return
+        end
+        if not self:IsMouseOver() and not close:IsMouseOver() then
+            tipShown = false
+            GameTooltip:Hide()
+            return
+        end
+        tipElapsed = tipElapsed + (delta or 0)
+        if tipElapsed < 0.05 then
+            return
+        end
+        tipElapsed = 0
+        local owner = close:IsMouseOver() and close or self
+        placeTrainTip(owner)
+    end)
+
+    function updateTrainStrip()
+        local enabled = ns.db and ns.db.showTrainReminders
+        local level = currentTrainLevel()
+        local showUI = tracker:IsShown() and enabled and level and not isDismissed(level)
+        if not showUI then
+            if State.train.chrome > 0 then
+                showTrain(false)
+            end
+            State.train.level = nil
+            lastTitle, lastDetail = nil, nil
+            return
+        end
+
+        State.train.level = level
+        if State.train.chrome == 0 then
+            showTrain(true)
+            paintTrain(true)
+        elseif not strip:IsShown() then
+            strip:Show()
+        end
+
+        local titleText = "Train spells · level " .. level
+        if titleText ~= lastTitle then
+            lastTitle = titleText
+            title:SetText(titleText)
+        end
+        local detailText = trainerHint()
+        if detailText ~= lastDetail then
+            lastDetail = detailText
+            detail:SetText(detailText)
+        end
+    end
+
+    local watcher = CreateFrame("Frame")
+    watcher:RegisterEvent("PLAYER_LEVEL_UP")
+    watcher:RegisterEvent("TRAINER_SHOW")
+    watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+    watcher:SetScript("OnEvent", function(_, event)
+        if event == "TRAINER_SHOW" then
+            if IsTradeskillTrainer and IsTradeskillTrainer() then
+                return
+            end
+            local level = State.train.level or currentTrainLevel()
+            if level then
+                dismissLevel(level)
+            end
+        end
+        lastTitle, lastDetail = nil, nil
+        if tracker:IsShown() then
+            updateTrainStrip()
+        end
+    end)
 end
 
 local function lowerStrata(strata)
@@ -1747,6 +2084,9 @@ local function styleTracker()
     end
     if State.nav.paint then
         State.nav.paint()
+    end
+    if State.train.paint then
+        State.train.paint()
     end
 
     if rounded then
@@ -1873,9 +2213,14 @@ function ns.StylePopupFrame(frame)
         return
     end
     local chrome = ensurePopupChrome(frame)
+    -- Menus sit over bright world UI; keep them near-opaque even when the
+    -- tracker itself uses a translucent panel.
     local background = ns.db.trackerBackground
     if type(background) ~= "number" then
         background = 0.4
+    end
+    if background < 0.94 then
+        background = 0.94
     end
     local panelR, panelG, panelB = ns.Color("background")
     local edgeR, edgeG, edgeB = ns.Color("accent")
@@ -2076,6 +2421,9 @@ local function placeCursorTooltip(owner)
     GameTooltip:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
 end
 
+-- Train strip (defined earlier) places tips through State.
+State.placeCursorTooltip = placeCursorTooltip
+
 local function placeTrackerTooltip()
     if not GameTooltip:IsShown() or not tooltipOwnedBy(tracker) then
         return
@@ -2186,6 +2534,223 @@ local function facingBearing(deltaX, deltaY)
     return -angle
 end
 
+local function setNavIcon(texture, usePin)
+    if not texture then
+        return
+    end
+    local path = usePin and UI.GPS_PIN or UI.GPS_ARROW
+    if texture.__rxpbNav == path then
+        return
+    end
+    texture.__rxpbNav = path
+    texture:SetTexture(path)
+    texture.__rxpbRot = nil
+    if texture.SetTexCoord then
+        texture:SetTexCoord(0, 1, 0, 1)
+    end
+end
+
+local function stickyCompleteGreen()
+    local color = UI.STICKY_COMPLETE_GREEN
+    return color[1], color[2], color[3]
+end
+
+local function beginStickyCompletions(items)
+    State.completing = State.completing or {}
+    State.stickyShown = State.stickyShown or {}
+    local alive = {}
+    for _, item in ipairs(items) do
+        if item.sticky and type(item.stepIndex) == "number" then
+            alive[item.stepIndex] = true
+        end
+    end
+    for stepIndex, prev in pairs(State.stickyShown) do
+        if not alive[stepIndex] and not State.completing[stepIndex] then
+            State.completing[stepIndex] = {
+                item = prev,
+                alpha = 1,
+                elapsed = 0,
+            }
+        end
+    end
+    local nextShown = {}
+    for _, item in ipairs(items) do
+        if item.sticky and type(item.stepIndex) == "number" then
+            nextShown[item.stepIndex] = item
+        end
+    end
+    State.stickyShown = nextShown
+end
+
+local function appendCompletingItems(items)
+    if not State.completing or not next(State.completing) then
+        return items
+    end
+    local out = {}
+    for index, item in ipairs(items) do
+        out[index] = item
+    end
+    for stepIndex, entry in pairs(State.completing) do
+        local ghost = entry.item
+        if ghost then
+            ghost.__rxpbCompleting = true
+            ghost.sticky = true
+            ghost.stepIndex = stepIndex
+            out[#out + 1] = ghost
+        end
+    end
+    return out
+end
+
+local function updateCompletingStickies(dt)
+    if not State.completing or not next(State.completing) then
+        return
+    end
+    local finished = {}
+    for stepIndex, entry in pairs(State.completing) do
+        entry.elapsed = (entry.elapsed or 0) + (dt or 0)
+        local hold = UI.STICKY_COMPLETE_HOLD or 0.15
+        local fade = UI.STICKY_COMPLETE_FADE or 0.45
+        local alpha = 1
+        if entry.elapsed > hold then
+            local t = fade > 0 and ((entry.elapsed - hold) / fade) or 1
+            if t >= 1 then
+                alpha = 0
+                finished[#finished + 1] = stepIndex
+            else
+                alpha = 1 - t
+            end
+        end
+        entry.alpha = alpha
+        for _, row in ipairs(State.rows) do
+            if row.__rxpbCompleting and row.stepIndex == stepIndex then
+                row:SetAlpha(alpha)
+                break
+            end
+        end
+    end
+    if #finished == 0 then
+        return
+    end
+    for _, stepIndex in ipairs(finished) do
+        State.completing[stepIndex] = nil
+    end
+    State.lastSignature = nil
+    if ns.RefreshTracker then
+        ns.RefreshTracker(true)
+    end
+end
+
+local function killAreaPin(row, dist)
+    if not row or not row.kill or type(dist) ~= "number" or dist > UI.KILL_AREA_YARDS then
+        return false
+    end
+    local place = row.place
+    if not place or not ns.PinZoneDistance or type(place.x) ~= "number" then
+        return false
+    end
+    -- PinZoneDistance is nil until the player is in the pin's zone.
+    local zoneDist = ns.PinZoneDistance(place.map, place.x, place.y, place.zone)
+    return type(zoneDist) == "number" and zoneDist <= UI.KILL_AREA_YARDS
+end
+
+local function placeDistance(place)
+    if type(place) ~= "table" or type(place.x) ~= "number" or type(place.y) ~= "number" then
+        return nil
+    end
+    if ns.PinZoneDistance then
+        local zoneDist = ns.PinZoneDistance(place.map, place.x, place.y, place.zone)
+        if type(zoneDist) == "number" then
+            return zoneDist
+        end
+    end
+    if ns.CrossZoneVector then
+        local cross = ns.CrossZoneVector(place.map, place.x, place.y, place.zone)
+        if cross and type(cross.dist) == "number" then
+            return cross.dist
+        end
+    end
+end
+
+local function pinVisitKey(row)
+    if not row or type(row.stepIndex) ~= "number" then
+        return nil
+    end
+    local guideId = ns.UsingStandalone and ns.UsingStandalone() and WaynotesCharDB and WaynotesCharDB.guide or "rxp"
+    return tostring(guideId) .. ":" .. tostring(row.stepIndex)
+end
+
+local function pinVisitSet(row)
+    local key = pinVisitKey(row)
+    if not key then
+        return nil
+    end
+    local set = State.pinVisits[key]
+    if type(set) ~= "table" then
+        set = {}
+        State.pinVisits[key] = set
+    end
+    return set
+end
+
+-- Multi-pin steps: arrow the nearest unvisited spot; mark reached within
+-- KILL_AREA_YARDS, then switch to the next nearest remaining pin.
+local function chooseStepPlace(row)
+    local places = row and row.places
+    if type(places) ~= "table" or #places == 0 then
+        return row and row.place or nil
+    end
+    if #places == 1 then
+        return places[1]
+    end
+
+    local visited = pinVisitSet(row) or {}
+    local function nearest(onlyUnvisited)
+        local best, bestDist, bestIndex
+        local pending = 0
+        for index, place in ipairs(places) do
+            if onlyUnvisited and visited[index] then
+                -- already cleared
+            else
+                if onlyUnvisited then
+                    pending = pending + 1
+                end
+                local dist = placeDistance(place)
+                if type(dist) == "number" and (not bestDist or dist < bestDist) then
+                    best = place
+                    bestDist = dist
+                    bestIndex = index
+                elseif not best and not onlyUnvisited then
+                    best = place
+                    bestIndex = index
+                end
+            end
+        end
+        return best, bestDist, bestIndex, pending
+    end
+
+    local best, bestDist, bestIndex, pending = nearest(true)
+    if best and type(bestDist) == "number" and bestDist <= UI.KILL_AREA_YARDS then
+        visited[bestIndex] = true
+        local nextPlace, nextDist, nextIndex = nearest(true)
+        if nextPlace then
+            best, bestDist, bestIndex = nextPlace, nextDist, nextIndex
+        else
+            -- Tour finished: keep guiding to the overall nearest spot.
+            best, bestDist, bestIndex = nearest(false)
+        end
+    elseif not best then
+        best, bestDist, bestIndex = nearest(false)
+    end
+
+    if best then
+        row.place = best
+        row.pinIndex = bestIndex
+        row.pinPending = pending
+    end
+    return best or row.place
+end
+
 local function setArrowRotation(texture, rotation)
     if not texture or type(rotation) ~= "number" then
         return false
@@ -2205,6 +2770,42 @@ local function setArrowRotation(texture, rotation)
         return true
     end
     return false
+end
+
+local function setCheckIcon(texture)
+    if not texture then
+        return
+    end
+    local path = UI.GPS_CHECK
+    if texture.__rxpbNav ~= path then
+        texture.__rxpbNav = path
+        texture:SetTexture(path)
+        if texture.SetTexCoord then
+            texture:SetTexCoord(0, 1, 0, 1)
+        end
+    end
+    setArrowRotation(texture, 0)
+end
+
+local function aimNavIcon(texture, shadow, usePin, angle, facing)
+    setNavIcon(texture, usePin)
+    setNavIcon(shadow, usePin)
+    if usePin then
+        local aimed = setArrowRotation(texture, 0)
+        if shadow then
+            setArrowRotation(shadow, 0)
+        end
+        return aimed
+    end
+    if type(angle) ~= "number" or type(facing) ~= "number" then
+        return false
+    end
+    local rotation = angle - facing + (UI.GPS_ARROW_OFFSET or 0)
+    local aimed = setArrowRotation(texture, rotation)
+    if shadow then
+        setArrowRotation(shadow, rotation)
+    end
+    return aimed
 end
 
 local function playerZonePosForAim(hbd)
@@ -2263,18 +2864,42 @@ local function mapCardinal(east, south)
     return names[index]
 end
 
+local function placeSameZoneAsPlayer(place, pmap)
+    if type(place) ~= "table" then
+        return false
+    end
+    if type(place.map) == "number" and type(pmap) == "number" and place.map == pmap then
+        return true
+    end
+    local pinZone = place.zone
+    if type(pinZone) ~= "string" and place.map and ns.MapZoneName then
+        pinZone = ns.MapZoneName(place.map)
+    end
+    local pzone = GetRealZoneText and GetRealZoneText()
+    if type(pinZone) ~= "string" or type(pzone) ~= "string" then
+        return false
+    end
+    local a = pinZone:lower():gsub("^the%s+", "")
+    local b = pzone:lower():gsub("^the%s+", "")
+    return a ~= "" and b ~= "" and (a == b or a:find(b, 1, true) or b:find(a, 1, true))
+end
+
 -- Aim bearing for tracker arrows. Prefer same-zone percent bearing (matches the
--- yards we already show). World-space only when zone aim is unavailable.
+-- yards we already show). World-space for other-zone pins — zone percents from
+-- two different maps are not comparable and produce nonsense bearings.
+-- Cross-zone wp must already be UnitPosition-aligned (see Nav.PinToPlayerWorld).
 local function aimAngle(hbd, instance, px, py, wp, place, facing)
     local angle
     local source
     local youX, youY, pinX, pinY, east, south
+    local sameZone = false
 
     if type(place) == "table" and type(place.x) == "number" and type(place.y) == "number" then
         pinX = place.x > 1 and place.x or place.x * 100
         pinY = place.y > 1 and place.y or place.y * 100
-        local pzx, pzy = playerZonePosForAim(hbd)
-        if type(pzx) == "number" then
+        local pzx, pzy, pmap = playerZonePosForAim(hbd)
+        sameZone = type(pzx) == "number" and placeSameZoneAsPlayer(place, pmap)
+        if sameZone then
             if pzx > 1 then
                 pzx = pzx / 100
             end
@@ -2306,6 +2931,29 @@ local function aimAngle(hbd, instance, px, py, wp, place, facing)
             if ok and type(a) == "number" then
                 hbdAngle = a
             end
+        end
+    end
+
+    -- Cross-zone: C_Map .x/.y for the player and the pin, then the same
+    -- zone-axis bearing used in-zone. UnitPosition vs HBD world is a different
+    -- space and points the wrong way until the maps match.
+    if not sameZone and type(place) == "table" and ns.CrossZoneVector and type(place.x) == "number" then
+        local cross = ns.CrossZoneVector(place.map, place.x, place.y, place.zone)
+        if cross and type(cross.east) == "number" and type(cross.south) == "number" then
+            if cross.east * cross.east + cross.south * cross.south > 1e-12 then
+                angle = facingBearing(-cross.east, -cross.south)
+                source = "cmap"
+            end
+        end
+    end
+
+    if type(angle) ~= "number" and not sameZone then
+        if type(hbdAngle) == "number" then
+            angle = hbdAngle
+            source = "hbd"
+        elseif type(worldEast) == "number" and (worldEast * worldEast + (worldNorth or 0) * (worldNorth or 0) > 1e-12) then
+            angle = facingBearing(worldEast, worldNorth)
+            source = "world"
         end
     end
 
@@ -2419,7 +3067,7 @@ State.nav.syncArrow = function(facing, hbd, px, py, instance, canAim)
         end
     end
 
-    if type(angle) == "number" and type(facing) == "number" and setArrowRotation(arrow, angle - facing) then
+    if aimNavIcon(arrow, nil, false, angle, facing) then
         setArrowAlpha(arrow, 1)
     else
         setArrowAlpha(arrow, 0.35)
@@ -2446,24 +3094,45 @@ local function waypointDistance(wp)
 end
 
 local function formatPlace(place)
-    if not place then
+    if type(place) ~= "table" then
         return nil
     end
+    local zone = type(place.zone) == "string" and place.zone ~= "" and place.zone or nil
+    if type(place.x) ~= "number" or type(place.y) ~= "number" then
+        return zone
+    end
     local coords = string.format("%.1f, %.1f", place.x, place.y)
-    if place.zone then
-        return place.zone .. " " .. coords
+    if zone then
+        return zone .. " " .. coords
     end
     return coords
 end
 
 local function questLogIndex(questID)
+    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+        local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, questID)
+        if ok and type(index) == "number" and index > 0 then
+            return index
+        end
+    end
     if not GetNumQuestLogEntries or not GetQuestLogTitle then
         return nil
     end
     local count = GetNumQuestLogEntries()
     for index = 1, count do
-        local _, _, _, isHeader, _, _, _, logID = GetQuestLogTitle(index)
-        local id = logID
+        local isHeader, id
+        if C_QuestLog and C_QuestLog.GetInfo then
+            local ok, info = pcall(C_QuestLog.GetInfo, index)
+            if ok and type(info) == "table" then
+                isHeader = info.isHeader
+                id = info.questID
+            end
+        end
+        if id == nil then
+            local _, _, _, header, _, _, _, logID = GetQuestLogTitle(index)
+            isHeader = header
+            id = logID
+        end
         if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
             local ok, qid = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
             if ok and type(qid) == "number" then
@@ -2477,6 +3146,24 @@ local function questLogIndex(questID)
 end
 
 local function expandQuestHeaders()
+    if C_QuestLog and C_QuestLog.GetNumQuestLogEntries and C_QuestLog.GetInfo and C_QuestLog.ExpandQuestHeader then
+        local ok, count = pcall(C_QuestLog.GetNumQuestLogEntries)
+        count = ok and count or 0
+        local index = 1
+        local guard = 0
+        while index <= count and guard < 80 do
+            guard = guard + 1
+            local infoOk, info = pcall(C_QuestLog.GetInfo, index)
+            if infoOk and type(info) == "table" and info.isHeader and info.isCollapsed then
+                pcall(C_QuestLog.ExpandQuestHeader, index)
+                ok, count = pcall(C_QuestLog.GetNumQuestLogEntries)
+                count = ok and count or count
+            else
+                index = index + 1
+            end
+        end
+        return
+    end
     if not ExpandQuestHeader or not GetNumQuestLogEntries or not GetQuestLogTitle then
         return
     end
@@ -2493,6 +3180,16 @@ local function expandQuestHeaders()
     end
 end
 
+local function questLogIsShown()
+    if QuestMapFrame and QuestMapFrame.IsShown and QuestMapFrame:IsShown() then
+        return true
+    end
+    if QuestLogFrame and QuestLogFrame.IsShown and QuestLogFrame:IsShown() then
+        return true
+    end
+    return false
+end
+
 local function openStepQuest(questID)
     if type(questID) ~= "number" then
         return
@@ -2500,6 +3197,39 @@ local function openStepQuest(questID)
     if not RG.playerOnQuest(questID) then
         return
     end
+
+    -- Forever (and retail-style clients) keep legacy QuestLogFrame globals, but
+    -- selection only sticks through C_QuestLog. Prefer that path first.
+    if C_QuestLog and C_QuestLog.SetSelectedQuest then
+        expandQuestHeaders()
+        if QuestMapFrame_OpenToQuestDetails then
+            pcall(QuestMapFrame_OpenToQuestDetails, questID)
+            pcall(C_QuestLog.SetSelectedQuest, questID)
+            return
+        end
+        if ToggleQuestLog and not questLogIsShown() then
+            pcall(ToggleQuestLog)
+        elseif QuestLogFrame and not questLogIsShown() then
+            if ShowUIPanel then
+                ShowUIPanel(QuestLogFrame)
+            else
+                QuestLogFrame:Show()
+            end
+        end
+        pcall(C_QuestLog.SetSelectedQuest, questID)
+        local index = questLogIndex(questID)
+        if index and SelectQuestLogEntry then
+            pcall(SelectQuestLogEntry, index)
+        end
+        if index and QuestLog_SetSelection then
+            pcall(QuestLog_SetSelection, index)
+        end
+        if QuestLog_Update then
+            pcall(QuestLog_Update)
+        end
+        return
+    end
+
     if QuestLogFrame and SelectQuestLogEntry and GetQuestLogTitle then
         expandQuestHeaders()
         local index = questLogIndex(questID)
@@ -2520,18 +3250,23 @@ local function openStepQuest(questID)
         if QuestLog_Update then
             QuestLog_Update()
         end
-        return
     end
-    if QuestMapFrame_OpenToQuestDetails then
-        QuestMapFrame_OpenToQuestDetails(questID)
-        return
+end
+
+local function questIdForRow(row)
+    if not row then
+        return nil
     end
-    if C_QuestLog and C_QuestLog.SetSelectedQuest then
-        if ToggleQuestLog and not (QuestMapFrame and QuestMapFrame:IsShown()) then
-            ToggleQuestLog()
+    if type(row.questId) == "number" and RG.playerOnQuest(row.questId) then
+        return row.questId
+    end
+    for _, quest in ipairs(row.stepQuests or {}) do
+        local id = quest and quest.id
+        if type(id) == "number" and (quest.on or RG.playerOnQuest(id)) then
+            return id
         end
-        C_QuestLog.SetSelectedQuest(questID)
     end
+    return row.questId
 end
 
 local function showStepTooltip(row)
@@ -2561,7 +3296,23 @@ local function showStepTooltip(row)
     end
     local where = formatPlace(row.place)
     if where then
+        local note = row.place and row.place.note
+        if note and note ~= "" then
+            where = where .. " · " .. note
+        end
         GameTooltip:AddLine("Location: " .. where, 1, 1, 1, true)
+    end
+    if type(row.places) == "table" and #row.places > 1 then
+        local visited = pinVisitSet(row)
+        local done = 0
+        if visited then
+            for index = 1, #row.places do
+                if visited[index] then
+                    done = done + 1
+                end
+            end
+        end
+        GameTooltip:AddLine(string.format("Spots: %d/%d", done, #row.places), 0.8, 0.8, 0.8)
     end
     -- Same yards as the arrow label. Raw map-world distance is an axis swap
     -- (~5150 yd on a Durotar pin) and must not override the zone measurement.
@@ -2573,7 +3324,9 @@ local function showStepTooltip(row)
     if type(dist) ~= "number" then
         dist = waypointDistance(row.tipWaypoint)
     end
-    if dist then
+    if killAreaPin(row, dist) then
+        GameTooltip:AddLine("NEAR", 1, 1, 1)
+    elseif dist then
         GameTooltip:AddLine("Distance: " .. formatYards(dist), 1, 1, 1)
     end
     if shownQuest then
@@ -2588,13 +3341,29 @@ local function bindStepTip(row, item)
     row.sticky = item.sticky
     row.questId = item.questId
     row.stepQuests = item.stepQuests
+    row.places = item.places
     row.place = item.place
     row.tipWaypoint = item.waypoint
+    row.keepTravelWaypoint = item.travel and true or nil
+    row.kill = item.kill and true or nil
     row.tipTitle = RG.plainText(item.headline)
+    if type(item.places) == "table" and #item.places > 1 then
+        chooseStepPlace(row)
+    end
 end
 
 local function refreshRowWaypoint(row)
-    local place = row and row.place
+    local place = chooseStepPlace(row)
+    local hop = row.tipWaypoint
+    if row.keepTravelWaypoint and hop and type(hop.wx) == "number" then
+        local pmap = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+        if not placeSameZoneAsPlayer(place, pmap) then
+            if row.arrow then
+                row.arrow.__rxpbWp = hop
+            end
+            return hop
+        end
+    end
     if type(place) ~= "table" or type(place.x) ~= "number" or type(place.y) ~= "number" then
         return row and row.arrow and row.arrow.__rxpbWp or nil
     end
@@ -2620,6 +3389,12 @@ local function rowPinDistance(row, wp, hbd, x, y, instance)
         local zoneDist = ns.PinZoneDistance(place.map, place.x, place.y, place.zone)
         if type(zoneDist) == "number" then
             return zoneDist
+        end
+    end
+    if place and ns.CrossZoneVector and type(place.x) == "number" then
+        local cross = ns.CrossZoneVector(place.map, place.x, place.y, place.zone)
+        if cross and type(cross.dist) == "number" then
+            return cross.dist
         end
     end
     if wp and type(wp.wx) == "number" and hbd and type(x) == "number" then
@@ -2663,22 +3438,23 @@ local function updateArrows()
     local canAim = facing and hbd and x
     for _, row in ipairs(State.rows) do
         local arrow = row.arrow
-        if arrow and arrow:IsShown() then
+        if arrow and arrow:IsShown() and not row.__rxpbCompleting then
             local wp = refreshRowWaypoint(row)
             local angle = aimAngle(hbd, instance, x, y, wp, row.place, facing)
             local dist = rowPinDistance(row, wp, hbd, x, y, instance)
 
-            local distLabel = type(dist) == "number" and formatYards(dist) or ""
+            local usePin = killAreaPin(row, dist)
+            local distLabel = usePin and "NEAR" or (type(dist) == "number" and formatYards(dist) or "")
             if row.distance and row.__rxpbDistLabel ~= distLabel then
                 row.__rxpbDistLabel = distLabel
                 row.distance:SetText(distLabel)
             end
 
-            if type(angle) == "number" and type(facing) == "number" and setArrowRotation(arrow, angle - facing) then
+            local shadow = row.arrowShadow and row.arrowShadow:IsShown() and row.arrowShadow or nil
+            if aimNavIcon(arrow, shadow, usePin, angle, facing) then
                 setArrowAlpha(arrow, 1)
-                if row.arrowShadow and row.arrowShadow:IsShown() then
-                    setArrowRotation(row.arrowShadow, angle - facing)
-                    setArrowAlpha(row.arrowShadow, 0.9)
+                if shadow then
+                    setArrowAlpha(shadow, 0.9)
                 end
             else
                 setArrowAlpha(arrow, 0.35)
@@ -2825,7 +3601,7 @@ local function acquireRow(index)
             return
         end
         if button == "LeftButton" and not self.tipDragged then
-            openStepQuest(self.questId)
+            openStepQuest(questIdForRow(self))
         end
     end)
     local tipElapsed = 0
@@ -2910,13 +3686,13 @@ local function acquireRow(index)
 
     row.arrowShadow = row:CreateTexture(nil, "ARTWORK")
     row.arrowShadow:SetDrawLayer("ARTWORK", 1)
-    row.arrowShadow:SetTexture(UI.ARROW_TEXTURE)
+            row.arrowShadow:SetTexture(UI.GPS_ARROW)
     tintArrow(row.arrowShadow, 0, 0, 0, 0.8)
     row.arrowShadow:Hide()
 
     row.arrow = row:CreateTexture(nil, "OVERLAY")
     row.arrow:SetDrawLayer("OVERLAY", 2)
-    row.arrow:SetTexture(UI.ARROW_TEXTURE)
+            row.arrow:SetTexture(UI.GPS_ARROW)
     tintArrow(row.arrow, 1, 0.82, 0, 1)
     row.arrow:Hide()
 
@@ -3162,7 +3938,34 @@ local function colorCode(r, g, b)
     return "|cff" .. colorChannel(r) .. colorChannel(g) .. colorChannel(b)
 end
 
--- Our guide text tags use |cRB_*| (Waynotes). Colors live on UI.GUIDE_TAG_COLORS.
+-- Our guide text tags use |cRB_*| (Waynotes) or authoring sugar [TAG]…[/].
+-- Colors live on UI.GUIDE_TAG_COLORS.
+
+local GUIDE_TAG_NAMES = { "FRIENDLY", "ENEMY", "LOOT", "PICK", "BUY", "QUEST", "WARN", "SKILL" }
+
+-- [FRIENDLY]Kaya Flathoof[/] or [FRIENDLY]Kaya Flathoof[/FRIENDLY] → |cRB_FRIENDLY_…|r
+-- Body may not contain brackets so nested tags expand innermost-first.
+local function expandBracketGuideTags(text)
+    if type(text) ~= "string" or not text:find("[", 1, true) then
+        return text, 0
+    end
+    local total = 0
+    for _, name in ipairs(GUIDE_TAG_NAMES) do
+        local nextText, count = text:gsub(
+            "%[" .. name .. "%]([^%[%]]-)%[/" .. name .. "%]",
+            "|cRB_" .. name .. "_%1|r"
+        )
+        text = nextText
+        total = total + count
+        nextText, count = text:gsub(
+            "%[" .. name .. "%]([^%[%]]-)%[/%]",
+            "|cRB_" .. name .. "_%1|r"
+        )
+        text = nextText
+        total = total + count
+    end
+    return text, total
+end
 
 local function expandGuideTags(text)
     if type(text) ~= "string" or text == "" then
@@ -3173,10 +3976,14 @@ local function expandGuideTags(text)
     text = text:gsub("|n", "\n")
 
     -- Innermost tags first so nested FRIENDLY/ENEMY inside WARN resolve.
-    local tags = { "FRIENDLY", "ENEMY", "LOOT", "PICK", "BUY", "QUEST", "WARN" }
     for _ = 1, 8 do
         local changed = false
-        for _, name in ipairs(tags) do
+        local bracketed
+        text, bracketed = expandBracketGuideTags(text)
+        if bracketed > 0 then
+            changed = true
+        end
+        for _, name in ipairs(GUIDE_TAG_NAMES) do
             local key = "RB_" .. name .. "_"
             local hex = UI.GUIDE_TAG_COLORS[key]
             if hex then
@@ -3705,7 +4512,7 @@ local function progressRatio(text)
             done = 0
         end
     end
-    if not done or not total or total <= 1 then
+    if done == nil or total == nil or total <= 1 then
         return nil
     end
     if done < 0 then
@@ -3808,7 +4615,10 @@ local function layout(items, resetScroll)
 
     if count == 0 then
         for index = 1, #State.rows do
-            State.rows[index]:Hide()
+            local row = State.rows[index]
+            row.__rxpbCompleting = nil
+            row:SetAlpha(1)
+            row:Hide()
         end
         empty:Show()
         divider:Hide()
@@ -3856,11 +4666,41 @@ local function layout(items, resetScroll)
 
         local textLeft = UI.COLUMN + 8
         local rightInset = 0
-        local arrowSize = main and 20 or 15
+        local arrowSize = main and UI.GPS_ARROW_MAIN or UI.GPS_ARROW_ROW
+        local completing = item.__rxpbCompleting and true or false
+        row.__rxpbCompleting = completing or nil
         local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
-        if hasPin and row.arrow then
+        if completing and row.arrow then
+            local tintR, tintG, tintB = stickyCompleteGreen()
+            local centerX = -2 - (UI.ARROW_COLUMN / 2)
+            local entry = State.completing and State.completing[item.stepIndex]
+            row:SetAlpha(entry and entry.alpha or 1)
+            setCheckIcon(row.arrow)
+            tintArrow(row.arrow, tintR, tintG, tintB, 1)
+            setArrowAlpha(row.arrow, 1)
+            row.arrow:Show()
+            row.arrow:ClearAllPoints()
+            row.arrow:SetSize(arrowSize, arrowSize)
+            row.arrow:SetPoint("CENTER", row, "TOPRIGHT", centerX, -arrowSize / 2)
+            row.arrow.__rxpbWp = nil
+            row.arrow:SetDrawLayer("OVERLAY", 2)
+            if row.arrowShadow then
+                row.arrowShadow:Hide()
+            end
+            if row.distance then
+                row.distance:Hide()
+                row.distance:SetText("")
+                row.__rxpbDistLabel = nil
+            end
+            rightInset = UI.ARROW_COLUMN + 6
+        elseif hasPin and row.arrow then
+            row:SetAlpha(1)
             local tintR, tintG, tintB = arrowTint()
             local centerX = -2 - (UI.ARROW_COLUMN / 2)
+            -- Restore arrow/pin if this row previously showed the sticky check.
+            if row.arrow.__rxpbNav == UI.GPS_CHECK then
+                row.arrow.__rxpbNav = nil
+            end
             tintArrow(row.arrow, tintR, tintG, tintB, 1)
             row.arrow:Show()
             row.arrow:ClearAllPoints()
@@ -3868,11 +4708,10 @@ local function layout(items, resetScroll)
             row.arrow:SetPoint("CENTER", row, "TOPRIGHT", centerX, -arrowSize / 2)
             -- Force aim path to re-apply texcoords after layout resize.
             row.arrow.__rxpbRot = nil
-            row.arrow.__rxpbWp = item.waypoint
+            row.places = item.places
             row.place = item.place
-            if not row.arrow.__rxpbWp then
-                refreshRowWaypoint(row)
-            end
+            row.arrow.__rxpbWp = item.waypoint
+            refreshRowWaypoint(row)
             if row.arrowShadow then
                 tintArrow(row.arrowShadow, 0, 0, 0, 0.9)
                 row.arrowShadow:Show()
@@ -3894,6 +4733,7 @@ local function layout(items, resetScroll)
             end
             rightInset = UI.ARROW_COLUMN + 6
         elseif row.arrow then
+            row:SetAlpha(1)
             row.arrow:Hide()
             row.arrow.__rxpbWp = nil
             if row.arrowShadow then
@@ -3903,6 +4743,8 @@ local function layout(items, resetScroll)
                 row.distance:Hide()
                 row.distance:SetText("")
             end
+        else
+            row:SetAlpha(1)
         end
 
         row.text:ClearAllPoints()
@@ -3974,7 +4816,7 @@ local function layout(items, resetScroll)
             actionHeight = (math.floor((#actions - 1) / perRow) + 1) * stride + 2
         end
 
-        local navHeight = hasPin and (arrowSize + 17) or 0
+        local navHeight = (hasPin or completing) and (arrowSize + 17) or 0
         local barHeight = syncProgressBars(row, item, textLeft, rightInset)
         local blockHeight = math.max(badgeSize, textHeight + detailHeight + moreHeight + loadHeight + actionHeight, navHeight) + barHeight
         row:SetHeight(blockHeight)
@@ -3982,7 +4824,10 @@ local function layout(items, resetScroll)
     end
 
     for index = count + 1, #State.rows do
-        State.rows[index]:Hide()
+        local row = State.rows[index]
+        row.__rxpbCompleting = nil
+        row:SetAlpha(1)
+        row:Hide()
     end
 
     local stale = {}
@@ -4164,9 +5009,9 @@ do
         return false, pmap
     end
 
-    local function placePin(pins, frame, item, index)
-        local place = item.place
-        local wp = item.waypoint
+    local function placePin(pins, frame, item, index, place, wp)
+        place = place or item.place
+        wp = wp or item.waypoint
         if (not wp or type(wp.wx) ~= "number") and place and ns.PinToPlayerWorld then
             local wx, wy, inst = ns.PinToPlayerWorld(place.map, place.x, place.y, place.zone)
             if type(wx) == "number" then
@@ -4223,6 +5068,9 @@ do
         local _, badgeText = badgeLabel(item, index)
         paintStepMapPin(frame, index, badgeText)
         frame.tipTitle = string.format("Step %s", badgeText)
+        if place and place.note and place.note ~= "" then
+            frame.tipTitle = frame.tipTitle .. " · " .. place.note
+        end
         if place and type(place.x) == "number" then
             local mapLabel = place.zone or (place.map and tostring(place.map)) or "?"
             frame.tipPlace = string.format("%s  %.1f, %.1f", mapLabel, place.x > 1 and place.x or place.x * 100, place.y > 1 and place.y or place.y * 100)
@@ -4254,14 +5102,23 @@ do
 
         local parts = {}
         for index, item in ipairs(items) do
-            local place = item.place
-            local wp = item.waypoint
-            local px = place and place.x or "-"
-            local py = place and place.y or "-"
-            local pm = place and place.map or "-"
-            local wx = wp and wp.wx or "-"
-            local wy = wp and wp.wy or "-"
-            parts[index] = tostring(item.number or index) .. ":" .. tostring(pm) .. ":" .. tostring(px) .. ":" .. tostring(py) .. ":" .. tostring(wx) .. ":" .. tostring(wy)
+            local places = item.places
+            if type(places) == "table" and #places > 0 then
+                local chunks = {}
+                for pinIndex, place in ipairs(places) do
+                    chunks[pinIndex] = tostring(place.map or "-") .. ":" .. tostring(place.x or "-") .. ":" .. tostring(place.y or "-")
+                end
+                parts[index] = tostring(item.number or index) .. "=" .. table.concat(chunks, ",")
+            else
+                local place = item.place
+                local wp = item.waypoint
+                local px = place and place.x or "-"
+                local py = place and place.y or "-"
+                local pm = place and place.map or "-"
+                local wx = wp and wp.wx or "-"
+                local wy = wp and wp.wy or "-"
+                parts[index] = tostring(item.number or index) .. ":" .. tostring(pm) .. ":" .. tostring(px) .. ":" .. tostring(py) .. ":" .. tostring(wx) .. ":" .. tostring(wy)
+            end
         end
         local signature = table.concat(parts, "|")
         if signature == State.mapPins.signature then
@@ -4273,13 +5130,25 @@ do
 
         local used = 0
         for index, item in ipairs(items) do
-            local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
-            if hasPin then
-                used = used + 1
-                local frame = acquireStepMapPin(used)
-                if not placePin(pins, frame, item, index) then
-                    frame:Hide()
-                    used = used - 1
+            local places = item.places
+            if type(places) == "table" and #places > 0 then
+                for _, place in ipairs(places) do
+                    used = used + 1
+                    local frame = acquireStepMapPin(used)
+                    if not placePin(pins, frame, item, index, place, nil) then
+                        frame:Hide()
+                        used = used - 1
+                    end
+                end
+            else
+                local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
+                if hasPin then
+                    used = used + 1
+                    local frame = acquireStepMapPin(used)
+                    if not placePin(pins, frame, item, index) then
+                        frame:Hide()
+                        used = used - 1
+                    end
                 end
             end
         end
@@ -4300,6 +5169,14 @@ function ns.RefreshTracker(force)
     end
 
     local items = RG.collectObjectives()
+    local guideTitle = RG.guideTitle()
+    if State.guideTitle ~= guideTitle then
+        State.guideTitle = guideTitle
+        State.completing = {}
+        State.stickyShown = {}
+    end
+    beginStickyCompletions(items)
+    local displayItems = appendCompletingItems(items)
     local parts = {}
     for index, item in ipairs(items) do
         local actionNames = {}
@@ -4323,7 +5200,7 @@ function ns.RefreshTracker(force)
     end
 
     if InCombatLockdown() and next(State.parked) then
-        for index, item in ipairs(items) do
+        for index, item in ipairs(displayItems) do
             local row = State.rows[index]
             if row and row.text then
                 local main = index == 1
@@ -4335,7 +5212,7 @@ function ns.RefreshTracker(force)
                     row.badge.sticky = item.sticky
                     bindStepTip(row, item)
                 end
-                if row.arrow then
+                if row.arrow and not item.__rxpbCompleting then
                     row.arrow.__rxpbWp = item.waypoint
                 end
                 applyRowText(row, item, index)
@@ -4354,8 +5231,9 @@ function ns.RefreshTracker(force)
     local sizeChanged = sizeNow ~= State.sizeKey
     State.sizeKey = sizeNow
     local contentChanged = signature ~= State.lastSignature
-    if force or contentChanged or sizeChanged or State.remeasure then
-        if layout(items, contentChanged) then
+    local completingPending = State.completing and next(State.completing)
+    if force or contentChanged or sizeChanged or State.remeasure or (completingPending and contentChanged) then
+        if layout(displayItems, contentChanged) then
             State.lastSignature = signature
             State.remeasure = sizeChanged
         else
@@ -4739,8 +5617,10 @@ tracker:SetScript("OnUpdate", function(self, delta)
         placeTrackerTooltip()
     end
     pcall(updateArrows)
+    pcall(updateCompletingStickies, delta)
     pcall(updateFlightStrip)
     pcall(updateNavStrip)
+    pcall(updateTrainStrip)
     if not (ns.db and ns.db.standaloneGuide) then
         pcall(RG.maintainReview)
     end
@@ -4757,16 +5637,22 @@ tracker:SetScript("OnShow", function()
     ns.RefreshTracker(true)
     pcall(updateFlightStrip)
     pcall(updateNavStrip)
+    pcall(updateTrainStrip)
 end)
 
 tracker:SetScript("OnHide", function()
     clearGuideTips()
+    State.completing = {}
+    State.stickyShown = {}
     shadowHost:Hide()
     if State.flight.strip then
         State.flight.strip:Hide()
     end
     if State.nav.strip then
         State.nav.strip:Hide()
+    end
+    if State.train.strip then
+        State.train.strip:Hide()
     end
     if State.clearStepMapPins then
         State.clearStepMapPins()
