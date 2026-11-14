@@ -133,15 +133,26 @@ ns.RegisterGuide({
             y = 62.6,
         },
         {
-            text = "In Windshear Crag, kill |cRB_ENEMY_Venture Co. Loggers|r, loot |cRB_LOOT_Super Reaper 6000 Blueprints|r from |cRB_ENEMY_Operators|r, and finish |cRB_QUEST_Goblin Invaders|r.",
-            quests = { 1062, 1093 },
+            sticky = true,
+            text = "In Windshear Crag, loot |cRB_LOOT_Super Reaper 6000 Blueprints|r from |cRB_ENEMY_Operators|r.",
+            quest = 1093,
+            when = "objectives",
+            map = 1442,
+            x = 66.4,
+            y = 55.9,
+            details = {
+                "|cRB_LOOT_Super Reaper 6000 Blueprints|r (1)",
+            },
+        },
+        {
+            text = "In Windshear Crag, kill |cRB_ENEMY_Venture Co. Loggers|r and finish |cRB_QUEST_Goblin Invaders|r.",
+            quest = 1062,
             when = "objectives",
             map = 1442,
             x = 66.4,
             y = 55.9,
             details = {
                 "|cRB_ENEMY_Venture Co. Logger|r (15)",
-                "|cRB_LOOT_Super Reaper 6000 Blueprints|r (1)",
             },
         },
         {
@@ -258,15 +269,26 @@ ns.RegisterGuide({
             y = 64.3,
         },
         {
-            text = "North of Sun Rock, kill fire elementals for |cRB_LOOT_Incendrites|r and gather |cRB_LOOT_Gaea Seeds|r around Mirkfallon Lake.",
-            quests = { 6393, 6301 },
+            sticky = true,
+            text = "Gather |cRB_LOOT_Gaea Seeds|r around Mirkfallon Lake.",
+            quest = 6301,
+            when = "objectives",
+            map = 1442,
+            x = 48.6,
+            y = 40.2,
+            details = {
+                "|cRB_LOOT_Gaea Seed|r (10)",
+            },
+        },
+        {
+            text = "North of Sun Rock, kill fire elementals for |cRB_LOOT_Incendrites|r.",
+            quest = 6393,
             when = "objectives",
             map = 1442,
             x = 48.6,
             y = 40.2,
             details = {
                 "|cRB_LOOT_Incendrite|r (10)",
-                "|cRB_LOOT_Gaea Seed|r (10)",
             },
         },
         {

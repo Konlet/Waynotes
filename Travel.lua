@@ -333,20 +333,83 @@ local function matchNodeIdByTaxiName(taxiName)
     if not key then
         return nil
     end
+    local faction = playerFaction()
+    local bestId
+    local bestScore = 0
     for nodeId, node in pairs(nodesById) do
-        local hub = normalizeName(node.hub)
-        local zone = normalizeName(node.zone)
-        local name = normalizeName(node.name)
-        if key == hub or key == zone or key == name then
-            return nodeId
-        end
-        if hub and key:find(hub, 1, true) then
-            return nodeId
-        end
-        if name and key:find(name, 1, true) then
-            return nodeId
+        if factionUsable(node.faction, faction) then
+            local hub = normalizeName(node.hub)
+            local zone = normalizeName(node.zone)
+            local name = normalizeName(node.name)
+            local score = 0
+            if hub and key == hub then
+                score = 100
+            elseif zone and key == zone then
+                score = 90
+            elseif name and key == name then
+                score = 80
+            elseif hub and key:find(hub, 1, true) then
+                score = 70
+            elseif name and key:find(name, 1, true) then
+                score = 60
+            elseif zone and key:find(zone, 1, true) then
+                score = 40
+            end
+            if score > bestScore then
+                bestScore = score
+                bestId = nodeId
+            end
         end
     end
+    return bestId
+end
+
+function ns.MatchFlightNodeId(taxiName)
+    return matchNodeIdByTaxiName(taxiName)
+end
+
+local flightSecondsByPair
+
+local function ensureFlightSecondsIndex()
+    if flightSecondsByPair then
+        return flightSecondsByPair
+    end
+    flightSecondsByPair = {}
+    local connections = ns.NavFlightConnections
+    if type(connections) == "table" then
+        for index = 1, #connections do
+            local edge = connections[index]
+            if type(edge) == "table" and isNumber(edge.from) and isNumber(edge.to) and isNumber(edge.seconds) then
+                local bucket = flightSecondsByPair[edge.from]
+                if not bucket then
+                    bucket = {}
+                    flightSecondsByPair[edge.from] = bucket
+                end
+                bucket[edge.to] = edge.seconds
+            end
+        end
+    end
+    return flightSecondsByPair
+end
+
+-- Sum forever flight-time defaults along a nodeId path (from wow-forever-flight-times.json).
+function ns.DefaultFlightSeconds(nodeIds)
+    if type(nodeIds) ~= "table" or #nodeIds < 2 then
+        return nil
+    end
+    local index = ensureFlightSecondsIndex()
+    local total = 0
+    for hop = 1, #nodeIds - 1 do
+        local fromId = nodeIds[hop]
+        local toId = nodeIds[hop + 1]
+        local bucket = index[fromId]
+        local seconds = bucket and bucket[toId]
+        if type(seconds) ~= "number" or seconds <= 0 then
+            return nil
+        end
+        total = total + seconds
+    end
+    return total
 end
 
 function ns.TravelRememberOpenTaxiNodes()

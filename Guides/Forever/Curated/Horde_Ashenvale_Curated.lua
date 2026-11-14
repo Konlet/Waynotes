@@ -25,7 +25,6 @@ ns.RegisterGuide({
         },
         {
             text = "Optional Forever: |cRB_FRIENDLY_Va'xug Firefure|r near the Talondeep exit offers |cRB_QUEST_Never Coming Back|r (6 |cRB_ENEMY_Ashenvale Bears|r, 6 |cRB_ENEMY_Shadowhorn Stags|r; avoid |cRB_ENEMY_Ursangous|r) then |cRB_QUEST_A Void Path|r (guide the Eye of Kilrogg to the road).",
-            note = "Optional XP. Press Next to skip and go straight to Zoram'gar.",
             map = 1440,
             x = 42.1,
             y = 71.5,
@@ -111,7 +110,6 @@ ns.RegisterGuide({
         },
         {
             text = "Optional: train class abilities in Thunder Bluff or Orgrimmar if you are overdue. Shaman trainer is in the Spirit Rise cave near Zamah.",
-            note = "Skip if you are already trained.",
         },
         {
             text = "Travel to the Elder Rise in Thunder Bluff.",
@@ -326,7 +324,6 @@ ns.RegisterGuide({
         },
         {
             text = "Keep killing Felmusk satyrs at Night Run until you are close to level 27.",
-            note = "Skip if you are already level 27.",
             map = 1440,
             x = 66.98,
             y = 54.97,
@@ -341,7 +338,7 @@ ns.RegisterGuide({
             details = {
                 "|cRB_LOOT_Shadumbra's Head|r (1)",
             },
-            note = "Requires |cRB_QUEST_The Ashenvale Hunt|r. Skip if the rare is missing or you are skipping the Hunt.",
+            note = "Requires |cRB_QUEST_The Ashenvale Hunt|r.",
         },
         {
             text = "Kill |cRB_ENEMY_Laughing Sisters|r for the |cRB_LOOT_Etched Phial|r if you have |cRB_QUEST_The Sacred Flame|r.",
@@ -353,7 +350,6 @@ ns.RegisterGuide({
             details = {
                 "|cRB_LOOT_Etched Phial|r (1)",
             },
-            note = "Skip if the Sacred Flame chain is not in your log.",
         },
         {
             text = "Go north to Thistlefur Hold. Loot |cRB_PICK_Troll Chests|r for |cRB_LOOT_Troll Charms|r.",
@@ -414,7 +410,7 @@ ns.RegisterGuide({
             details = {
                 "|cRB_LOOT_Ursangous's Paw|r (1)",
             },
-            note = "Requires the Hunt. Patrols around 40-44, 63-69. Skip if missing.",
+            note = "Requires the Hunt. Patrols around 40-44, 63-69.",
         },
         {
             text = "At Mystral Lake: scout the gazebo overlooking the Alliance outpost and kill |cRB_ENEMY_Befouled Water Elementals|r.",
@@ -439,7 +435,6 @@ ns.RegisterGuide({
         },
         {
             text = "Grind mobs around Mystral Lake until you are mid level 27 before heading back.",
-            note = "Skip if you are already there.",
             map = 1440,
             x = 52.4,
             y = 62.8,
@@ -480,7 +475,6 @@ ns.RegisterGuide({
                 "Turn in |cRB_QUEST_Shadumbra's Head|r",
                 "Turn in |cRB_QUEST_Ursangous's Paw|r",
             },
-            note = "Skip if you did not loot those rares.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Yama Snowhoof|r. Turn in |cRB_QUEST_Freedom to Ruul|r.",
@@ -579,7 +573,7 @@ ns.RegisterGuide({
             details = {
                 "|cRB_LOOT_Sharptalon's Claw|r (1)",
             },
-            note = "Requires the Hunt. Skip if the rare is missing.",
+            note = "Requires the Hunt.",
         },
         {
             text = "Talk to |cRB_FRIENDLY_Senani Thunderheart|r. Turn in |cRB_QUEST_Sharptalon's Claw|r. Accept |cRB_QUEST_The Hunt Completed|r, then turn it in.",

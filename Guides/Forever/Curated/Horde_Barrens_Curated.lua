@@ -229,15 +229,26 @@ ns.RegisterGuide({
             y = 30.9,
         },
         {
-            text = "At Thorn Hill, kill |cRB_ENEMY_Kreenig Snarlsnout|r, loot the |cRB_PICK_Crossroads Supply Crates|r, and finish |cRB_ENEMY_Razormane Geomancers|r and |cRB_ENEMY_Defenders|r.",
-            quests = { 872, 5041 },
+            sticky = true,
+            text = "At Thorn Hill, loot the |cRB_PICK_Crossroads Supply Crates|r for |cRB_QUEST_Supplies for the Crossroads|r.",
+            quest = 5041,
+            when = "objectives",
+            map = 1413,
+            x = 58.5,
+            y = 27.0,
+            details = {
+                "|cRB_LOOT_Crossroads' Supply Crates|r (1)",
+            },
+        },
+        {
+            text = "At Thorn Hill, kill |cRB_ENEMY_Kreenig Snarlsnout|r and finish |cRB_ENEMY_Razormane Geomancers|r and |cRB_ENEMY_Defenders|r.",
+            quest = 872,
             when = "objectives",
             map = 1413,
             x = 58.5,
             y = 27.0,
             details = {
                 "|cRB_LOOT_Kreenig Snarlsnout's Tusk|r (1)",
-                "|cRB_LOOT_Crossroads' Supply Crates|r (1)",
                 "|cRB_ENEMY_Razormane Geomancer|r (8)",
                 "|cRB_ENEMY_Razormane Defender|r (8)",
             },
@@ -346,8 +357,20 @@ ns.RegisterGuide({
             y = 38.5,
         },
         {
-            text = "Along the shore, kill |cRB_ENEMY_Southsea Brigands|r and |cRB_ENEMY_Cannoneers|r. Kill |cRB_ENEMY_Baron Longshore|r for his head.",
-            quests = { 887, 895 },
+            sticky = true,
+            text = "Along the shore, kill |cRB_ENEMY_Baron Longshore|r for his head.",
+            quest = 895,
+            when = "objectives",
+            map = 1413,
+            x = 63.8,
+            y = 46.7,
+            details = {
+                "|cRB_LOOT_Baron Longshore's Head|r (1)",
+            },
+        },
+        {
+            text = "Along the shore, kill |cRB_ENEMY_Southsea Brigands|r and |cRB_ENEMY_Cannoneers|r.",
+            quest = 887,
             when = "objectives",
             map = 1413,
             x = 63.8,
@@ -355,7 +378,6 @@ ns.RegisterGuide({
             details = {
                 "|cRB_ENEMY_Southsea Brigand|r (12)",
                 "|cRB_ENEMY_Southsea Cannoneer|r (6)",
-                "|cRB_LOOT_Baron Longshore's Head|r (1)",
             },
         },
         {
@@ -424,15 +446,26 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At the Forgotten Pools, explore the lake for |cRB_QUEST_The Forgotten Pools|r and loot |cRB_LOOT_Fungal Spores|r.",
-            quests = { 870, 848 },
+            sticky = true,
+            text = "At the Forgotten Pools, loot |cRB_LOOT_Fungal Spores|r for |cRB_QUEST_Fungal Spores|r.",
+            quest = 848,
+            when = "objectives",
+            map = 1413,
+            x = 45.0,
+            y = 22.5,
+            details = {
+                "|cRB_LOOT_Fungal Spores|r (4)",
+            },
+        },
+        {
+            text = "At the Forgotten Pools, explore the lake for |cRB_QUEST_The Forgotten Pools|r.",
+            quest = 870,
             when = "objectives",
             map = 1413,
             x = 45.0,
             y = 22.5,
             details = {
                 "Explore the Forgotten Pools",
-                "|cRB_LOOT_Fungal Spores|r (4)",
             },
         },
         {
@@ -518,15 +551,26 @@ ns.RegisterGuide({
             y = 42.8,
         },
         {
-            text = "Kill |cRB_ENEMY_Sunscale Scytheclaws|r and place feathers on the three nests for |cRB_QUEST_The Angry Scytheclaws|r. Collect |cRB_LOOT_Raptor Heads|r for |cRB_QUEST_Raptor Thieves|r as you go.",
-            quests = { 905, 869 },
+            sticky = true,
+            text = "Collect |cRB_LOOT_Raptor Heads|r from the |cRB_ENEMY_Sunscale Scytheclaws|r for |cRB_QUEST_Raptor Thieves|r as you go.",
+            quest = 869,
+            when = "objectives",
+            map = 1413,
+            x = 52.0,
+            y = 46.5,
+            details = {
+                "|cRB_LOOT_Raptor Head|r (12)",
+            },
+        },
+        {
+            text = "Kill |cRB_ENEMY_Sunscale Scytheclaws|r and place feathers on the three nests for |cRB_QUEST_The Angry Scytheclaws|r.",
+            quest = 905,
             when = "objectives",
             map = 1413,
             x = 52.0,
             y = 46.5,
             details = {
                 "Visit the 3 nests",
-                "|cRB_LOOT_Raptor Head|r (12)",
             },
         },
         {

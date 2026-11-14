@@ -249,6 +249,9 @@ local function cleanStep(step)
     if step.forever then
         copy.forever = true
     end
+    if step.sticky then
+        copy.sticky = true
+    end
     if type(step.travel) == "table" or type(step.travel) == "string" or step.travel == true then
         copy.travel = step.travel
     end
@@ -347,6 +350,10 @@ function ns.RegisterGuide(guide)
     local classes = copyNames(guide.classes)
     local excludeRaces = copyNames(guide.excludeRaces)
     local excludeClasses = copyNames(guide.excludeClasses)
+    -- Class side quests nest under the class name in the guide menu.
+    if classes and #classes == 1 then
+        group = classes[1]
+    end
     if not byId[id] then
         order[#order + 1] = id
     end
@@ -361,11 +368,13 @@ function ns.RegisterGuide(guide)
     if not dungeon then
         dungeon = inferDungeon(name, id, group)
     end
+    -- Only explicitly curated/listed guides appear in the menu. Dungeon packs
+    -- can still load for in-instance prompts without cluttering the picker.
     local listed
     if guide.listed ~= nil then
         listed = guide.listed and true or false
     else
-        listed = dungeon ~= nil
+        listed = false
     end
     byId[id] = {
         id = id,
@@ -397,6 +406,13 @@ function ns.GuideRelevant(guide)
     return ns.GuideScore(guide) > -500
 end
 
+local function groupSortKey(group)
+    if group == "Alliance" or group == "Horde" then
+        return "0:" .. group
+    end
+    return "1:" .. (group or "")
+end
+
 function ns.GuideList()
     local list = {}
     local showAll = ns.db and ns.db.showIrrelevantGuides and true or false
@@ -407,8 +423,20 @@ function ns.GuideList()
         end
     end
     table.sort(list, function(a, b)
-        if a.group ~= b.group then
-            return a.group < b.group
+        local aGroup = groupSortKey(a.group)
+        local bGroup = groupSortKey(b.group)
+        if aGroup ~= bGroup then
+            return aGroup < bGroup
+        end
+        local aMin = a.minLevel or 0
+        local bMin = b.minLevel or 0
+        if aMin ~= bMin then
+            return aMin < bMin
+        end
+        local aMax = a.maxLevel or 0
+        local bMax = b.maxLevel or 0
+        if aMax ~= bMax then
+            return aMax < bMax
         end
         if a.name ~= b.name then
             return a.name < b.name
@@ -1015,6 +1043,14 @@ function ns.GuideCatchUp()
             end
             entry.step = hopped
             guard = guard + 1
+        elseif step.sticky then
+            -- Incomplete sticky steps stay listed; do not park the guide on them.
+            local hopped = neighbor(guide, entry.step, 1)
+            if not hopped then
+                break
+            end
+            entry.step = hopped
+            guard = guard + 1
         else
             break
         end
@@ -1537,10 +1573,21 @@ local function addDetail(details, seen, text, headlineKey)
     if headlineKey and detailCovers(headlineKey, key) then
         return
     end
+    local function looksProgress(line)
+        local plain = line:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        plain = strtrim(plain)
+        return plain:match("%d+%s*/%s*%d+") ~= nil
+    end
     for index, existing in ipairs(details) do
         local existingKey = detailKey(existing)
         if existingKey then
             if detailCovers(existingKey, key) then
+                -- Prefer live n/m objective text over authored "Item (N)" counts.
+                if looksProgress(text) and not looksProgress(existing) then
+                    details[index] = text
+                    seen[existingKey] = nil
+                    seen[key] = true
+                end
                 return
             end
             if detailCovers(key, existingKey) then
@@ -1820,7 +1867,7 @@ local function buildItem(step, full)
         names = names,
         quests = quests,
         stepIndex = step.index,
-        sticky = false,
+        sticky = step.sticky and true or false,
         stepQuests = entries,
         questId = primary and primary.id,
         questName = primary and primary.name,
@@ -1883,19 +1930,42 @@ function ns.GuideObjectives()
             entry.step = hopped
         end
     end
-    -- Our guide shows the current step only. Previewing several ahead mixed in
-    -- class/race branches that look unrelated.
+    -- Primary step plus any incomplete sticky steps already passed (concurrent).
     local items = {}
-    local index = entry.step
-    local guard = 0
-    while index <= count and guard < count do
-        local step = guide.steps[index]
-        if stepApplies(step) then
-            items[#items + 1] = buildItem(step, true)
-            break
+    local primaryIndex = entry.step
+    local primary = guide.steps[primaryIndex]
+    if primary and primary.sticky then
+        for index = primaryIndex + 1, count do
+            local step = guide.steps[index]
+            if stepApplies(step) and not step.sticky then
+                primaryIndex = index
+                primary = step
+                break
+            end
         end
-        index = index + 1
-        guard = guard + 1
+    elseif primary and not stepApplies(primary) then
+        primary = nil
+        for index = primaryIndex, count do
+            local step = guide.steps[index]
+            if stepApplies(step) and not step.sticky then
+                primaryIndex = index
+                primary = step
+                break
+            end
+        end
+    end
+    if primary and stepApplies(primary) then
+        items[#items + 1] = buildItem(primary, true)
+        items[#items].sticky = false
+    end
+    if not (ns.db and ns.db.simpleMode) and primary then
+        for index = 1, primaryIndex do
+            local step = guide.steps[index]
+            if stepApplies(step) and step.sticky and not stepDone(step) and index ~= primaryIndex then
+                items[#items + 1] = buildItem(step, true)
+                items[#items].sticky = true
+            end
+        end
     end
     if #items == 0 then
         if advanceToNextGuide(guide) then
@@ -1929,6 +1999,41 @@ function ns.GuideObjectives()
     return items
 end
 
+local function paintMenuLabel(label, r, g, b)
+    if not label then
+        return
+    end
+    local outline = ns.db and ns.db.textOutline
+    local font, size = label:GetFont()
+    if font and size then
+        label:SetFont(font, size, outline and "OUTLINE" or "")
+    end
+    label:SetTextColor(r or 1, g or 1, b or 1)
+end
+
+local function styleGuideMenu()
+    if not menu then
+        return 4
+    end
+    local radius = 0
+    if ns.StylePopupFrame then
+        radius = ns.StylePopupFrame(menu) or 0
+    end
+    local pad = 4
+    if type(radius) == "number" and radius > 0 then
+        pad = math.max(6, math.floor(radius * 0.5) + 2)
+    end
+    scroll:ClearAllPoints()
+    scroll:SetPoint("TOPLEFT", pad, -pad)
+    scroll:SetPoint("BOTTOMRIGHT", -pad, pad)
+    local width = (menu:GetWidth() or 280) - pad * 2
+    if width < 40 then
+        width = 40
+    end
+    content:SetWidth(width)
+    return pad
+end
+
 local function acquireRow(index)
     local row = rows[index]
     if row then
@@ -1942,6 +2047,22 @@ local function acquireRow(index)
     row.label:SetJustifyH("LEFT")
     row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
     row:SetScript("OnClick", function(self)
+        if self.action == "options" then
+            if menu then
+                menu:Hide()
+            end
+            if ns.OpenOptions then
+                ns.OpenOptions()
+            end
+            return
+        end
+        if self.action == "rxp" and self.rxpGroup and self.rxpName and ns.LoadRestedXPGuide then
+            ns.LoadRestedXPGuide(self.rxpGroup, self.rxpName)
+            if menu then
+                menu:Hide()
+            end
+            return
+        end
         if self.guideId then
             ns.GuideSelect(self.guideId)
             if menu then
@@ -1953,11 +2074,272 @@ local function acquireRow(index)
     return row
 end
 
+local function rxpPlain(text)
+    if type(text) ~= "string" then
+        return ""
+    end
+    text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
+    text = text:gsub("|r", "")
+    text = text:gsub("\\n", " ")
+    text = text:gsub("|n", " ")
+    return strtrim(text)
+end
+
+local function rxpGuideLabel(rxp, guide)
+    local name
+    if type(rxp.GetGuideName) == "function" then
+        local ok, value = pcall(rxp.GetGuideName, guide)
+        if ok and type(value) == "string" then
+            name = value
+        end
+    end
+    name = rxpPlain(name)
+    if name == "" then
+        name = rxpPlain(guide.displayname)
+    end
+    if name == "" then
+        name = rxpPlain(guide.name)
+    end
+    return name
+end
+
+function ns.LoadRestedXPGuide(group, name)
+    local rxp = ns.RestedXP and ns.RestedXP()
+    if not rxp or type(group) ~= "string" or type(name) ~= "string" or type(rxp.GetGuideTable) ~= "function" then
+        return
+    end
+    local ok, guide = pcall(rxp.GetGuideTable, group, name)
+    if not ok or type(guide) ~= "table" then
+        return
+    end
+    local clicked = false
+    local funcName = guide.OnClick
+    if type(funcName) == "string" and type(rxp.functions) == "table" and type(rxp.functions[funcName]) == "function" then
+        clicked = pcall(rxp.functions[funcName], guide)
+    end
+    if not clicked then
+        pcall(rxp.LoadGuide, rxp, guide)
+    end
+    if ns.RefreshTracker then
+        ns.RefreshTracker(true)
+    end
+end
+
+function ns.RestedXPGuideRows()
+    local rxp = ns.RestedXP and ns.RestedXP()
+    if not rxp or type(rxp.guideList) ~= "table" then
+        return nil
+    end
+    local profile = rxp.settings and rxp.settings.profile
+    local showUnused = profile and profile.showUnusedGuides and true or false
+    local ga = _G.RXPCData and _G.RXPCData.GA and true or false
+    local current = rxp.currentGuide
+    local currentGroup = type(current) == "table" and current.group
+    local currentName = type(current) == "table" and current.name
+
+    local groups = {}
+    for group, info in pairs(rxp.guideList) do
+        if type(group) == "string" and type(info) == "table" and group ~= "RXPGuides" then
+            local first = group:sub(1, 1)
+            local farm = first == "+"
+            local unused = first == "*"
+            local include
+            if ga then
+                include = farm
+            elseif unused then
+                include = showUnused
+            else
+                include = not farm
+            end
+            if include then
+                groups[#groups + 1] = group
+            end
+        end
+    end
+    table.sort(groups, function(a, b)
+        local wa = tonumber(rxp.guideList[a] and rxp.guideList[a].weight_) or 0
+        local wb = tonumber(rxp.guideList[b] and rxp.guideList[b].weight_) or 0
+        if wa ~= wb then
+            return wa > wb
+        end
+        return a < b
+    end)
+
+    local rows = {}
+    local function add(kind, text, group, name, currentRow)
+        rows[#rows + 1] = {
+            kind = kind,
+            text = text,
+            group = group,
+            name = name,
+            current = currentRow and true or false,
+        }
+    end
+
+    local function guideActive(guide, includeInternal)
+        if type(rxp.IsGuideActive) ~= "function" then
+            return true
+        end
+        local ok, value = pcall(rxp.IsGuideActive, guide, includeInternal)
+        return ok and value and true or false
+    end
+
+    local function selectable(guide)
+        if type(guide) ~= "table" or guide.disabled then
+            return false
+        end
+        if type(rxp.IsGuideSelectable) == "function" then
+            local ok, value = pcall(rxp.IsGuideSelectable, guide, nil, showUnused)
+            if ok then
+                return value and true or false
+            end
+        end
+        return true
+    end
+
+    local function chaptersOf(guide)
+        local list = {}
+        if type(guide.chapters) ~= "string" then
+            return list
+        end
+        for chapterName in guide.chapters:gmatch("%s*([^;]+)%s*") do
+            if chapterName ~= "" then
+                list[#list + 1] = chapterName
+            end
+        end
+        return list
+    end
+
+    local function appendGuide(guide, indent, seen)
+        if type(guide) ~= "table" or type(guide.name) ~= "string" or type(guide.group) ~= "string" then
+            return
+        end
+        local key = guide.group .. "||" .. guide.name
+        if seen[key] then
+            return
+        end
+        seen[key] = true
+        local label = indent .. rxpGuideLabel(rxp, guide)
+        local chapterGuides = {}
+        for _, chapterName in ipairs(chaptersOf(guide)) do
+            local chapter
+            if type(rxp.GetGuideTable) == "function" then
+                local ok, value = pcall(rxp.GetGuideTable, guide.group, chapterName)
+                if ok then
+                    chapter = value
+                end
+            end
+            if selectable(chapter) and guideActive(chapter, true) then
+                chapterGuides[#chapterGuides + 1] = chapter
+            end
+        end
+        if #chapterGuides > 0 then
+            add("label", label)
+            for _, chapter in ipairs(chapterGuides) do
+                appendGuide(chapter, indent .. "    ", seen)
+            end
+            return
+        end
+        local isCurrent = guide.group == currentGroup and guide.name == currentName
+        add("guide", label, guide.group, guide.name, isCurrent)
+    end
+
+    local function byLabel(a, b)
+        return rxpGuideLabel(rxp, a) < rxpGuideLabel(rxp, b)
+    end
+
+    for _, group in ipairs(groups) do
+        local guides = {}
+        if type(rxp.GetActiveGuidesInGroup) == "function" then
+            local ok, value = pcall(rxp.GetActiveGuidesInGroup, group)
+            if ok and type(value) == "table" then
+                guides = value
+            end
+        end
+        local buckets = {}
+        local bucketOrder = {}
+        local loose = {}
+        for _, guide in ipairs(guides) do
+            if selectable(guide) then
+                local subgroup = type(guide.subgroup) == "string" and guide.subgroup or ""
+                if subgroup == "" then
+                    loose[#loose + 1] = guide
+                else
+                    local bucket = buckets[subgroup]
+                    if not bucket then
+                        bucket = {}
+                        buckets[subgroup] = bucket
+                        bucketOrder[#bucketOrder + 1] = subgroup
+                    end
+                    bucket[#bucket + 1] = guide
+                end
+            end
+        end
+        if type(rxp.GetGuideSubgroups) == "function" then
+            local ok, categories = pcall(rxp.GetGuideSubgroups, guides)
+            if ok and type(categories) == "table" and #categories > 0 then
+                local ordered = {}
+                local seenSub = {}
+                for _, category in ipairs(categories) do
+                    local subgroup = type(category) == "table" and category.subgroup
+                    if type(subgroup) == "string" and buckets[subgroup] and not seenSub[subgroup] then
+                        seenSub[subgroup] = true
+                        ordered[#ordered + 1] = subgroup
+                    end
+                end
+                for _, subgroup in ipairs(bucketOrder) do
+                    if not seenSub[subgroup] then
+                        ordered[#ordered + 1] = subgroup
+                    end
+                end
+                bucketOrder = ordered
+            end
+        end
+        table.sort(loose, byLabel)
+        local emitted = false
+        local function ensureHeader()
+            if emitted then
+                return
+            end
+            emitted = true
+            add("group", group:gsub("^%*", ""):gsub("^%+", ""))
+        end
+        local seen = {}
+        if #loose > 0 then
+            ensureHeader()
+            for _, guide in ipairs(loose) do
+                appendGuide(guide, "", seen)
+            end
+        end
+        for _, subgroup in ipairs(bucketOrder) do
+            local list = buckets[subgroup]
+            if list and #list > 0 then
+                table.sort(list, byLabel)
+                ensureHeader()
+                add("subgroup", "  " .. rxpPlain(subgroup))
+                for _, guide in ipairs(list) do
+                    appendGuide(guide, "    ", seen)
+                end
+            end
+        end
+    end
+    return rows
+end
+
 local function presentMenu()
+    local pad = styleGuideMenu()
     local y = 4
     local index = 0
     local lastGroup
     local list = ns.GuideList()
+    local textR, textG, textB = 1, 1, 1
+    local detailR, detailG, detailB = 0.82, 0.82, 0.82
+    local accentR, accentG, accentB = 1, 0.82, 0
+    if ns.Color then
+        textR, textG, textB = ns.Color("text")
+        detailR, detailG, detailB = ns.Color("detail")
+        accentR, accentG, accentB = ns.Color("accent")
+    end
     local function place(row, height)
         row:Show()
         row:ClearAllPoints()
@@ -1966,26 +2348,105 @@ local function presentMenu()
         row:SetHeight(height)
         y = y + height
     end
-    if #list == 0 then
-        index = 1
-        local row = acquireRow(index)
+    local function resetRow(row)
         row.guideId = nil
+        row.action = nil
+        row.rxpGroup = nil
+        row.rxpName = nil
+    end
+
+    local function finishMenu()
+        for extra = index + 1, #rows do
+            rows[extra]:Hide()
+            resetRow(rows[extra])
+        end
+        local height = math.max(36, y + 8)
+        content:SetHeight(height)
+        local shown = height + pad * 2
+        if shown > 360 then
+            shown = 360
+        end
+        menu:SetHeight(shown)
+        styleGuideMenu()
+        scroll:SetVerticalScroll(0)
+    end
+
+    index = index + 1
+    local optionsRow = acquireRow(index)
+    resetRow(optionsRow)
+    optionsRow.action = "options"
+    optionsRow:EnableMouse(true)
+    optionsRow.label:SetText("Options")
+    paintMenuLabel(optionsRow.label, accentR, accentG, accentB)
+    place(optionsRow, 20)
+
+    if ns.db and ns.db.restedXPGuides then
+        local rxpRows = ns.RestedXPGuideRows and ns.RestedXPGuideRows()
+        if not rxpRows or #rxpRows == 0 then
+            index = index + 1
+            local row = acquireRow(index)
+            resetRow(row)
+            row:EnableMouse(false)
+            if rxpRows then
+                row.label:SetText("No RestedXP guides for this character.")
+            else
+                row.label:SetText("RestedXP is still loading its guides.")
+            end
+            paintMenuLabel(row.label, detailR, detailG, detailB)
+            place(row, 32)
+        else
+            for _, entry in ipairs(rxpRows) do
+                index = index + 1
+                local row = acquireRow(index)
+                resetRow(row)
+                row.label:SetText(entry.text or "")
+                if entry.kind == "guide" then
+                    row.action = "rxp"
+                    row.rxpGroup = entry.group
+                    row.rxpName = entry.name
+                    row:EnableMouse(true)
+                    if entry.current then
+                        paintMenuLabel(row.label, accentR, accentG, accentB)
+                    else
+                        paintMenuLabel(row.label, textR, textG, textB)
+                    end
+                    place(row, 20)
+                else
+                    row:EnableMouse(false)
+                    if entry.kind == "group" then
+                        paintMenuLabel(row.label, accentR, accentG, accentB)
+                    else
+                        paintMenuLabel(row.label, detailR, detailG, detailB)
+                    end
+                    place(row, 18)
+                end
+            end
+        end
+        finishMenu()
+        return
+    end
+
+    if #list == 0 then
+        index = index + 1
+        local row = acquireRow(index)
+        resetRow(row)
         row:EnableMouse(false)
         row.label:SetText("No guides yet. Add a Lua file in the Guides folder.")
-        row.label:SetTextColor(0.8, 0.8, 0.8)
+        paintMenuLabel(row.label, detailR, detailG, detailB)
         place(row, 32)
     end
     local recommended = ns.RecommendedGuide and ns.RecommendedGuide() or nil
     if recommended then
         index = index + 1
         local row = acquireRow(index)
-        row.guideId = nil
+        resetRow(row)
         row:EnableMouse(false)
         row.label:SetText("Recommended")
-        row.label:SetTextColor(0.45, 0.9, 0.45)
+        paintMenuLabel(row.label, 0.45, 0.9, 0.45)
         place(row, 18)
         index = index + 1
         row = acquireRow(index)
+        resetRow(row)
         row.guideId = recommended.id
         row:EnableMouse(true)
         local band = ""
@@ -1993,11 +2454,10 @@ local function presentMenu()
             band = string.format("  %d-%d", recommended.minLevel, recommended.maxLevel)
         end
         row.label:SetText(recommended.name .. band)
-        if ns.GuideId() == recommended.id and ns.Color then
-            local r, g, b = ns.Color("accent")
-            row.label:SetTextColor(r, g, b)
+        if ns.GuideId() == recommended.id then
+            paintMenuLabel(row.label, accentR, accentG, accentB)
         else
-            row.label:SetTextColor(0.7, 1, 0.7)
+            paintMenuLabel(row.label, 0.7, 1, 0.7)
         end
         place(row, 20)
     end
@@ -2006,39 +2466,28 @@ local function presentMenu()
             lastGroup = guide.group
             index = index + 1
             local row = acquireRow(index)
-            row.guideId = nil
+            resetRow(row)
             row:EnableMouse(false)
             row.label:SetText(guide.group)
-            row.label:SetTextColor(1, 0.82, 0.35)
+            paintMenuLabel(row.label, accentR, accentG, accentB)
             place(row, 18)
         end
         index = index + 1
         local row = acquireRow(index)
+        resetRow(row)
         row.guideId = guide.id
         row:EnableMouse(true)
         local mark = (recommended and recommended.id == guide.id) and "* " or ""
         local suffix = guide.faction and (" (" .. guide.faction .. ")") or ""
         row.label:SetText(mark .. guide.name .. suffix)
-        if ns.GuideId() == guide.id and ns.Color then
-            local r, g, b = ns.Color("accent")
-            row.label:SetTextColor(r, g, b)
+        if ns.GuideId() == guide.id then
+            paintMenuLabel(row.label, accentR, accentG, accentB)
         else
-            row.label:SetTextColor(1, 1, 1)
+            paintMenuLabel(row.label, textR, textG, textB)
         end
         place(row, 20)
     end
-    for extra = index + 1, #rows do
-        rows[extra]:Hide()
-        rows[extra].guideId = nil
-    end
-    local height = math.max(36, y + 8)
-    content:SetHeight(height)
-    local shown = height + 12
-    if shown > 360 then
-        shown = 360
-    end
-    menu:SetHeight(shown)
-    scroll:SetVerticalScroll(0)
+    finishMenu()
 end
 
 local function buildMenu()
@@ -2060,13 +2509,6 @@ local function buildMenu()
     menu:EnableMouse(true)
     menu:EnableMouseWheel(true)
     menu:Hide()
-    menu:SetBackdrop({
-        bgFile = "Interface\\BUTTONS\\WHITE8X8",
-        edgeFile = "Interface\\BUTTONS\\WHITE8X8",
-        edgeSize = 1,
-    })
-    menu:SetBackdropColor(0.04, 0.04, 0.04, 0.96)
-    menu:SetBackdropBorderColor(1, 0.82, 0, 0.85)
 
     scroll = CreateFrame("ScrollFrame", nil, menu)
     scroll:SetPoint("TOPLEFT", 4, -4)
@@ -2086,13 +2528,9 @@ local function buildMenu()
         end
         scroll:SetVerticalScroll(nextScroll)
     end)
-    menu:SetScript("OnShow", function(self)
+    menu:SetScript("OnShow", function()
         catcher:Show()
-        local r, g, b = 1, 0.82, 0
-        if ns.Color then
-            r, g, b = ns.Color("accent")
-        end
-        self:SetBackdropBorderColor(r, g, b, 0.9)
+        styleGuideMenu()
     end)
     menu:SetScript("OnHide", function()
         catcher:Hide()
