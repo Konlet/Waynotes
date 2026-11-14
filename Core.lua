@@ -49,6 +49,8 @@ ns.defaults = {
     roundBadges = false,
     trackerBorder = false,
     trackerShadow = false,
+    menuBorderGlow = true,
+    menuGlowRadius = 8,
     showGuidePercent = true,
     showFlightTimer = true,
     showTrainReminders = true,
@@ -229,7 +231,21 @@ local function clamp01(value, fallback)
     return value
 end
 
-local colorKeys = { "accent", "background", "text", "secondary", "detail" }
+local colorKeys = { "accent", "background", "text", "secondary", "detail", "glow" }
+
+local function themeColor(theme, key)
+    if theme and theme[key] then
+        return theme[key]
+    end
+    if key == "glow" and theme and theme.accent then
+        return theme.accent
+    end
+    local rested = ns.themesById.rested
+    if key == "glow" then
+        return rested.accent
+    end
+    return rested[key]
+end
 
 local function copyColor(color)
     return { color[1], color[2], color[3] }
@@ -238,7 +254,7 @@ end
 function ns.CopyTheme(theme)
     local colors = { badges = {} }
     for _, key in ipairs(colorKeys) do
-        colors[key] = copyColor(theme[key])
+        colors[key] = copyColor(themeColor(theme, key))
     end
     for index, badge in ipairs(theme.badges) do
         colors.badges[index] = copyColor(badge)
@@ -262,7 +278,7 @@ function ns.SanitizeColors(db)
         db.colors = ns.CopyTheme(theme)
     end
     for _, key in ipairs(colorKeys) do
-        db.colors[key] = clampColor(db.colors[key], theme[key] or ns.themesById.rested[key])
+        db.colors[key] = clampColor(db.colors[key], themeColor(theme, key))
     end
     if type(db.colors.badges) ~= "table" then
         db.colors.badges = {}
@@ -276,8 +292,8 @@ end
 function ns.Color(name)
     local colors = ns.db and ns.db.colors
     local color = colors and colors[name]
-    if type(color) ~= "table" then
-        color = ns.themesById.rested[name]
+    if type(color) ~= "table" or type(color[1]) ~= "number" then
+        color = themeColor(ns.themesById.rested, name)
     end
     return color[1], color[2], color[3]
 end
@@ -397,6 +413,147 @@ end
 
 local PROFILE_LIMIT = 20
 
+local percentKeys = {
+    backgroundAlpha = true,
+    bannerAlpha = true,
+    borderAlpha = true,
+    stepListAlpha = true,
+    idleAlpha = true,
+    combatAlpha = true,
+    arrowAlpha = true,
+    activeItemAlpha = true,
+    targetAlpha = true,
+    trackerBackground = true,
+    headerShade = true,
+}
+
+local boolKeys = {
+    textOutline = true,
+    fadeUnlessHover = true,
+    fadeInCombat = true,
+    replaceGuide = true,
+    simpleMode = true,
+    trackerFitHeight = true,
+    darkHeader = true,
+    roundedEdges = true,
+    roundBadges = true,
+    trackerBorder = true,
+    trackerShadow = true,
+    menuBorderGlow = true,
+    showGuidePercent = true,
+    showFlightTimer = true,
+    showTrainReminders = true,
+    standaloneGuide = true,
+    hardcoreGuide = true,
+    promptOffStepJump = true,
+    promptDungeonGuide = true,
+    showIrrelevantGuides = true,
+}
+
+local function sanitizeOptionValue(key, value, default)
+    if value == nil then
+        return default
+    end
+    if percentKeys[key] then
+        return clamp01(value, default)
+    end
+    if boolKeys[key] then
+        if type(value) ~= "boolean" then
+            return default
+        end
+        return value
+    end
+    if key == "strata" then
+        if not STRATA[value] then
+            return default
+        end
+        return value
+    end
+    if key == "trackerScale" then
+        if type(value) ~= "number" then
+            return default
+        end
+        if value < 0.8 then
+            return 0.8
+        end
+        if value > 2 then
+            return 2
+        end
+        return value
+    end
+    if key == "trackerWidth" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 220 then
+            return 220
+        end
+        if value > 640 then
+            return 640
+        end
+        return value
+    end
+    if key == "trackerHeight" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 120 then
+            return 120
+        end
+        if value > 800 then
+            return 800
+        end
+        return value
+    end
+    if key == "cornerRadius" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 4 then
+            return 4
+        end
+        if value > 16 then
+            return 16
+        end
+        return value
+    end
+    if key == "menuGlowRadius" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 1 then
+            return 1
+        end
+        if value > 16 then
+            return 16
+        end
+        return value
+    end
+    if key == "theme" then
+        if value ~= "custom" and not ns.themesById[value] then
+            return default
+        end
+        return value
+    end
+    if type(default) == "number" then
+        if type(value) ~= "number" then
+            return default
+        end
+        return value
+    end
+    if type(default) == "boolean" then
+        if type(value) ~= "boolean" then
+            return default
+        end
+        return value
+    end
+    return value
+end
+
 local function cleanProfileName(name)
     if type(name) ~= "string" then
         return nil
@@ -416,7 +573,7 @@ local function profileColors(source)
     local raw = source and (source.colors or source) or nil
     local colors = { badges = {} }
     for _, key in ipairs(colorKeys) do
-        colors[key] = clampColor(raw and raw[key], theme[key])
+        colors[key] = clampColor(raw and raw[key], themeColor(theme, key))
     end
     local badges = raw and raw.badges
     for index = 1, #theme.badges do
@@ -425,23 +582,53 @@ local function profileColors(source)
     return colors
 end
 
+local function optionValueForProfile(db, key)
+    if key == "standaloneGuide" and db.restedXPMode and db.savedStandaloneGuide ~= nil then
+        return db.savedStandaloneGuide and true or false
+    end
+    if key == "replaceGuide" and db.restedXPMode and db.savedReplaceGuide ~= nil then
+        return db.savedReplaceGuide and true or false
+    end
+    return db[key]
+end
+
+local function snapshotProfile(name, db)
+    local profile = {
+        name = name,
+        colors = profileColors(db),
+    }
+    for key, default in pairs(ns.defaults) do
+        profile[key] = sanitizeOptionValue(key, optionValueForProfile(db, key), default)
+    end
+    return profile
+end
+
+local function sanitizeProfileEntry(profile)
+    local name = type(profile) == "table" and cleanProfileName(profile.name) or nil
+    if not name then
+        return nil
+    end
+    local entry = {
+        name = name,
+        colors = profileColors(profile),
+    }
+    for key, default in pairs(ns.defaults) do
+        if profile[key] ~= nil then
+            entry[key] = sanitizeOptionValue(key, profile[key], default)
+        end
+    end
+    return entry
+end
+
 function ns.SanitizeProfiles(db)
     local source = type(db.profiles) == "table" and db.profiles or {}
     local clean = {}
     local seen = {}
     for _, profile in ipairs(source) do
-        local name = type(profile) == "table" and cleanProfileName(profile.name) or nil
-        if name and not seen[name] then
-            seen[name] = true
-            local background = profile.trackerBackground
-            if type(background) ~= "number" then
-                background = 0.4
-            end
-            clean[#clean + 1] = {
-                name = name,
-                trackerBackground = clamp01(background, 0.4),
-                colors = profileColors(profile),
-            }
+        local entry = sanitizeProfileEntry(profile)
+        if entry and not seen[entry.name] then
+            seen[entry.name] = true
+            clean[#clean + 1] = entry
             if #clean >= PROFILE_LIMIT then
                 break
             end
@@ -463,14 +650,10 @@ function ns.SaveProfile(name)
     ns.InitDB()
     name = cleanProfileName(name)
     if not name then
-        profileMessage("Enter a name, then save the theme.")
+        profileMessage("Enter a name, then save the profile.")
         return false
     end
-    local profile = {
-        name = name,
-        trackerBackground = clamp01(ns.db.trackerBackground, 0.4),
-        colors = profileColors(ns.db),
-    }
+    local profile = snapshotProfile(name, ns.db)
     local replaced = false
     for index, existing in ipairs(ns.db.profiles) do
         if existing.name == name then
@@ -480,15 +663,14 @@ function ns.SaveProfile(name)
         end
     end
     if not replaced and #ns.db.profiles >= PROFILE_LIMIT then
-        profileMessage("You can save up to " .. PROFILE_LIMIT .. " themes. Delete one first.")
+        profileMessage("You can save up to " .. PROFILE_LIMIT .. " profiles. Delete one first.")
         return false
     end
     if not replaced then
         ns.db.profiles[#ns.db.profiles + 1] = profile
     end
     ns.db.activeProfile = name
-    ns.db.theme = "custom"
-    profileMessage((replaced and "Updated theme " or "Saved theme ") .. name .. ".")
+    profileMessage((replaced and "Updated profile " or "Saved profile ") .. name .. ".")
     return true
 end
 
@@ -496,15 +678,30 @@ function ns.LoadProfile(name)
     ns.InitDB()
     for _, profile in ipairs(ns.db.profiles) do
         if profile.name == name then
-            ns.db.theme = "custom"
+            for key, default in pairs(ns.defaults) do
+                if profile[key] ~= nil then
+                    ns.db[key] = sanitizeOptionValue(key, profile[key], default)
+                end
+            end
+            if profile.colors then
+                ns.db.colors = profileColors(profile)
+            end
             ns.db.activeProfile = name
-            ns.db.colors = profileColors(profile)
-            ns.db.trackerBackground = profile.trackerBackground
+            if ns.db.restedXPMode then
+                if profile.standaloneGuide ~= nil then
+                    ns.db.savedStandaloneGuide = profile.standaloneGuide and true or false
+                end
+                if profile.replaceGuide ~= nil then
+                    ns.db.savedReplaceGuide = profile.replaceGuide and true or false
+                end
+            end
+            ns.SanitizeColors(ns.db)
+            ns.ApplyRestedXPMode()
             ns.Apply()
             if ns.RefreshOptions then
                 ns.RefreshOptions()
             end
-            profileMessage("Loaded theme " .. name .. ".")
+            profileMessage("Loaded profile " .. name .. ".")
             return true
         end
     end
@@ -523,7 +720,7 @@ function ns.DeleteProfile(name)
     if ns.db.activeProfile == name then
         ns.db.activeProfile = nil
     end
-    profileMessage("Deleted theme " .. name .. ".")
+    profileMessage("Deleted profile " .. name .. ".")
 end
 
 ns.visualKeys = {
@@ -554,43 +751,10 @@ ns.visualKeys = {
     "roundBadges",
     "trackerBorder",
     "trackerShadow",
+    "menuBorderGlow",
+    "menuGlowRadius",
     "standaloneGuide",
     "hardcoreGuide",
-}
-
-local percentKeys = {
-    backgroundAlpha = true,
-    bannerAlpha = true,
-    borderAlpha = true,
-    stepListAlpha = true,
-    idleAlpha = true,
-    combatAlpha = true,
-    arrowAlpha = true,
-    activeItemAlpha = true,
-    targetAlpha = true,
-    trackerBackground = true,
-    headerShade = true,
-}
-
-local boolKeys = {
-    textOutline = true,
-    fadeUnlessHover = true,
-    fadeInCombat = true,
-    replaceGuide = true,
-    simpleMode = true,
-    trackerFitHeight = true,
-    darkHeader = true,
-    roundedEdges = true,
-    roundBadges = true,
-    trackerBorder = true,
-    trackerShadow = true,
-    showGuidePercent = true,
-    showFlightTimer = true,
-    showTrainReminders = true,
-    standaloneGuide = true,
-    hardcoreGuide = true,
-    promptOffStepJump = true,
-    promptDungeonGuide = true,
 }
 
 function ns.Visuals()
@@ -676,55 +840,8 @@ function ns.InitDB()
     for key, value in pairs(ns.defaults) do
         if db[key] == nil then
             db[key] = value
-        elseif percentKeys[key] then
-            db[key] = clamp01(db[key], value)
-        elseif boolKeys[key] and type(db[key]) ~= "boolean" then
-            db[key] = value
-        elseif key == "strata" and not STRATA[db[key]] then
-            db[key] = value
-        elseif key == "trackerScale" then
-            if type(db[key]) ~= "number" then
-                db[key] = value
-            elseif db[key] < 0.8 then
-                db[key] = 0.8
-            elseif db[key] > 2 then
-                db[key] = 2
-            end
-        elseif key == "trackerWidth" then
-            if type(db[key]) ~= "number" then
-                db[key] = value
-            else
-                db[key] = math.floor(db[key] + 0.5)
-                if db[key] < 220 then
-                    db[key] = 220
-                elseif db[key] > 640 then
-                    db[key] = 640
-                end
-            end
-        elseif key == "trackerHeight" then
-            if type(db[key]) ~= "number" then
-                db[key] = value
-            else
-                db[key] = math.floor(db[key] + 0.5)
-                if db[key] < 120 then
-                    db[key] = 120
-                elseif db[key] > 800 then
-                    db[key] = 800
-                end
-            end
-        elseif key == "cornerRadius" then
-            if type(db[key]) ~= "number" then
-                db[key] = value
-            else
-                db[key] = math.floor(db[key] + 0.5)
-                if db[key] < 4 then
-                    db[key] = 4
-                elseif db[key] > 16 then
-                    db[key] = 16
-                end
-            end
-        elseif key == "theme" and db[key] ~= "custom" and not ns.themesById[db[key]] then
-            db[key] = value
+        else
+            db[key] = sanitizeOptionValue(key, db[key], value)
         end
     end
 
@@ -1152,12 +1269,12 @@ end
 
 function ns.Reset()
     ns.InitDB()
-    for _, key in ipairs(ns.visualKeys) do
-        ns.db[key] = ns.defaults[key]
+    for key, value in pairs(ns.defaults) do
+        ns.db[key] = value
     end
-    ns.db.theme = ns.defaults.theme
     ns.db.activeProfile = nil
     ns.db.colors = ns.CopyTheme(ns.themesById.rested)
+    ns.ApplyRestedXPMode()
     ns.Apply()
     if ns.RefreshOptions then
         ns.RefreshOptions()
@@ -1221,7 +1338,11 @@ watcher:SetScript("OnUpdate", function(_, elapsed)
     scanElapsed = scanElapsed + elapsed
     if scanElapsed >= 0.5 then
         scanElapsed = 0
+        local start = ns.PerfAdd and debugprofilestop and debugprofilestop()
         safe(ns.Scan)
+        if start then
+            ns.PerfAdd("scan", debugprofilestop() - start)
+        end
     end
 end)
 

@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Curated Forever gathering professions 1-300.
 -- Routes from Forever client / ForeverDB skill colours and zone tiers.
--- Press Next when you reach the listed skill. No auto skill tracking yet.
+-- Advance when you reach the listed skill. No auto skill tracking yet.
 -- Trainer/zone tips use Horde: / Alliance: labels (filtered to your faction).
 
 ns.RegisterGuide({

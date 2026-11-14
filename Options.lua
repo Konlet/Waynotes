@@ -472,7 +472,7 @@ end
 
 local function createColors(parent)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(168)
+    holder:SetHeight(196)
 
     local fields = {
         { key = "accent", label = "Accent", tip = "Header, border, and guide name." },
@@ -480,6 +480,7 @@ local function createColors(parent)
         { key = "text", label = "Current objective", tip = "Color of the main objective." },
         { key = "secondary", label = "Other objectives", tip = "Color of the objectives listed under the current one." },
         { key = "detail", label = "Details", tip = "Progress lines and extra notes." },
+        { key = "glow", label = "Border glow", tip = "Color of the soft glow around the tracker and the guide/travel menus." },
     }
 
     for index, field in ipairs(fields) do
@@ -511,13 +512,13 @@ local function createProfiles(parent)
 
     local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     label:SetPoint("TOPLEFT", 0, 0)
-    label:SetText("Saved themes")
+    label:SetText("Settings profiles")
 
     local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     hint:SetPoint("TOPLEFT", 0, -16)
     hint:SetPoint("RIGHT", holder, "RIGHT", 0, 0)
     hint:SetJustifyH("LEFT")
-    hint:SetText("Save the current colors and tracker background. Choose a saved theme from the menu.")
+    hint:SetText("Save all current addon options. Choose a saved profile from the menu to restore them.")
 
     local edit = CreateFrame("EditBox", "WaynotesProfileName", holder, "InputBoxTemplate")
     edit:SetSize(200, 20)
@@ -554,7 +555,7 @@ local function createProfiles(parent)
         local profiles = ns.db and ns.db.profiles or {}
         if #profiles == 0 then
             local info = UIDropDownMenu_CreateInfo()
-            info.text = "No saved themes"
+            info.text = "No saved profiles"
             info.notCheckable = true
             info.disabled = true
             UIDropDownMenu_AddButton(info)
@@ -595,7 +596,7 @@ local function createProfiles(parent)
 
     function holder:Refresh()
         local name = ns.db and ns.db.activeProfile
-        UIDropDownMenu_SetText(dropdown, name or "Select a theme")
+        UIDropDownMenu_SetText(dropdown, name or "Select a profile")
         if name then
             delete:Enable()
         else
@@ -609,7 +610,7 @@ end
 
 if not StaticPopupDialogs["WaynotesDeleteProfile"] then
     StaticPopupDialogs["WaynotesDeleteProfile"] = {
-        text = "Delete the saved theme \"%s\"?",
+        text = "Delete the settings profile \"%s\"?",
         button1 = "Delete",
         button2 = "Cancel",
         OnAccept = function(self, data)
@@ -671,6 +672,10 @@ local function build(parent)
     desc:SetJustifyV("TOP")
     desc:SetText("Tracker style and colors. Replace RestedXP runs your custom guides and hides the RestedXP window.")
     y = y - 36
+
+    local profiles = createProfiles(parent)
+    place(profiles, parent, y)
+    y = y - 104
 
     local ourHeader = createHeader(parent, "Replace RestedXP")
     place(ourHeader, parent, y)
@@ -822,11 +827,7 @@ local function build(parent)
 
     local colors = createColors(parent)
     place(colors, parent, y)
-    y = y - 176
-
-    local profiles = createProfiles(parent)
-    place(profiles, parent, y)
-    y = y - 104
+    y = y - 204
 
     local trackerScale = createSlider(parent, "Tracker scale", "Zooms the whole tracker, including the text. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
         return trackerOn()
@@ -890,7 +891,17 @@ local function build(parent)
 
     local trackerShadow = createCheck(parent, "Drop shadow", "Draws a shadow behind the tracker so it stands out from the world.", "trackerShadow")
     trackerShadow:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
-    y = y - 36
+    y = y - 30
+
+    local menuGlow = createCheck(parent, "Border glow", "Draws a soft glow around the tracker and the guide/travel menus. Color is under Theme colors as Menu glow.", "menuBorderGlow")
+    menuGlow:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local glowRadius = createSlider(parent, "Glow radius", "How far the glow spreads outward from the tracker and menu edges.", "menuGlowRadius", function()
+        return trackerOn() and ns.db.menuBorderGlow
+    end, { min = 1, max = 16, step = 1, percent = false, decimals = 0, suffix = " px" })
+    place(glowRadius, parent, y)
+    y = y - 52
 
     local guideHeader = createHeader(parent, "Guide window")
     place(guideHeader, parent, y)
@@ -1064,6 +1075,18 @@ SlashCmdList.WAYNOTES = function(message)
     if command == "reset" then
         ns.Reset()
         DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r options reset.")
+        return
+    end
+    if command == "mapdebug" then
+        if ns.MapBadgeDebug then
+            ns.MapBadgeDebug()
+        end
+        return
+    end
+    if command == "perf" then
+        if ns.StartPerf then
+            ns.StartPerf(10)
+        end
         return
     end
     if command == "guides" or command == "guide" then

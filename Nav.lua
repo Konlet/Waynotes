@@ -1,7 +1,7 @@
 ﻿local _, ns = ...
 
--- Nav.lua: quick navigation to the nearest inn, bank, auction house, mailbox,
--- flight master or class trainer.
+-- Nav.lua: quick navigation to the nearest inn, bank, repair NPC, auction house,
+-- mailbox, flight master or class trainer.
 --
 -- All destination lists come from Data/*.lua (generated from Forever JSON).
 -- Nearest search scores every candidate in player-space HereBeDragons yards.
@@ -49,6 +49,7 @@ do
 
     mergeZoneTable("inn", ns.NavInnkeepers)
     mergeZoneTable("bank", ns.NavBanks)
+    mergeZoneTable("repair", ns.NavRepairs)
     mergeZoneTable("auction", ns.NavAuctionHouses)
     mergeZoneTable("mail", ns.NavMailboxes)
     mergeZoneTable("trainer", ns.NavClassTrainers, "class")
@@ -107,6 +108,7 @@ end
 local KIND_LABEL = {
     inn = "Inn",
     bank = "Bank",
+    repair = "Repair",
     auction = "Auction House",
     mail = "Mailbox",
     flight = "Flight Master",
@@ -455,6 +457,17 @@ end
 
 function ns.MapZoneName(map)
     return mapName(map)
+end
+
+-- Guide pins use Classic UiMap ids, which Forever renumbers. Prefer the
+-- Classic name table so the id is not looked up as a different Forever map.
+function ns.ClassicZoneName(map)
+    return CLASSIC_MAP_ZONE[map] or mapName(map)
+end
+
+function ns.ZoneNamesMatch(a, b)
+    local na = normalizeZoneName(a)
+    return na ~= nil and na == normalizeZoneName(b)
 end
 
 -- Forever remaps classic UiMap ids. Remember the live map while the player is
@@ -1401,6 +1414,7 @@ local function presentMenu()
     local items = {
         { text = KIND_LABEL.inn, kind = "inn" },
         { text = KIND_LABEL.bank, kind = "bank" },
+        { text = KIND_LABEL.repair, kind = "repair" },
         { text = KIND_LABEL.auction, kind = "auction" },
         { text = KIND_LABEL.mail, kind = "mail" },
         { text = KIND_LABEL.flight, kind = "flight" },

@@ -8,6 +8,9 @@ local _, ns = ...
 -- when = "complete" advances once every listed quest is turned in.
 -- when = "objectives" advances once objectives are finished (also the
 --        default when a quest is set and when is left out).
+-- when = "travel" advances once you arrive near map/x/y (or step.travel).
+--        Use for zone transitions and long runs with no quest gate.
+--        Optional arriveYards overrides the default arrival radius.
 -- objective = N advances an objectives step once quest objective N is
 --        done (1-based leaderboard index). Use this to split multi-enemy
 --        quests onto different pins when spawn camps are not nearby.

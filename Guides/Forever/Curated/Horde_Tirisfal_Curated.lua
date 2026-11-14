@@ -492,7 +492,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Paladin" },
-            text = "Talk to [FRIENDLY]Shari Stilwell[/]. Turn in [QUEST]Continue Your Training[/] if you have it. Train.",
+            text = "Talk to [FRIENDLY]Shari Stilwell[/]. Turn in [QUEST]Continue Your Training[/]. Train.",
             map = 1420,
             x = 60.2,
             y = 52.7,
@@ -952,7 +952,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Yvette Farthing[/] if you have [QUEST]A Letter Undelivered[/], then press Next.",
+            text = "Talk to [FRIENDLY]Yvette Farthing[/] for [QUEST]A Letter Undelivered[/].",
             map = 1420,
             x = 61.6,
             y = 52.6,
@@ -1147,7 +1147,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Optional: talk to [FRIENDLY]Alessandro Luca[/] for [QUEST]Prompt Potion Runner[/], deliver it to [FRIENDLY]Doctor Martin Felben[/] in the Apothecarium, then press Next.",
+            text = "Optional: talk to [FRIENDLY]Alessandro Luca[/] for [QUEST]Prompt Potion Runner[/], deliver it to [FRIENDLY]Doctor Martin Felben[/] in the Apothecarium.",
             map = 1458,
             x = 58.6,
             y = 54.7,
@@ -1455,7 +1455,7 @@ ns.RegisterGuide({
             note = "Return the Book / Proving Allegiance is optional elite XP.",
         },
         {
-            text = "Turn in any remaining Whispering Horror residue if you have it, then press Next.",
+            text = "Turn in any remaining Whispering Horror residue.",
             map = 1458,
             x = 46.6,
             y = 74.1,

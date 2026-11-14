@@ -17,7 +17,7 @@ ns.RegisterGuide({
     maxLevel = 21,
     steps = {
         {
-            text = "In Stormwind, talk to [FRIENDLY]Manifest Clerk Philmor[/] if you see him. Accept [QUEST]Philmor's Favor[/], then press Next.",
+            text = "In Stormwind, talk to [FRIENDLY]Manifest Clerk Philmor[/] if you see him. Accept [QUEST]Philmor's Favor[/].",
             map = 1453,
             x = 63.78,
             y = 80.15,
@@ -26,7 +26,7 @@ ns.RegisterGuide({
             note = "Skip if Philmor is not up. Optional Forever lead-in.",
         },
         {
-            text = "Optional Stormwind pickups before you leave: [QUEST]Underground Assault[/] from [FRIENDLY]Shoni[/], [QUEST]Oh Brother. . .[/] and [QUEST]Collecting Memories[/] from [FRIENDLY]Wilder Thistlenettle[/] for later Deadmines. Press Next.",
+            text = "Optional Stormwind pickups before you leave: [QUEST]Underground Assault[/] from [FRIENDLY]Shoni[/], [QUEST]Oh Brother. . .[/] and [QUEST]Collecting Memories[/] from [FRIENDLY]Wilder Thistlenettle[/] for later Deadmines.",
             map = 1453,
             x = 62.62,
             y = 34.11,
@@ -120,7 +120,7 @@ ns.RegisterGuide({
             y = 44.8,
         },
         {
-            text = "Talk to [FRIENDLY]Wiley the Black[/] upstairs if you have [QUEST]The Defias Brotherhood[/], then press Next.",
+            text = "Talk to [FRIENDLY]Wiley the Black[/] upstairs for [QUEST]The Defias Brotherhood[/].",
             map = 1433,
             x = 21.41,
             y = 45.3,
@@ -153,7 +153,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "If you have Philmor's Favor, turn it in at [FRIENDLY]Elaine Trias[/] in Stormwind later, or skip for now and press Next.",
+            text = "If you have Philmor's Favor, turn it in at [FRIENDLY]Elaine Trias[/] in Stormwind later, or skip for now.",
             note = "Gatehouse Goods is optional Forever Stormwind flavor.",
         },
         {
@@ -312,7 +312,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Talk to [FRIENDLY]Dockmaster Baren[/]. Accept [QUEST]Murloc Poachers[/] if offered, finish fins if needed, then turn in.",
+            text = "Talk to [FRIENDLY]Dockmaster Baren[/]. Accept and turn in [QUEST]Murloc Poachers[/].",
             map = 1433,
             x = 22.61,
             y = 47.4,
@@ -354,7 +354,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Optional: talk to [FRIENDLY]Theocritus[/] in the Tower of Azora. Accept [QUEST]A Watchful Eye[/] for later Redridge, then press Next.",
+            text = "Optional: talk to [FRIENDLY]Theocritus[/] in the Tower of Azora. Accept [QUEST]A Watchful Eye[/] for later Redridge.",
             map = 1429,
             x = 65.2,
             y = 69.7,
@@ -436,7 +436,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Optional: place [QUEST]A Watchful Eye[/] at the Lion statue, then press Next.",
+            text = "Optional: place [QUEST]A Watchful Eye[/] at the Lion statue.",
             map = 1433,
             x = 79.41,
             y = 46.8,
@@ -445,7 +445,7 @@ ns.RegisterGuide({
             note = "Skip if you never accepted A Watchful Eye.",
         },
         {
-            text = "Redridge is done for now. Continue to Duskwood around level 20-21, or return to Darkshore / Ashenvale if you still have leftovers.",
+            text = "Redridge is done for now. Continue to Duskwood around level 20-21.",
             map = 1431,
             x = 73.8,
             y = 45.0,

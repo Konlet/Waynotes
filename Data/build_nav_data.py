@@ -231,8 +231,17 @@ def build_flight_masters() -> tuple[int, int]:
     return len(nodes), len(edges)
 
 
+def has_zone_position(e: dict) -> bool:
+    pos = e.get("position")
+    if not isinstance(pos, dict):
+        return False
+    if not isinstance(pos.get("zone"), str) or not pos["zone"]:
+        return False
+    return isinstance(pos.get("x"), (int, float)) and isinstance(pos.get("y"), (int, float))
+
+
 def build_simple_zone_table(json_name: str, lua_name: str, ns_name: str, *, npc_field: str | None = "npcId") -> int:
-    rows = load_json(json_name)
+    rows = [e for e in load_json(json_name) if has_zone_position(e)]
     lines = [
         "local _, ns = ...",
         "",
@@ -407,13 +416,15 @@ def main() -> None:
     inns = build_innkeepers()
     flights, connections = build_flight_masters()
     banks = build_simple_zone_table("wow-forever-banks.json", "Banks.lua", "NavBanks")
+    repairs = build_simple_zone_table("wow-forever-repair-npcs.json", "Repairs.lua", "NavRepairs")
     auctions = build_simple_zone_table("wow-forever-auction-houses.json", "AuctionHouses.lua", "NavAuctionHouses")
     mail = build_simple_zone_table("wow-forever-mailboxes.json", "Mailboxes.lua", "NavMailboxes", npc_field=None)
     trainers = build_class_trainers()
     routes, docks, transport_legs = build_boats_zeppelins()
     print(
         f"Wrote {inns} inns, {flights} flight masters, {connections} connections, "
-        f"{banks} banks, {auctions} auctioneers, {mail} mailboxes, {trainers} class trainers, "
+        f"{banks} banks, {repairs} repairs, {auctions} auctioneers, {mail} mailboxes, "
+        f"{trainers} class trainers, "
         f"{routes} boat/zeppelin routes ({docks} docks, {transport_legs} legs)"
     )
     missing = sorted(

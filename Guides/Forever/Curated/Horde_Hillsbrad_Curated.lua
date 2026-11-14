@@ -45,7 +45,7 @@ ns.RegisterGuide({
             y = 19.0,
         },
         {
-            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Journey to Hillsbrad Foothills[/] and [QUEST]Journey to Tarren Mill[/] if you have them. Accept [QUEST]Blood of Innocents[/], [QUEST]Elixir of Suffering[/], and [QUEST]Elixir of Pain[/].",
+            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Journey to Hillsbrad Foothills[/] and [QUEST]Journey to Tarren Mill[/]. Accept [QUEST]Blood of Innocents[/], [QUEST]Elixir of Suffering[/], and [QUEST]Elixir of Pain[/].",
             map = 1424,
             x = 61.4,
             y = 19.1,
@@ -58,7 +58,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Rogue" },
-            text = "Talk to [FRIENDLY]Serge Hinott[/]. Turn in [QUEST]Hinott's Assistance[/] if you have it, finish the cure dialogue, turn in again, then use [LOOT]Hinott's Oil[/].",
+            text = "Talk to [FRIENDLY]Serge Hinott[/]. Turn in [QUEST]Hinott's Assistance[/], finish the cure dialogue, turn in again, then use [LOOT]Hinott's Oil[/].",
             map = 1424,
             x = 61.6,
             y = 19.2,
@@ -102,7 +102,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Shaman" },
-            text = "At the Tarren Mill well, use the [LOOT]Empty Red Waterskin[/] for Call of Water if you still need it.",
+            text = "At the Tarren Mill well, use the [LOOT]Empty Red Waterskin[/] for Call of Water.",
             map = 1424,
             x = 62.2,
             y = 20.8,
@@ -493,7 +493,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Finish [LOOT]Hillsbrad Human Skulls[/] for [QUEST]Souvenirs of Death[/] if needed.",
+            text = "Finish [LOOT]Hillsbrad Human Skulls[/] for [QUEST]Souvenirs of Death[/].",
             map = 1424,
             x = 31.2,
             y = 56.0,

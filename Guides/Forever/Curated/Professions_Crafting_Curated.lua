@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Curated Forever crafting professions 1-300.
 -- Cheap ForeverDB client routes (skill colours from the Forever client).
--- Craft counts are estimates; yellow/green crafts can miss a point. Press Next at the listed skill.
+-- Craft counts are estimates; yellow/green crafts can miss a point. Advance when you reach the listed skill.
 -- Trainer/vendor locations use Classic data until Forever-confirmed.
 -- Trainer/zone tips use Horde: / Alliance: labels (filtered to your faction).
 

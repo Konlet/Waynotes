@@ -1,8 +1,9 @@
 local _, ns = ...
 
--- Travel.lua: pick the best next hop for travel steps using walk cost,
+-- Travel.lua: pick the best next hop for guide steps using walk cost,
 -- unlocked flight paths (NavFlightConnections), boats/zeppelins
 -- (NavTransportDocks / NavTransportLegs), and hearthstone location.
+-- Applies to travel wording and general steps with a resolvable destination.
 
 local RUN_YARDS_PER_SEC = 10
 local FLY_BOARD_SECONDS = 12
@@ -10,7 +11,11 @@ local TRANSPORT_BOARD_SECONDS = 8
 local HEARTH_SECONDS = 15
 local MIN_IMPROVE_SECONDS = 25
 local NEAR_YARDS = 80
+local TRAVEL_ARRIVE_YARDS = 10
+local HEARTH_CLOSER_YARDS = 120
 local HEARTHSTONE_ITEM = 6948
+local hearthButton
+local hearthButtonClaimed = false
 
 local nodesById
 local edgesByFrom
@@ -567,6 +572,137 @@ local function bindPlace()
     }, bind
 end
 
+local function hearthItemIcon()
+    if C_Item and C_Item.GetItemIconByID then
+        local ok, tex = pcall(C_Item.GetItemIconByID, HEARTHSTONE_ITEM)
+        if ok and tex then
+            return tex
+        end
+    end
+    if type(GetItemIcon) == "function" then
+        local ok, tex = pcall(GetItemIcon, HEARTHSTONE_ITEM)
+        if ok and tex then
+            return tex
+        end
+    end
+    return "Interface\\Icons\\INV_Misc_Rune_01"
+end
+
+local function updateHearthCooldown(button)
+    if not button or not button.cooldown then
+        return
+    end
+    local start, duration
+    if C_Container and C_Container.GetItemCooldown then
+        local ok, a, b = pcall(C_Container.GetItemCooldown, HEARTHSTONE_ITEM)
+        if ok then
+            start, duration = a, b
+        end
+    end
+    if not start and type(GetItemCooldown) == "function" then
+        start, duration = GetItemCooldown(HEARTHSTONE_ITEM)
+    end
+    if type(start) == "number" and type(duration) == "number" and start > 0 and duration > 0 then
+        button.cooldown:SetCooldown(start, duration)
+    elseif button.cooldown.Clear then
+        button.cooldown:Clear()
+    else
+        button.cooldown:SetCooldown(0, 0)
+    end
+end
+
+function ns.TravelHearthButton()
+    if hearthButton then
+        updateHearthCooldown(hearthButton)
+        return hearthButton
+    end
+    if InCombatLockdown and InCombatLockdown() then
+        return nil
+    end
+    hearthButton = CreateFrame("Button", "WaynotesHearthButton", UIParent, "SecureActionButtonTemplate")
+    hearthButton:SetSize(22, 22)
+    if hearthButton.RegisterForClicks then
+        pcall(hearthButton.RegisterForClicks, hearthButton, "AnyUp", "AnyDown")
+    end
+    hearthButton:SetAttribute("type", "item")
+    hearthButton:SetAttribute("item", "item:" .. HEARTHSTONE_ITEM)
+    hearthButton.itemId = HEARTHSTONE_ITEM
+    hearthButton.name = "Hearthstone"
+    local icon = hearthButton:CreateTexture(nil, "BACKGROUND")
+    icon:SetAllPoints()
+    icon:SetTexture(hearthItemIcon())
+    hearthButton.icon = icon
+    local cooldown = CreateFrame("Cooldown", nil, hearthButton, "CooldownFrameTemplate")
+    cooldown:SetAllPoints()
+    hearthButton.cooldown = cooldown
+    hearthButton:SetScript("OnEnter", function(self)
+        local r, g, b = 0.9, 0.82, 0.45
+        if ns.Color then
+            r, g, b = ns.Color("accent")
+        end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if GameTooltip.SetItemByID then
+            GameTooltip:SetItemByID(HEARTHSTONE_ITEM)
+        else
+            GameTooltip:SetHyperlink("item:" .. HEARTHSTONE_ITEM)
+        end
+        local bind = self.bindName
+        if type(bind) == "string" and bind ~= "" then
+            GameTooltip:AddLine("Bound to " .. bind, r, g, b, true)
+        end
+        GameTooltip:AddLine("Click to use your Hearthstone.", 1, 1, 1, true)
+        if ns.FinishTooltip then
+            ns.FinishTooltip()
+        else
+            GameTooltip:Show()
+        end
+    end)
+    hearthButton:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+    hearthButton:SetScript("OnShow", function(self)
+        updateHearthCooldown(self)
+    end)
+    hearthButton:Hide()
+    updateHearthCooldown(hearthButton)
+    return hearthButton
+end
+
+function ns.TravelBeginHints()
+    hearthButtonClaimed = false
+end
+
+local function attachHearthButton(item, bindName)
+    if type(item) ~= "table" then
+        return
+    end
+    item.hearth = {
+        bindName = bindName,
+        itemId = HEARTHSTONE_ITEM,
+    }
+    if hearthButtonClaimed then
+        return
+    end
+    local button = ns.TravelHearthButton()
+    if not button then
+        return
+    end
+    button.bindName = bindName
+    updateHearthCooldown(button)
+    hearthButtonClaimed = true
+    local actions = item.actions
+    if type(actions) ~= "table" then
+        actions = {}
+        item.actions = actions
+    end
+    for index = 1, #actions do
+        if actions[index] == button then
+            return
+        end
+    end
+    actions[#actions + 1] = button
+end
+
 local NEARBY_FP_YARDS = 150
 
 local function plainGuideText(text)
@@ -666,6 +802,78 @@ local function resolveNamedPlace(name)
         end
     end
     return best
+end
+
+local function resolveBindPlace()
+    local place, bindName = bindPlace()
+    if place and isNumber(place.wx) and isNumber(place.wy) then
+        return place, bindName
+    end
+    if type(bindName) == "string" then
+        local resolved = resolveNamedPlace(bindName)
+        if resolved and isNumber(resolved.wx) and isNumber(resolved.wy) then
+            return resolved, bindName
+        end
+    end
+    return place, bindName
+end
+
+local function hearthCloserSuggestion(dest)
+    if type(dest) ~= "table" or not isNumber(dest.wx) or not isNumber(dest.wy) then
+        return nil
+    end
+    local ready = hearthReady()
+    if not ready then
+        return nil
+    end
+    local place, bindName = resolveBindPlace()
+    if not place or not isNumber(place.wx) or not isNumber(place.wy) then
+        return nil
+    end
+    local px, py, pinstance = playerPoint()
+    if not px then
+        return nil
+    end
+    local destInstance = dest.instance
+    local bindInstance = place.instance
+    if isNumber(destInstance) and isNumber(bindInstance) and destInstance ~= bindInstance then
+        return nil
+    end
+    if isNumber(destInstance) and isNumber(pinstance) and destInstance ~= pinstance then
+        -- Player is off-continent; hearth helps only when the bind is on the
+        -- destination continent.
+        if not (isNumber(bindInstance) and bindInstance == destInstance) then
+            return nil
+        end
+        return {
+            bindName = bindName or place.name or place.zone,
+            place = place,
+            playerDist = math.huge,
+            bindDist = 0,
+        }
+    end
+    local compareInstance = destInstance or bindInstance or pinstance
+    local playerDist = worldDistance(compareInstance, px, py, dest.wx, dest.wy)
+    local bindDist = worldDistance(compareInstance, place.wx, place.wy, dest.wx, dest.wy)
+    if not playerDist or not bindDist then
+        return nil
+    end
+    if playerDist <= NEAR_YARDS * 2 then
+        return nil
+    end
+    local fromBind = worldDistance(pinstance or compareInstance, px, py, place.wx, place.wy)
+    if fromBind and fromBind <= NEAR_YARDS then
+        return nil
+    end
+    if (playerDist - bindDist) < HEARTH_CLOSER_YARDS then
+        return nil
+    end
+    return {
+        bindName = bindName or place.name or place.zone,
+        place = place,
+        playerDist = playerDist,
+        bindDist = bindDist,
+    }
 end
 
 local function namesCompatible(a, b)
@@ -831,7 +1039,7 @@ function ns.TravelIsTravelStep(step)
     if type(step) ~= "table" then
         return false
     end
-    if step.travel or step.fpath then
+    if step.when == "travel" or step.travel or step.fpath then
         return true
     end
     if flightPathTargetFromStep(step) then
@@ -1344,7 +1552,7 @@ local function routeHearth(dest, fromWx, fromWy, fromInstance, unlocked, faction
     if not ready then
         return nil
     end
-    local place, bindName = bindPlace()
+    local place, bindName = resolveBindPlace()
     if not place or not isNumber(place.wx) or not isNumber(place.wy) then
         return nil
     end
@@ -1497,6 +1705,71 @@ function ns.TravelResolveStep(step)
     return destinationFromStep(step)
 end
 
+local function travelDestinationName(step)
+    if type(step.travel) == "string" then
+        return step.travel
+    end
+    if type(step.travel) == "table" then
+        return step.travel.name
+    end
+    return (extractDestinationName(step.text))
+end
+
+-- "Travel to Stonetalon Mountains" names a whole zone, so crossing into it
+-- counts as arrival even when the pin sits at a border camp in the last zone.
+local function playerInDestinationZone(step)
+    local key = normalizeName(travelDestinationName(step))
+    if not key or not GetRealZoneText then
+        return false
+    end
+    return normalizeName(GetRealZoneText()) == key
+end
+
+-- when = "travel" advances once the player is near the step destination,
+-- or inside the zone the step names.
+function ns.TravelStepDone(step)
+    if type(step) ~= "table" then
+        return false
+    end
+    if playerInDestinationZone(step) then
+        return true
+    end
+    local dest = destinationFromStep(step)
+    if not dest then
+        return false
+    end
+    local radius = TRAVEL_ARRIVE_YARDS
+    if isNumber(step.arriveYards) and step.arriveYards > 0 then
+        radius = step.arriveYards
+    elseif type(step.travel) == "table" and isNumber(step.travel.arriveYards) and step.travel.arriveYards > 0 then
+        radius = step.travel.arriveYards
+    end
+    -- Same-zone pins measure in zone percents. The world point from
+    -- PinToPlayerWorld is player-relative and does not line up with HBD's
+    -- player world position on Forever, so it can never read as arrived.
+    if isNumber(dest.map) and isNumber(dest.x) and isNumber(dest.y) and ns.PinZoneDistance then
+        local yards = ns.PinZoneDistance(dest.map, dest.x, dest.y, dest.zone)
+        if isNumber(yards) then
+            return yards <= radius
+        end
+    end
+    if not isNumber(dest.wx) or not isNumber(dest.wy) then
+        return false
+    end
+    local px, py, pinstance = playerPoint()
+    if not px then
+        return false
+    end
+    if isNumber(dest.instance) and isNumber(pinstance) and dest.instance ~= pinstance then
+        return false
+    end
+    local dist = worldDistance(pinstance or dest.instance, px, py, dest.wx, dest.wy)
+    if not dist then
+        return false
+    end
+    return dist <= radius
+end
+
 local function pushDetail(item, line)
     if type(item) ~= "table" or type(line) ~= "string" or line == "" then
         return
@@ -1520,6 +1793,26 @@ local function pushDetail(item, line)
         return
     end
     details[#details + 1] = line
+end
+
+local function applyHearthAvailable(item, dest, route)
+    local suggestion = hearthCloserSuggestion(dest)
+    if not suggestion and route and route.useHearth then
+        suggestion = {
+            bindName = route.bindName,
+        }
+    end
+    if not suggestion then
+        return false
+    end
+    local bindName = suggestion.bindName
+    local tip = "Hearthstone available"
+    if type(bindName) == "string" and bindName ~= "" then
+        tip = tip .. " (" .. bindName .. ")"
+    end
+    pushDetail(item, tip)
+    attachHearthButton(item, bindName)
+    return true
 end
 
 local function applyNearbyFlightTip(item, step)
@@ -1549,63 +1842,78 @@ function ns.TravelApplyToItem(item, step)
         return item
     end
 
-    local isTravel = ns.TravelIsTravelStep(step)
-    if isTravel then
-        local dest = destinationFromStep(step)
-        if dest then
-            -- Authored pins fill missing world coords; named hubs keep their pads.
-            if isNumber(step.map) and isNumber(step.x) and isNumber(step.y) and not isNumber(dest.wx) then
-                local zone = ns.MapName and ns.MapName(step.map) or dest.zone
-                local wx, wy, instance = zoneWorld(step.map, step.x, step.y, zone)
-                dest.map, dest.x, dest.y = step.map, step.x, step.y
-                dest.zone = zone or dest.zone
-                dest.wx, dest.wy, dest.instance = wx, wy, instance
+    -- Route any step with a resolvable destination (travel wording, authored
+    -- pins on general steps, named hubs, flight-path pickups). Walk stays
+    -- silent; fly/boat/hearth only surface when they beat walking by enough.
+    local dest = destinationFromStep(step)
+    if dest then
+        -- Authored pins fill missing world coords; named hubs keep their pads.
+        if isNumber(step.map) and isNumber(step.x) and isNumber(step.y) and not isNumber(dest.wx) then
+            local zone = ns.MapName and ns.MapName(step.map) or dest.zone
+            local wx, wy, instance = zoneWorld(step.map, step.x, step.y, zone)
+            dest.map, dest.x, dest.y = step.map, step.x, step.y
+            dest.zone = zone or dest.zone
+            dest.wx, dest.wy, dest.instance = wx, wy, instance
+        end
+
+        local route = ns.TravelBestPath(dest)
+        if not route then
+            if isNumber(dest.wx) and isNumber(dest.wy) and not item.waypoint then
+                item.waypoint = copyWaypoint(dest.wx, dest.wy, dest.instance)
+                item.place = {
+                    map = dest.map,
+                    x = dest.x,
+                    y = dest.y,
+                    zone = dest.zone or dest.name,
+                }
             end
+        else
+            item.travel = route
+            if route.waypoint then
+                item.waypoint = route.waypoint
+            end
+            -- Keep the authored pin as the location. The waypoint stays on
+            -- the next hop (flight master, dock) until the player arrives.
+            if isNumber(dest.x) and isNumber(dest.y) then
+                item.place = {
+                    map = dest.map,
+                    x = dest.x,
+                    y = dest.y,
+                    zone = dest.zone or dest.name,
+                }
+            elseif route.place and (route.place.x or route.place.zone) then
+                item.place = route.place
+            end
+        end
 
-            local route = ns.TravelBestPath(dest)
-            if not route then
-                if isNumber(dest.wx) and isNumber(dest.wy) and not item.waypoint then
-                    item.waypoint = copyWaypoint(dest.wx, dest.wy, dest.instance)
-                    item.place = {
-                        map = dest.map,
-                        x = dest.x,
-                        y = dest.y,
-                        zone = dest.zone or dest.name,
-                    }
-                end
-            else
-                item.travel = route
-                if route.waypoint then
-                    item.waypoint = route.waypoint
-                end
-                -- Keep the authored pin as the location. The waypoint stays on
-                -- the next hop (flight master, dock) until the player arrives.
-                if isNumber(dest.x) and isNumber(dest.y) then
-                    item.place = {
-                        map = dest.map,
-                        x = dest.x,
-                        y = dest.y,
-                        zone = dest.zone or dest.name,
-                    }
-                elseif route.place and (route.place.x or route.place.zone) then
-                    item.place = route.place
-                end
+        -- Claim a detail slot before other travel tips so the hearth hint
+        -- stays visible when the step already has several notes.
+        applyHearthAvailable(item, dest, route)
 
-                if route.mode ~= "walk" and type(route.summary) == "string" and route.summary ~= "" then
-                    pushDetail(item, route.summary)
-                    for index = 1, #(route.details or {}) do
-                        pushDetail(item, route.details[index])
+        if route and route.mode ~= "walk" and type(route.summary) == "string" and route.summary ~= "" then
+            if route.useHearth then
+                -- "Hearthstone available" replaces the hearth summary; keep
+                -- follow-up fly/boat lines from the route details.
+                for index = 1, #(route.details or {}) do
+                    local line = route.details[index]
+                    if type(line) == "string" and not line:find("Use your Hearthstone", 1, true) then
+                        pushDetail(item, line)
                     end
                 end
-            end
-
-            if dest.pickup and isNumber(dest.nodeId) then
-                local unlocked = unlockedFlightPaths()
-                if unlocked[dest.nodeId] then
-                    pushDetail(item, "Flight path already learned")
-                else
-                    pushDetail(item, "Get the " .. (dest.name or "local") .. " flight path")
+            else
+                pushDetail(item, route.summary)
+                for index = 1, #(route.details or {}) do
+                    pushDetail(item, route.details[index])
                 end
+            end
+        end
+
+        if dest.pickup and isNumber(dest.nodeId) then
+            local unlocked = unlockedFlightPaths()
+            if unlocked[dest.nodeId] then
+                pushDetail(item, "Flight path already learned")
+            else
+                pushDetail(item, "Get the " .. (dest.name or "local") .. " flight path")
             end
         end
     end
@@ -1619,7 +1927,12 @@ do
     local frame = CreateFrame("Frame")
     frame:RegisterEvent("TAXIMAP_OPENED")
     frame:RegisterEvent("UI_INFO_MESSAGE")
+    frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    pcall(frame.RegisterEvent, frame, "BAG_UPDATE_COOLDOWN")
     local function refresh()
+        if hearthButton then
+            updateHearthCooldown(hearthButton)
+        end
         if ns.GuideCatchUp then
             pcall(ns.GuideCatchUp)
         end
@@ -1632,6 +1945,15 @@ do
         if event == "TAXIMAP_OPENED" then
             ns.TravelRememberOpenTaxiNodes()
             refresh()
+            return
+        end
+        if event == "BAG_UPDATE_COOLDOWN" or event == "PLAYER_REGEN_ENABLED" then
+            if hearthButton then
+                updateHearthCooldown(hearthButton)
+            end
+            if ns.RefreshTracker then
+                pcall(ns.RefreshTracker, true)
+            end
             return
         end
         if event == "UI_INFO_MESSAGE" then

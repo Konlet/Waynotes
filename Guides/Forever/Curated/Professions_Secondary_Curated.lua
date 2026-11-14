@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Curated Forever secondary professions 1-300.
 -- ForeverDB client routes. Horde Cooking uses Dig Rat Stew where it saves mats.
--- Press Next when you reach the listed skill.
+-- Advance when you reach the listed skill.
 -- Trainer/zone tips use Horde: / Alliance: labels (filtered to your faction).
 
 ns.RegisterGuide({

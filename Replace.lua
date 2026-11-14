@@ -9,7 +9,6 @@ local State = ns.ReplaceState
 local UI = {
     COLUMN = 26,
     TRACKER_WIDTH = 300,
-    MORE_TIP_THRESHOLD = 2,
     HEADER_RIGHT = -144,
     HEADER_BOTTOM = 27,
     WHITE = "Interface\\BUTTONS\\WHITE8X8",
@@ -63,6 +62,7 @@ State.mapPins = { frames = {}, signature = nil }
 State.stickyShown = {}
 State.completing = {}
 State.pinVisits = {}
+State.pinCycle = {}
 
 
 local tracker = CreateFrame("Frame", "WaynotesTracker", UIParent, "BackdropTemplate")
@@ -189,6 +189,7 @@ end
 UI.ARROW_TEXTURE = media("arrow.tga")
 UI.GPS_ARROW = media("gps_arrow.png")
 UI.GPS_PIN = media("gps_pin.png")
+UI.GPS_CYCLE = media("gps_cycle.png")
 UI.GPS_CHECK = media("gps_check.png")
 -- gps_arrow.png is drawn tip-up-right, 45 degrees northeast.
 -- Aim math treats rotation 0 as tip-up. SetRotation turns counterclockwise
@@ -201,6 +202,10 @@ UI.GPS_ARROW_ROW = 18
 UI.GPS_ARROW_MAIN = 24
 -- Same-zone yards at which a kill objective swaps the arrow for the pin.
 UI.KILL_AREA_YARDS = 100
+UI.AIM_RESOLVE_SECONDS = 0.1
+UI.STRIP_UPDATE_SECONDS = 0.25
+UI.TRAIN_UPDATE_SECONDS = 1
+UI.TRACKER_POLL_SECONDS = 0.5
 -- Sticky complete: brief hold on the green check, then fade the row out.
 UI.STICKY_COMPLETE_HOLD = 0.15
 UI.STICKY_COMPLETE_FADE = 0.45
@@ -298,6 +303,80 @@ local function paintPlate(plate, r, g, b, a)
     end
 end
 
+local GLOW_MAX_SPREAD = 16
+local GLOW_EDGE = media("glow-edge.tga")
+local GLOW_CORNER = media("glow-corner.tga")
+
+local function clampGlowSpread(spread)
+    spread = math.floor((spread or 4) + 0.5)
+    if spread < 1 then
+        return 1
+    elseif spread > GLOW_MAX_SPREAD then
+        return GLOW_MAX_SPREAD
+    end
+    return spread
+end
+
+local function glowRoundPath(radius, spread)
+    return media("glow-round-" .. radius .. "-" .. spread .. ".tga")
+end
+
+-- Eight exterior pieces only. Nothing is drawn over the panel interior.
+local function makeSoftGlow(parent)
+    local plate = { list = {}, soft = true, outside = true }
+    local function add(name)
+        local texture = parent:CreateTexture(nil, "ARTWORK")
+        setLayer(texture, "ARTWORK", 1)
+        texture:SetBlendMode("ADD")
+        texture:Hide()
+        plate[name] = texture
+        plate.list[#plate.list + 1] = texture
+    end
+    add("tl")
+    add("tr")
+    add("bl")
+    add("br")
+    add("t")
+    add("b")
+    add("l")
+    add("r")
+    return plate
+end
+
+local function hideSoftGlow(plate)
+    if not plate then
+        return
+    end
+    if plate.layers then
+        for index = 1, GLOW_MAX_SPREAD do
+            if plate[index] then
+                hidePlate(plate[index])
+            end
+        end
+        return
+    end
+    hidePlate(plate)
+end
+
+local function paintSoftGlow(plate, r, g, b)
+    if not plate or not plate.list then
+        return
+    end
+    for index = 1, #plate.list do
+        plate.list[index]:SetVertexColor(r, g, b, 1)
+    end
+end
+
+local function placeGlowHost(host, frame, parentScale, frameScale, strata, level)
+    host:SetScale(frameScale / parentScale)
+    host:SetFrameStrata(strata)
+    host:SetFrameLevel(level)
+    host:ClearAllPoints()
+    host:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    host:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    host:Show()
+end
+
 local function showPlate(plate, anchor, insetL, insetR, insetT, insetB, radius)
     radius = math.floor((radius or 0) + 0.5)
     if radius < 0 then
@@ -373,6 +452,115 @@ local function showPlate(plate, anchor, insetL, insetR, insetT, insetB, radius)
     else
         plate.c:Hide()
     end
+end
+
+local function showSoftGlow(plate, anchor, spread, cornerRadius, glowR, glowG, glowB)
+    if not plate or not plate.outside then
+        return
+    end
+    spread = clampGlowSpread(spread)
+    local width = anchor:GetWidth() or 0
+    local height = anchor:GetHeight() or 0
+    if width < 2 or height < 2 then
+        hideSoftGlow(plate)
+        return
+    end
+
+    local rounded = type(cornerRadius) == "number" and cornerRadius >= 4
+    if rounded then
+        cornerRadius = clampCornerRadius(cornerRadius)
+        local maxCorner = math.floor(math.min(width, height) / 2)
+        if cornerRadius > maxCorner then
+            cornerRadius = maxCorner
+        end
+        if cornerRadius < 4 then
+            rounded = false
+        end
+    else
+        cornerRadius = 0
+    end
+
+    local function showEdge(texture, pointA, relA, xA, yA, pointB, relB, xB, yB, along, coord)
+        texture:SetTexture(GLOW_EDGE)
+        texture:SetTexCoord(coord[1], coord[2], coord[3], coord[4], coord[5], coord[6], coord[7], coord[8])
+        texture:ClearAllPoints()
+        texture:SetPoint(pointA, anchor, relA, xA, yA)
+        texture:SetPoint(pointB, anchor, relB, xB, yB)
+        if along == "h" then
+            texture:SetHeight(spread)
+        else
+            texture:SetWidth(spread)
+        end
+        texture:Show()
+    end
+
+    -- Straight bands sit fully outside the frame and stop where the corner arc starts.
+    local inset = rounded and cornerRadius or 0
+    local gapW = width - (inset * 2)
+    local gapH = height - (inset * 2)
+    if gapW >= 1 then
+        showEdge(plate.t, "BOTTOMLEFT", "TOPLEFT", inset, 0, "BOTTOMRIGHT", "TOPRIGHT", -inset, 0, "h", { 0, 0, 0, 1, 1, 0, 1, 1 })
+        showEdge(plate.b, "TOPLEFT", "BOTTOMLEFT", inset, 0, "TOPRIGHT", "BOTTOMRIGHT", -inset, 0, "h", { 0, 1, 0, 0, 1, 1, 1, 0 })
+    else
+        plate.t:Hide()
+        plate.b:Hide()
+    end
+    if gapH >= 1 then
+        showEdge(plate.l, "TOPRIGHT", "TOPLEFT", 0, -inset, "BOTTOMRIGHT", "BOTTOMLEFT", 0, inset, "v", { 0, 0, 1, 0, 0, 1, 1, 1 })
+        showEdge(plate.r, "TOPLEFT", "TOPRIGHT", 0, -inset, "BOTTOMLEFT", "BOTTOMRIGHT", 0, inset, "v", { 0, 1, 1, 1, 0, 0, 1, 0 })
+    else
+        plate.l:Hide()
+        plate.r:Hide()
+    end
+
+    local function showRoundCorner(texture, point, relPoint, x, y, flipU, flipV)
+        local u0, u1 = 0, 1
+        local v0, v1 = 0, 1
+        if flipU then
+            u0, u1 = 1, 0
+        end
+        if flipV then
+            v0, v1 = 1, 0
+        end
+        texture:SetTexture(glowRoundPath(cornerRadius, spread))
+        texture:SetTexCoord(u0, u1, v0, v1)
+        texture:ClearAllPoints()
+        -- Same falloff distance as the straight edges. Interior texels are clear.
+        texture:SetPoint(point, anchor, relPoint, x, y)
+        texture:SetSize(cornerRadius + spread, cornerRadius + spread)
+        texture:Show()
+    end
+
+    local function showSquareCorner(texture, point, relPoint, flipU, flipV)
+        local u0, u1 = 0, 1
+        local v0, v1 = 0, 1
+        if flipU then
+            u0, u1 = 1, 0
+        end
+        if flipV then
+            v0, v1 = 1, 0
+        end
+        texture:SetTexture(GLOW_CORNER)
+        texture:SetTexCoord(u0, u1, v0, v1)
+        texture:ClearAllPoints()
+        texture:SetPoint(point, anchor, relPoint, 0, 0)
+        texture:SetSize(spread, spread)
+        texture:Show()
+    end
+
+    if rounded then
+        showRoundCorner(plate.tl, "BOTTOMRIGHT", "TOPLEFT", cornerRadius, -cornerRadius, false, false)
+        showRoundCorner(plate.tr, "BOTTOMLEFT", "TOPRIGHT", -cornerRadius, -cornerRadius, true, false)
+        showRoundCorner(plate.bl, "TOPRIGHT", "BOTTOMLEFT", cornerRadius, cornerRadius, false, true)
+        showRoundCorner(plate.br, "TOPLEFT", "BOTTOMRIGHT", -cornerRadius, cornerRadius, true, true)
+    else
+        showSquareCorner(plate.tl, "BOTTOMRIGHT", "TOPLEFT", false, false)
+        showSquareCorner(plate.tr, "BOTTOMLEFT", "TOPRIGHT", true, false)
+        showSquareCorner(plate.bl, "TOPRIGHT", "BOTTOMLEFT", false, true)
+        showSquareCorner(plate.br, "TOPLEFT", "BOTTOMRIGHT", true, true)
+    end
+
+    paintSoftGlow(plate, glowR, glowG, glowB)
 end
 
 local function showHeader(plate, anchor, insetL, insetR, top, bottom, radius)
@@ -610,11 +798,17 @@ shadowHost:SetFrameStrata("LOW")
 shadowHost:EnableMouse(false)
 shadowHost:Hide()
 
+local glowHost = CreateFrame("Frame", nil, UIParent)
+glowHost:SetFrameStrata("MEDIUM")
+glowHost:EnableMouse(false)
+glowHost:Hide()
+
 local headerBar = makeTexture(tracker, "BACKGROUND", 2, UI.WHITE)
 local panelFill = makePlate(tracker, "BACKGROUND", 1)
 local panelHeader = makePlate(tracker, "BACKGROUND", 3)
 local panelBorder = makePlate(tracker, "BORDER", 1)
 local panelShadow = makePlate(shadowHost, "ARTWORK", 1)
+local panelGlow = makeSoftGlow(glowHost)
 
 local stepButtons = {}
 local styleStepButtons
@@ -899,7 +1093,7 @@ navButton:SetScript("OnEnter", function(self)
     local r, g, b = ns.Color("accent")
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:SetText("Navigate", r, g, b)
-    GameTooltip:AddLine("Find the nearest inn, bank, trainer, and more.", 1, 1, 1, true)
+    GameTooltip:AddLine("Find the nearest inn, bank, repair, trainer, and more.", 1, 1, 1, true)
     ns.FinishTooltip()
 end)
 navButton:SetScript("OnLeave", function(self)
@@ -2132,16 +2326,29 @@ local function styleTracker()
         hidePlate(panelHeader)
     end
 
+    local parentScale = UIParent:GetEffectiveScale() or 1
+    local frameScale = tracker:GetEffectiveScale() or parentScale
+    if parentScale == 0 then
+        parentScale = 1
+    end
+    local frameStrata = tracker:GetFrameStrata() or "MEDIUM"
+    local frameLevel = tracker:GetFrameLevel() or 10
+
+    if ns.db.menuBorderGlow and tracker:IsShown() then
+        local spread = clampGlowSpread(ns.db.menuGlowRadius)
+        local glowR, glowG, glowB = ns.Color("glow")
+        placeGlowHost(glowHost, tracker, parentScale, frameScale, frameStrata, math.max(1, frameLevel - 1))
+        showSoftGlow(panelGlow, glowHost, spread, rounded and radius or 0, glowR, glowG, glowB)
+    else
+        hideSoftGlow(panelGlow)
+        glowHost:Hide()
+    end
+
     if ns.db.trackerShadow and tracker:IsShown() then
         local spread = 8
         local drop = 4
-        local parentScale = UIParent:GetEffectiveScale() or 1
-        local frameScale = tracker:GetEffectiveScale() or parentScale
-        if parentScale == 0 then
-            parentScale = 1
-        end
         shadowHost:SetScale(frameScale / parentScale)
-        shadowHost:SetFrameStrata(lowerStrata(tracker:GetFrameStrata() or "MEDIUM"))
+        shadowHost:SetFrameStrata(lowerStrata(frameStrata))
         shadowHost:ClearAllPoints()
         shadowHost:SetPoint("TOPLEFT", tracker, "TOPLEFT", -spread, spread - drop)
         shadowHost:SetPoint("BOTTOMRIGHT", tracker, "BOTTOMRIGHT", spread, -(spread + drop))
@@ -2183,28 +2390,44 @@ end
 
 local function ensurePopupChrome(frame)
     local chrome = frame.__waynotesChrome
-    if chrome then
-        return chrome
+    if not chrome then
+        chrome = {
+            fill = makePlate(frame, "BACKGROUND", 1),
+            border = makePlate(frame, "BORDER", 1),
+            mode = nil,
+        }
+        chrome.shadowHost = CreateFrame("Frame", nil, UIParent)
+        chrome.shadowHost:Hide()
+        chrome.shadow = makePlate(chrome.shadowHost, "ARTWORK", 1)
+        frame.__waynotesChrome = chrome
+        styledPopups[#styledPopups + 1] = frame
     end
-    chrome = {
-        fill = makePlate(frame, "BACKGROUND", 1),
-        border = makePlate(frame, "BORDER", 1),
-        mode = nil,
-    }
-    chrome.shadowHost = CreateFrame("Frame", nil, UIParent)
-    chrome.shadowHost:Hide()
-    chrome.shadow = makePlate(chrome.shadowHost, "ARTWORK", 1)
+    if not chrome.glowHost then
+        chrome.glowHost = CreateFrame("Frame", nil, UIParent)
+        chrome.glowHost:EnableMouse(false)
+        chrome.glowHost:Hide()
+        chrome.glow = makeSoftGlow(chrome.glowHost)
+    elseif not chrome.glow or not chrome.glow.outside then
+        if chrome.glow then
+            hideSoftGlow(chrome.glow)
+        end
+        chrome.glow = makeSoftGlow(chrome.glowHost)
+    end
     if not frame.__waynotesChromeHideHook then
         frame.__waynotesChromeHideHook = true
         frame:HookScript("OnHide", function()
             local stored = frame.__waynotesChrome
-            if stored and stored.shadowHost then
+            if not stored then
+                return
+            end
+            if stored.shadowHost then
                 stored.shadowHost:Hide()
+            end
+            if stored.glowHost then
+                stored.glowHost:Hide()
             end
         end)
     end
-    frame.__waynotesChrome = chrome
-    styledPopups[#styledPopups + 1] = frame
     return chrome
 end
 
@@ -2256,18 +2479,33 @@ function ns.StylePopupFrame(frame)
         end
     end
 
+    local parentScale = UIParent:GetEffectiveScale() or 1
+    local frameScale = frame:GetEffectiveScale() or parentScale
+    if parentScale == 0 then
+        parentScale = 1
+    end
+    local frameStrata = frame:GetFrameStrata() or "DIALOG"
+    local frameLevel = frame:GetFrameLevel() or 20
+    local shadowStrata = lowerStrata(frameStrata)
+    local shadowLevel = math.max(1, frameLevel - 2)
+
+    if ns.db.menuBorderGlow and frame:IsShown() then
+        local spread = clampGlowSpread(ns.db.menuGlowRadius)
+        local glowR, glowG, glowB = ns.Color("glow")
+        placeGlowHost(chrome.glowHost, frame, parentScale, frameScale, frameStrata, math.max(1, frameLevel - 1))
+        showSoftGlow(chrome.glow, chrome.glowHost, spread, rounded and radius or 0, glowR, glowG, glowB)
+    else
+        hideSoftGlow(chrome.glow)
+        chrome.glowHost:Hide()
+    end
+
     if ns.db.trackerShadow and frame:IsShown() then
         local spread = 8
         local drop = 4
-        local parentScale = UIParent:GetEffectiveScale() or 1
-        local frameScale = frame:GetEffectiveScale() or parentScale
-        if parentScale == 0 then
-            parentScale = 1
-        end
         local host = chrome.shadowHost
         host:SetScale(frameScale / parentScale)
-        host:SetFrameStrata(lowerStrata(frame:GetFrameStrata() or "DIALOG"))
-        host:SetFrameLevel(math.max(1, (frame:GetFrameLevel() or 20) - 2))
+        host:SetFrameStrata(shadowStrata)
+        host:SetFrameLevel(shadowLevel)
         host:ClearAllPoints()
         host:SetPoint("TOPLEFT", frame, "TOPLEFT", -spread, spread - drop)
         host:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", spread, -(spread + drop))
@@ -2695,6 +2933,36 @@ end
 
 -- Multi-pin steps: arrow the nearest unvisited spot; mark reached within
 -- KILL_AREA_YARDS, then switch to the next nearest remaining pin.
+-- Pins that leave out map share the step's map and zone, so distance and
+-- arrow lookups do not fail on them.
+local function inheritPinMaps(places, base)
+    if type(places) ~= "table" then
+        return places
+    end
+    if type(base) ~= "table" or type(base.map) ~= "number" then
+        base = nil
+        for _, place in ipairs(places) do
+            if type(place) == "table" and type(place.map) == "number" then
+                base = place
+                break
+            end
+        end
+    end
+    if not base then
+        return places
+    end
+    for _, place in ipairs(places) do
+        if type(place) == "table" and type(place.map) ~= "number" then
+            place.map = base.map
+            place.zone = place.zone or base.zone
+        end
+    end
+    return places
+end
+
+-- State.pinCycle[key] forces a pin until the player reaches it (Next Pin button).
+-- The forced pin is only released after the player has been away from it, so
+-- picking a pin the player is already standing on is not undone on the next refresh.
 local function chooseStepPlace(row)
     local places = row and row.places
     if type(places) ~= "table" or #places == 0 then
@@ -2705,6 +2973,31 @@ local function chooseStepPlace(row)
     end
 
     local visited = pinVisitSet(row) or {}
+    local key = pinVisitKey(row)
+    local forced = key and State.pinCycle[key]
+    if type(forced) == "table" and places[forced.index] then
+        local forcedDist = placeDistance(places[forced.index])
+        local within = type(forcedDist) == "number" and forcedDist <= UI.KILL_AREA_YARDS
+        if within and forced.armed then
+            visited[forced.index] = true
+            State.pinCycle[key] = nil
+        else
+            if not within then
+                forced.armed = true
+            end
+            local pending = 0
+            for index in ipairs(places) do
+                if not visited[index] then
+                    pending = pending + 1
+                end
+            end
+            row.place = places[forced.index]
+            row.pinIndex = forced.index
+            row.pinPending = pending
+            return places[forced.index]
+        end
+    end
+
     local function nearest(onlyUnvisited)
         local best, bestDist, bestIndex
         local pending = 0
@@ -2967,20 +3260,35 @@ local function aimAngle(hbd, instance, px, py, wp, place, facing)
         source = "world"
     end
 
-    ns.AimTrace = {
-        source = source or "none",
-        pinX = pinX,
-        pinY = pinY,
-        youX = youX,
-        youY = youY,
-        east = east,
-        south = south,
+    -- Raw inputs only, in one reused table; /wn aim derives the rest on demand.
+    local trace = ns.AimTrace
+    if type(trace) ~= "table" then
+        trace = {}
+        ns.AimTrace = trace
+    end
+    trace.source = source or "none"
+    trace.pinX, trace.pinY = pinX, pinY
+    trace.youX, trace.youY = youX, youY
+    trace.east, trace.south = east, south
+    trace.angle, trace.facing, trace.hbdAngle = angle, facing, hbdAngle
+    trace.worldEast, trace.worldNorth = worldEast, worldNorth
+
+    return angle, source
+end
+
+function State.expandAimTrace(raw)
+    local east, south = raw.east, raw.south
+    local worldEast, worldNorth = raw.worldEast, raw.worldNorth
+    return {
+        source = raw.source,
+        pinX = raw.pinX,
+        pinY = raw.pinY,
+        youX = raw.youX,
+        youY = raw.youY,
         map = mapCardinal(east, south),
-        bear = aimDeg(angle),
-        face = aimDeg(facing),
-        worldEast = worldEast,
-        worldNorth = worldNorth,
-        hbd = aimDeg(hbdAngle),
+        bear = aimDeg(raw.angle),
+        face = aimDeg(raw.facing),
+        hbd = aimDeg(raw.hbdAngle),
         zoneEN = aimDeg(facingBearing(east or 0, -(south or 0))),
         zoneNegE = aimDeg(type(east) == "number" and facingBearing(-east, -(south or 0)) or nil),
         zoneES = aimDeg(type(east) == "number" and facingBearing(east, south or 0) or nil),
@@ -2989,19 +3297,17 @@ local function aimAngle(hbd, instance, px, py, wp, place, facing)
         worldSwap = aimDeg(type(worldEast) == "number" and facingBearing(worldNorth, worldEast) or nil),
         worldNegE = aimDeg(type(worldEast) == "number" and facingBearing(-worldEast, worldNorth) or nil),
     }
-
-    return angle
 end
 
 local aimLogUntil = 0
 local aimLogNext = 0
 
 function ns.PrintAim()
-    local trace = ns.AimTrace
-    if type(trace) ~= "table" then
+    if type(ns.AimTrace) ~= "table" then
         DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r No aim sample yet. Show the guide arrow, then run /wn aim again.")
         return
     end
+    local trace = State.expandAimTrace(ns.AimTrace)
     local rot
     if type(trace.bear) == "number" and type(trace.face) == "number" then
         rot = (trace.bear - trace.face) % 360
@@ -3029,7 +3335,7 @@ function ns.StartAimLog()
 end
 
 -- Nav strip arrow shares the step-arrow aiming path (defined after tint helpers).
-State.nav.syncArrow = function(facing, hbd, px, py, instance, canAim)
+State.nav.syncArrow = function(facing, hbd, px, py, instance, canAim, resolve)
     local arrow = State.nav._arrow
     local distText = State.nav._distText
     if not arrow then
@@ -3038,6 +3344,7 @@ State.nav.syncArrow = function(facing, hbd, px, py, instance, canAim)
     local wp = arrow.__rxpbWp
     local lastDist = State.nav._getLastDist and State.nav._getLastDist() or nil
     if not wp or not wp.wx or not wp.wy then
+        arrow.__rxpbAimWp = nil
         if lastDist ~= "" then
             if State.nav._setLastDist then
                 State.nav._setLastDist("")
@@ -3050,23 +3357,29 @@ State.nav.syncArrow = function(facing, hbd, px, py, instance, canAim)
         return
     end
 
-    local dest = ns.NavTarget and ns.NavTarget()
-    local angle = aimAngle(hbd, instance, px, py, wp, dest, facing)
-    local dist = ns.NavDistance and ns.NavDistance(dest) or nil
-    if type(dist) ~= "number" and dest and ns.PinZoneDistance and type(dest.x) == "number" then
-        dist = ns.PinZoneDistance(dest.map, dest.x, dest.y, dest.zone)
+    if resolve or arrow.__rxpbAimWp ~= wp then
+        arrow.__rxpbAimWp = wp
+        local dest = ns.NavTarget and ns.NavTarget()
+        local angle, source = aimAngle(hbd, instance, px, py, wp, dest, facing)
+        arrow.__rxpbAngle = source ~= "onpin" and angle or nil
+        arrow.__rxpbOnPin = source == "onpin"
+        local dist = ns.NavDistance and ns.NavDistance(dest) or nil
+        if type(dist) ~= "number" and dest and ns.PinZoneDistance and type(dest.x) == "number" then
+            dist = ns.PinZoneDistance(dest.map, dest.x, dest.y, dest.zone)
+        end
+
+        local distLabel = type(dist) == "number" and formatYards(dist) or ""
+        if distLabel ~= lastDist then
+            if State.nav._setLastDist then
+                State.nav._setLastDist(distLabel)
+            end
+            if distText then
+                distText:SetText(distLabel)
+            end
+        end
     end
 
-    local distLabel = type(dist) == "number" and formatYards(dist) or ""
-    if distLabel ~= lastDist then
-        if State.nav._setLastDist then
-            State.nav._setLastDist(distLabel)
-        end
-        if distText then
-            distText:SetText(distLabel)
-        end
-    end
-
+    local angle = arrow.__rxpbOnPin and facing or arrow.__rxpbAngle
     if aimNavIcon(arrow, nil, false, angle, facing) then
         setArrowAlpha(arrow, 1)
     else
@@ -3341,7 +3654,7 @@ local function bindStepTip(row, item)
     row.sticky = item.sticky
     row.questId = item.questId
     row.stepQuests = item.stepQuests
-    row.places = item.places
+    row.places = inheritPinMaps(item.places, item.place)
     row.place = item.place
     row.tipWaypoint = item.waypoint
     row.keepTravelWaypoint = item.travel and true or nil
@@ -3379,6 +3692,27 @@ local function refreshRowWaypoint(row)
         end
     end
     return row.arrow and row.arrow.__rxpbWp or nil
+end
+
+local function cycleStepPin(row)
+    local places = row and row.places
+    if type(places) ~= "table" or #places < 2 then
+        return
+    end
+    local key = pinVisitKey(row)
+    if not key then
+        return
+    end
+    local current = row.pinIndex or 1
+    if current < 1 or current > #places then
+        current = 1
+    end
+    local nextIndex = (current % #places) + 1
+    State.pinCycle[key] = { index = nextIndex, armed = false }
+    row.place = places[nextIndex]
+    row.pinIndex = nextIndex
+    row.__rxpbAimStale = true
+    refreshRowWaypoint(row)
 end
 
 local function rowPinDistance(row, wp, hbd, x, y, instance)
@@ -3436,19 +3770,32 @@ local function updateArrows()
         x, y, instance = hbd:GetPlayerWorldPosition()
     end
     local canAim = facing and hbd and x
+    -- Waypoint, bearing, and distance only move as fast as the player walks, so
+    -- resolve them at AIM_RESOLVE_SECONDS. Facing is applied every frame.
+    local now = GetTime and GetTime() or 0
+    local resolve = now >= (State.aimResolveAt or 0)
+    if resolve then
+        State.aimResolveAt = now + UI.AIM_RESOLVE_SECONDS
+    end
     for _, row in ipairs(State.rows) do
         local arrow = row.arrow
         if arrow and arrow:IsShown() and not row.__rxpbCompleting then
-            local wp = refreshRowWaypoint(row)
-            local angle = aimAngle(hbd, instance, x, y, wp, row.place, facing)
-            local dist = rowPinDistance(row, wp, hbd, x, y, instance)
-
-            local usePin = killAreaPin(row, dist)
-            local distLabel = usePin and "NEAR" or (type(dist) == "number" and formatYards(dist) or "")
-            if row.distance and row.__rxpbDistLabel ~= distLabel then
-                row.__rxpbDistLabel = distLabel
-                row.distance:SetText(distLabel)
+            if resolve or row.__rxpbAimStale then
+                row.__rxpbAimStale = nil
+                local wp = refreshRowWaypoint(row)
+                local angle, source = aimAngle(hbd, instance, x, y, wp, row.place, facing)
+                local dist = rowPinDistance(row, wp, hbd, x, y, instance)
+                row.__rxpbAngle = source ~= "onpin" and angle or nil
+                row.__rxpbOnPin = source == "onpin"
+                row.__rxpbUsePin = killAreaPin(row, dist)
+                local distLabel = row.__rxpbUsePin and "NEAR" or (type(dist) == "number" and formatYards(dist) or "")
+                if row.distance and row.__rxpbDistLabel ~= distLabel then
+                    row.__rxpbDistLabel = distLabel
+                    row.distance:SetText(distLabel)
+                end
             end
+            local angle = row.__rxpbOnPin and facing or row.__rxpbAngle
+            local usePin = row.__rxpbUsePin
 
             local shadow = row.arrowShadow and row.arrowShadow:IsShown() and row.arrowShadow or nil
             if aimNavIcon(arrow, shadow, usePin, angle, facing) then
@@ -3459,7 +3806,6 @@ local function updateArrows()
             else
                 setArrowAlpha(arrow, 0.35)
             end
-            local now = GetTime and GetTime() or 0
             if now < aimLogUntil and now >= aimLogNext then
                 aimLogNext = now + 1
                 if ns.PrintAim then
@@ -3469,7 +3815,7 @@ local function updateArrows()
         end
     end
     if State.nav.syncArrow then
-        State.nav.syncArrow(facing, hbd, x, y, instance, canAim)
+        State.nav.syncArrow(facing, hbd, x, y, instance, canAim, resolve)
     end
 end
 
@@ -3702,6 +4048,69 @@ local function acquireRow(index)
     row.distance:SetJustifyV("TOP")
     row.distance:Hide()
 
+    row.nextPin = CreateFrame("Button", nil, row)
+    row.nextPin:SetSize(14, 14)
+    row.nextPin:SetFrameLevel(row:GetFrameLevel() + 8)
+    row.nextPin:RegisterForClicks("LeftButtonUp")
+    row.nextPin:Hide()
+    row.nextPin.icon = row.nextPin:CreateTexture(nil, "OVERLAY")
+    row.nextPin.icon:SetAllPoints()
+    row.nextPin.icon:SetTexture(UI.GPS_CYCLE)
+    if row.nextPin.icon.SetDesaturated then
+        row.nextPin.icon:SetDesaturated(true)
+    end
+    row.nextPin:SetScript("OnClick", function(self)
+        cycleStepPin(self:GetParent())
+    end)
+    row.nextPin:SetScript("OnEnter", function(self)
+        local parent = self:GetParent()
+        setRowHover(parent, true)
+        pauseRowStepTip(parent)
+        self.hovered = true
+        local ar, ag, ab = ns.Color("accent")
+        if self.icon then
+            self.icon:SetVertexColor(ar, ag, ab, 1)
+        end
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetText("Next Pin", ar, ag, ab)
+        GameTooltip:AddLine("Cycle to the next location for this step.", 1, 1, 1, true)
+        ns.FinishTooltip()
+        placeCursorTooltip(self)
+    end)
+    row.nextPin:SetScript("OnLeave", function(self)
+        self.hovered = false
+        local ar, ag, ab = ns.Color("accent")
+        if self.icon then
+            self.icon:SetVertexColor(ar, ag, ab, 0.85)
+        end
+        GameTooltip:Hide()
+        local parent = self:GetParent()
+        if rowStillHovered(parent) then
+            if parent then
+                parent.tipShown = true
+                showStepTooltip(parent)
+            end
+            return
+        end
+        setRowHover(parent, false)
+        if parent then
+            parent.tipShown = false
+        end
+    end)
+    row.nextPin:SetScript("OnMouseDown", function(self)
+        if self:IsEnabled() and self.icon then
+            self.icon:ClearAllPoints()
+            self.icon:SetPoint("TOPLEFT", 1, -1)
+            self.icon:SetPoint("BOTTOMRIGHT", 1, -1)
+        end
+    end)
+    row.nextPin:SetScript("OnMouseUp", function(self)
+        if self.icon then
+            self.icon:ClearAllPoints()
+            self.icon:SetAllPoints()
+        end
+    end)
+
     row.text = row:CreateFontString(nil, "OVERLAY")
     RG.paint(row.text, 13, 1, 1, 1)
     row.details = row:CreateFontString(nil, "OVERLAY")
@@ -3723,7 +4132,8 @@ local function acquireRow(index)
         local r, g, b = ns.Color("accent")
         GameTooltip:SetOwner(self, "ANCHOR_NONE")
         GameTooltip:SetText("Step notes", r, g, b)
-        local tips = parent and parent.__rxpbTips
+        local expanded = parent and parent.__rxpbTipsExpanded
+        local tips = parent and ((expanded and parent.__rxpbTips) or parent.__rxpbHiddenTips or parent.__rxpbTips)
         local shown = 0
         for _, line in ipairs(tips or {}) do
             local plain = RG.plainText(line)
@@ -3738,7 +4148,7 @@ local function acquireRow(index)
         end
         if shown == 0 then
             GameTooltip:AddLine("Show or hide the tip notes for this step. Progress and objectives stay visible.", 1, 1, 1, true)
-        elseif parent and parent.__rxpbTipsExpanded then
+        elseif expanded then
             GameTooltip:AddLine("Click to hide these notes in the tracker.", 0.9, 0.82, 0.45, true)
         else
             GameTooltip:AddLine("Click to show these notes in the tracker.", 0.9, 0.82, 0.45, true)
@@ -4289,11 +4699,33 @@ local function presentDetails(item)
     return presentDetailLines(joinDetails(objectives, tips), item)
 end
 
+local function tipHiddenWhenCollapsed(line, note)
+    if type(note) == "string" and note ~= "" and line == note then
+        -- Authored guide notes stay visible while other tips nest.
+        return false
+    end
+    local plain = RG.plainText(line)
+    if plain and plain:lower():find("hearthstone available", 1, true) then
+        -- Keep the hearth hint visible next to the use button.
+        return false
+    end
+    return true
+end
+
 local function visibleDetailLines(item, index)
     local details = item and item.details or {}
     local objectives, tips = splitDetails(details)
-    -- Nest notes whenever objective lines are present, or when there are several notes alone.
-    local shouldNest = #tips >= 1 and (#objectives >= 1 or #tips >= UI.MORE_TIP_THRESHOLD)
+    local note = item and item.note
+    local hiddenTips = 0
+    for _, line in ipairs(tips) do
+        if tipHiddenWhenCollapsed(line, note) then
+            hiddenTips = hiddenTips + 1
+        end
+    end
+    -- Nest tip notes under progress/accept/turn-in lines only, and only when
+    -- collapse would actually hide something. A lone authored note already
+    -- stays visible, so nesting it behind "+ more notes" is a no-op.
+    local shouldNest = hiddenTips >= 1 and #objectives >= 1
     if not shouldNest then
         return joinDetails(objectives, tips), false, false, #tips
     end
@@ -4301,7 +4733,23 @@ local function visibleDetailLines(item, index)
     if expanded then
         return joinDetails(objectives, tips), true, true, #tips
     end
-    return objectives, true, false, #tips
+    local shown = {}
+    for _, line in ipairs(objectives) do
+        shown[#shown + 1] = line
+    end
+    if type(note) == "string" and note ~= "" then
+        local already = false
+        for _, line in ipairs(shown) do
+            if line == note then
+                already = true
+                break
+            end
+        end
+        if not already then
+            shown[#shown + 1] = note
+        end
+    end
+    return shown, true, false, #tips
 end
 
 local function applyRowText(row, item, index)
@@ -4311,7 +4759,15 @@ local function applyRowText(row, item, index)
     RG.paint(row.text, main and 16 or 13, textR, textG, textB)
     row.text:SetText(presentHeadline(item))
     local _, tipLines = splitDetails(item and item.details)
+    local note = item and item.note
+    local hiddenTips = {}
+    for _, line in ipairs(tipLines or {}) do
+        if tipHiddenWhenCollapsed(line, note) then
+            hiddenTips[#hiddenTips + 1] = line
+        end
+    end
     row.__rxpbTips = tipLines
+    row.__rxpbHiddenTips = hiddenTips
     local shown, canToggle, expanded = visibleDetailLines(item, index)
     row.__rxpbTipsExpanded = expanded and true or false
     if shown and #shown > 0 then
@@ -4670,6 +5126,7 @@ local function layout(items, resetScroll)
         local completing = item.__rxpbCompleting and true or false
         row.__rxpbCompleting = completing or nil
         local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
+        local multiPin = type(item.places) == "table" and #item.places > 1
         if completing and row.arrow then
             local tintR, tintG, tintB = stickyCompleteGreen()
             local centerX = -2 - (UI.ARROW_COLUMN / 2)
@@ -4687,6 +5144,9 @@ local function layout(items, resetScroll)
             if row.arrowShadow then
                 row.arrowShadow:Hide()
             end
+            if row.nextPin then
+                row.nextPin:Hide()
+            end
             if row.distance then
                 row.distance:Hide()
                 row.distance:SetText("")
@@ -4696,7 +5156,12 @@ local function layout(items, resetScroll)
         elseif hasPin and row.arrow then
             row:SetAlpha(1)
             local tintR, tintG, tintB = arrowTint()
+            local cycleSize = 12
+            local cycleGap = 2
             local centerX = -2 - (UI.ARROW_COLUMN / 2)
+            if multiPin then
+                centerX = centerX - (cycleSize + cycleGap) / 2
+            end
             -- Restore arrow/pin if this row previously showed the sticky check.
             if row.arrow.__rxpbNav == UI.GPS_CHECK then
                 row.arrow.__rxpbNav = nil
@@ -4708,8 +5173,9 @@ local function layout(items, resetScroll)
             row.arrow:SetPoint("CENTER", row, "TOPRIGHT", centerX, -arrowSize / 2)
             -- Force aim path to re-apply texcoords after layout resize.
             row.arrow.__rxpbRot = nil
-            row.places = item.places
+            row.places = inheritPinMaps(item.places, item.place)
             row.place = item.place
+            row.stepIndex = item.stepIndex
             row.arrow.__rxpbWp = item.waypoint
             refreshRowWaypoint(row)
             if row.arrowShadow then
@@ -4731,6 +5197,18 @@ local function layout(items, resetScroll)
                 row.distance:SetJustifyH("CENTER")
                 row.distance:SetTextColor(tintR, tintG, tintB)
             end
+            if multiPin and row.nextPin then
+                local ar, ag, ab = ns.Color("accent")
+                row.nextPin:SetSize(cycleSize, cycleSize)
+                row.nextPin:Show()
+                row.nextPin:ClearAllPoints()
+                row.nextPin:SetPoint("LEFT", row.arrow, "RIGHT", cycleGap, 0)
+                if row.nextPin.icon then
+                    row.nextPin.icon:SetVertexColor(ar, ag, ab, row.nextPin.hovered and 1 or 0.85)
+                end
+            elseif row.nextPin then
+                row.nextPin:Hide()
+            end
             rightInset = UI.ARROW_COLUMN + 6
         elseif row.arrow then
             row:SetAlpha(1)
@@ -4739,12 +5217,18 @@ local function layout(items, resetScroll)
             if row.arrowShadow then
                 row.arrowShadow:Hide()
             end
+            if row.nextPin then
+                row.nextPin:Hide()
+            end
             if row.distance then
                 row.distance:Hide()
                 row.distance:SetText("")
             end
         else
             row:SetAlpha(1)
+            if row.nextPin then
+                row.nextPin:Hide()
+            end
         end
 
         row.text:ClearAllPoints()
@@ -4876,8 +5360,9 @@ local function paintRowColors()
 end
 
 do
-    local PIN_REF = addonName .. "-step-pins"
-    local SHOW_WORLD = (rawget(_G, "HBD_PINS_WORLDMAP_SHOW_WORLD")) or 3
+    -- Step badges drawn straight onto the world map canvas. Guide pins carry
+    -- Classic UiMap ids, which Forever renumbers, so a pin is matched to the
+    -- shown map by zone name rather than converted through world coordinates.
     local BADGE = {
         bgFile = "Interface\\BUTTONS\\WHITE8X8",
         edgeFile = "Interface\\BUTTONS\\WHITE8X8",
@@ -4885,27 +5370,40 @@ do
         insets = { left = 1, right = 1, top = 1, bottom = 1 },
     }
 
-    local function pinsLib()
-        if not LibStub then
+    local frames = State.mapPins.frames
+    local entries = {}
+    local provider
+
+    local function isNum(value)
+        return type(value) == "number" and value == value
+    end
+
+    local function fraction(value)
+        if not isNum(value) then
             return nil
         end
-        local ok, lib = pcall(LibStub, "HereBeDragons-Pins-2.0")
-        if ok then
-            return lib
+        if value > 1 then
+            return value / 100
         end
+        return value
+    end
+
+    local function worldMap()
+        local map = rawget(_G, "WorldMapFrame")
+        local scroll = map and map.ScrollContainer
+        local child = scroll and scroll.Child
+        if not child then
+            return nil
+        end
+        return map, scroll, child
     end
 
     local function clearStepMapPins()
-        local pins = pinsLib()
-        if pins then
-            if pins.RemoveAllWorldMapIcons then
-                pins:RemoveAllWorldMapIcons(PIN_REF)
-            end
-            if pins.RemoveAllMinimapIcons then
-                pins:RemoveAllMinimapIcons(PIN_REF)
-            end
+        wipe(entries)
+        if provider then
+            pcall(provider.RemoveAllData, provider)
         end
-        for _, frame in ipairs(State.mapPins.frames) do
+        for _, frame in ipairs(frames) do
             frame:Hide()
             frame:ClearAllPoints()
             frame:SetParent(UIParent)
@@ -4914,27 +5412,22 @@ do
     end
 
     local function acquireStepMapPin(index)
-        local frame = State.mapPins.frames[index]
+        local frame = frames[index]
         if frame then
             return frame
         end
         frame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+        frame:Hide()
         frame:SetSize(22, 22)
         frame:SetBackdrop(BADGE)
-        frame.ring = frame:CreateTexture(nil, "BORDER")
-        setCircleTexture(frame.ring)
-        frame.ring:SetPoint("TOPLEFT", -1, 1)
-        frame.ring:SetPoint("BOTTOMRIGHT", 1, -1)
-        frame.circle = frame:CreateTexture(nil, "ARTWORK")
-        setCircleTexture(frame.circle)
-        frame.circle:SetPoint("TOPLEFT", 1, -1)
-        frame.circle:SetPoint("BOTTOMRIGHT", -1, 1)
         frame.text = frame:CreateFontString(nil, "OVERLAY")
         frame.text:SetAllPoints()
         frame.text:SetJustifyH("CENTER")
         frame.text:SetJustifyV("MIDDLE")
+        if frame.text.SetWordWrap then
+            frame.text:SetWordWrap(false)
+        end
         RG.applyFont(frame.text, 12, "OUTLINE")
-        frame.text:SetTextColor(1, 1, 1)
         frame:EnableMouse(true)
         frame:SetScript("OnEnter", function(self)
             if not self.tipTitle then
@@ -4945,152 +5438,232 @@ do
             if self.tipPlace then
                 GameTooltip:AddLine(self.tipPlace, 0.9, 0.9, 0.9, true)
             end
-            if self.tipWorld then
-                GameTooltip:AddLine(self.tipWorld, 0.75, 0.75, 0.75, true)
-            end
             GameTooltip:Show()
         end)
         frame:SetScript("OnLeave", function()
             GameTooltip:Hide()
         end)
-        State.mapPins.frames[index] = frame
+        frames[index] = frame
         return frame
     end
 
-    local function paintStepMapPin(frame, index, badgeText)
-        local r, g, b = ns.BadgeColor(index)
-        local rounded = ns.db and ns.db.roundBadges
-        if rounded then
-            frame:SetBackdropColor(0, 0, 0, 0)
-            frame:SetBackdropBorderColor(0, 0, 0, 0)
-            frame.ring:SetVertexColor(0, 0, 0, 0.7)
-            frame.ring:Show()
-            frame.circle:SetVertexColor(r, g, b, 1)
-            frame.circle:Show()
-        else
-            frame.ring:Hide()
-            frame.circle:Hide()
-            frame:SetBackdropColor(r, g, b, 1)
-            frame:SetBackdropBorderColor(0, 0, 0, 0.45)
-        end
-        frame.text:SetText(badgeText)
-        local size = index == 1 and 22 or 18
+    -- Same graphic as the tracker row badge: color, shape, size, and number.
+    local function paintStepMapPin(frame, index, item)
+        local main = index == 1
+        local size = main and 22 or 18
         frame:SetSize(size, size)
-        RG.applyFont(frame.text, index == 1 and 12 or 10, "OUTLINE")
+        styleBadge(frame, ns.BadgeColor(index))
+        local badgeNumber, badgeText = badgeLabel(item, index)
+        RG.applyFont(frame.text, badgeFontSize(main, badgeNumber), "OUTLINE")
+        frame.text:SetText(badgeText)
+        frame.text:SetTextColor(1, 1, 1)
+        frame.text:SetShadowColor(0, 0, 0, 1)
+        frame.text:SetShadowOffset(0, 0)
+        return badgeText
     end
 
-    local function fraction(value)
-        if type(value) ~= "number" then
+    local function pinZoneName(place)
+        return (ns.ClassicZoneName and ns.ClassicZoneName(place.map)) or place.zone
+    end
+
+    local function childMapNamed(mapId, zoneName)
+        if not C_Map or not C_Map.GetMapChildrenInfo then
             return nil
         end
-        if value > 1 then
-            return value / 100
+        local ok, children = pcall(C_Map.GetMapChildrenInfo, mapId, nil, true)
+        if not ok or type(children) ~= "table" then
+            return nil
         end
-        return value
+        for _, child in ipairs(children) do
+            if ns.ZoneNamesMatch(child.name, zoneName) then
+                return child.mapID
+            end
+        end
     end
 
-    local function sameZoneAsPlayer(place)
-        if type(place) ~= "table" then
-            return false
+    -- Normalized position of a pin on the shown map: the authored percents on
+    -- the zone itself, or scaled into the zone's rectangle on a continent.
+    local function pinOnMap(mapId, place)
+        local zx, zy = fraction(place.x), fraction(place.y)
+        local zoneName = pinZoneName(place)
+        if not zx or not zy or not zoneName or not C_Map or not C_Map.GetMapInfo then
+            return nil
         end
-        local pmap = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
-        if type(place.map) == "number" and type(pmap) == "number" and place.map == pmap then
-            return true, pmap
+        local info = C_Map.GetMapInfo(mapId)
+        if info and ns.ZoneNamesMatch(info.name, zoneName) then
+            return zx, zy
         end
-        local pinZone = place.zone or (place.map and ns.MapName and ns.MapName(place.map))
-        local pzone = GetRealZoneText and GetRealZoneText()
-        if type(pinZone) == "string" and type(pzone) == "string" then
-            local a = pinZone:lower():gsub("^the%s+", "")
-            local b = pzone:lower():gsub("^the%s+", "")
-            if a ~= "" and b ~= "" and (a == b or a:find(b, 1, true) or b:find(a, 1, true)) then
-                return true, pmap
-            end
+        if not C_Map.GetMapRectOnMap then
+            return nil
         end
-        return false, pmap
+        local child = childMapNamed(mapId, zoneName)
+        if not child then
+            return nil
+        end
+        local ok, minX, maxX, minY, maxY = pcall(C_Map.GetMapRectOnMap, child, mapId)
+        if not ok or not isNum(minX) or not isNum(maxX) or not isNum(minY) or not isNum(maxY) then
+            return nil
+        end
+        return minX + zx * (maxX - minX), minY + zy * (maxY - minY)
     end
 
-    local function placePin(pins, frame, item, index, place, wp)
-        place = place or item.place
-        wp = wp or item.waypoint
-        if (not wp or type(wp.wx) ~= "number") and place and ns.PinToPlayerWorld then
-            local wx, wy, inst = ns.PinToPlayerWorld(place.map, place.x, place.y, place.zone)
-            if type(wx) == "number" then
-                wp = { wx = wx, wy = wy, instance = inst }
+    -- Badges ride on real map canvas pins, the same way HereBeDragons does it,
+    -- so zone maps place, scale, and layer them like their own POIs.
+    local PIN_TEMPLATE = "WaynotesStepBadgePinTemplate"
+
+    local function ensureProvider()
+        if provider then
+            return provider
+        end
+        local map = worldMap()
+        if not map or not map.AddDataProvider or type(map.pinPools) ~= "table"
+            or not MapCanvasDataProviderMixin or not MapCanvasPinMixin then
+            return nil
+        end
+        local canvas = map:GetCanvas()
+
+        local pinMixin = CreateFromMixins(MapCanvasPinMixin)
+        function pinMixin:OnLoad()
+            self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
+            self:SetScalingLimits(1, 1.0, 1.2)
+        end
+        function pinMixin:OnAcquired(badge, x, y)
+            self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
+            self:SetPosition(x, y)
+            self.badge = badge
+            badge:SetParent(self)
+            badge:SetScale(1)
+            badge:SetFrameStrata(self:GetFrameStrata())
+            badge:SetFrameLevel(self:GetFrameLevel() + 1)
+            badge:ClearAllPoints()
+            badge:SetPoint("CENTER", self, "CENTER")
+            badge:Show()
+        end
+        function pinMixin:OnReleased()
+            if self.badge then
+                self.badge:Hide()
+                self.badge:SetParent(UIParent)
+                self.badge:ClearAllPoints()
+                self.badge = nil
             end
         end
+        pinMixin.SetPassThroughButtons = function() end
 
-        local zx = place and fraction(place.x)
-        local zy = place and fraction(place.y)
-        local placed = false
-
-        -- Prefer authored zone percents on a map HBD can show (live map when
-        -- Forever remaps classic ids).
-        if type(zx) == "number" and type(zy) == "number" then
-            local same, pmap = sameZoneAsPlayer(place)
-            local maps = {}
-            if same and type(pmap) == "number" then
-                maps[#maps + 1] = pmap
-            end
-            if type(place.map) == "number" then
-                maps[#maps + 1] = place.map
-            end
-            for _, mapId in ipairs(maps) do
-                pins:AddWorldMapIconMap(PIN_REF, frame, mapId, zx, zy, SHOW_WORLD)
-                if pins.AddMinimapIconMap then
-                    pins:AddMinimapIconMap(PIN_REF, frame, mapId, zx, zy, true, true)
-                end
-                -- HBD silently no-ops when zone→world fails; detect via registry.
-                if pins.worldmapPinRegistry and pins.worldmapPinRegistry[PIN_REF] and pins.worldmapPinRegistry[PIN_REF][frame] then
-                    placed = true
-                    break
-                end
-                if pins.RemoveWorldMapIcon then
-                    pins:RemoveWorldMapIcon(PIN_REF, frame)
-                end
-                if pins.RemoveMinimapIcon then
-                    pins:RemoveMinimapIcon(PIN_REF, frame)
-                end
-            end
-        end
-
-        if not placed and wp and type(wp.wx) == "number" and type(wp.wy) == "number" then
-            pins:AddWorldMapIconWorld(PIN_REF, frame, wp.instance or 0, wp.wx, wp.wy, SHOW_WORLD)
-            if pins.AddMinimapIconWorld then
-                pins:AddMinimapIconWorld(PIN_REF, frame, wp.instance or 0, wp.wx, wp.wy, true)
-            end
-            placed = true
-        end
-
-        if not placed then
-            return false
-        end
-
-        local _, badgeText = badgeLabel(item, index)
-        paintStepMapPin(frame, index, badgeText)
-        frame.tipTitle = string.format("Step %s", badgeText)
-        if place and place.note and place.note ~= "" then
-            frame.tipTitle = frame.tipTitle .. " · " .. place.note
-        end
-        if place and type(place.x) == "number" then
-            local mapLabel = place.zone or (place.map and tostring(place.map)) or "?"
-            frame.tipPlace = string.format("%s  %.1f, %.1f", mapLabel, place.x > 1 and place.x or place.x * 100, place.y > 1 and place.y or place.y * 100)
+        local pool
+        if CreateUnsecuredRegionPoolInstance then
+            pool = CreateUnsecuredRegionPoolInstance(PIN_TEMPLATE)
         else
-            frame.tipPlace = nil
+            pool = CreateFramePool("FRAME")
         end
-        if wp and type(wp.wx) == "number" then
-            frame.tipWorld = string.format("world %.0f, %.0f  i%s", wp.wx, wp.wy, tostring(wp.instance or "?"))
-        else
-            frame.tipWorld = nil
+        pool.parent = canvas
+        pool.createFunc = function()
+            local pin = CreateFrame("Frame", nil, canvas)
+            pin:SetSize(1, 1)
+            return Mixin(pin, pinMixin)
         end
-        frame:Show()
-        return true
+        pool.resetFunc = function(_, pin)
+            pin:Hide()
+            pin:ClearAllPoints()
+            pin:OnReleased()
+            pin.pinTemplate = nil
+            pin.owningMap = nil
+        end
+        pool.creationFunc = pool.createFunc
+        pool.resetterFunc = pool.resetFunc
+        map.pinPools[PIN_TEMPLATE] = pool
+
+        provider = CreateFromMixins(MapCanvasDataProviderMixin)
+        function provider:RemoveAllData()
+            self:GetMap():RemoveAllPinsByTemplate(PIN_TEMPLATE)
+        end
+        function provider:RefreshAllData()
+            self:RemoveAllData()
+            local mapId = self:GetMap():GetMapID()
+            if not isNum(mapId) then
+                return
+            end
+            for index, place in ipairs(entries) do
+                local x, y = pinOnMap(mapId, place)
+                if x and frames[index] then
+                    self:GetMap():AcquirePin(PIN_TEMPLATE, frames[index], x, y)
+                end
+            end
+        end
+        map:AddDataProvider(provider)
+        return provider
+    end
+
+    local lastLayoutError
+    local function safeLayout()
+        local ok, err = pcall(function()
+            local active = ensureProvider()
+            local map = worldMap()
+            if active and map and map:IsShown() then
+                active:RefreshAllData()
+            end
+        end)
+        if not ok and err ~= lastLayoutError then
+            lastLayoutError = err
+            DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r map badge error: " .. tostring(err))
+        end
+    end
+
+    local debugOnOpen = false
+    local driver = CreateFrame("Frame")
+    driver:SetScript("OnUpdate", function()
+        -- The world map can load after the first sync; register once it exists.
+        if not provider and #entries > 0 and rawget(_G, "WorldMapFrame") then
+            safeLayout()
+        end
+        if debugOnOpen then
+            local map = worldMap()
+            if map and map:IsShown() then
+                debugOnOpen = false
+                ns.MapBadgeDebug()
+            end
+        end
+    end)
+
+    function ns.MapBadgeDebug()
+        local function say(line)
+            DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes map|r " .. line)
+        end
+        local map, scroll, child = worldMap()
+        say(string.format("tracker=%s standalone=%s replace=%s entries=%d frames=%d provider=%s",
+            tostring(tracker:IsShown()), tostring(ns.db and ns.db.standaloneGuide), tostring(ns.db and ns.db.replaceGuide), #entries, #frames, tostring(provider ~= nil)))
+        if not map then
+            say("WorldMapFrame canvas not found")
+            return
+        end
+        if not map:IsShown() then
+            debugOnOpen = true
+            say("Open the world map; the report prints when it opens.")
+            return
+        end
+        local mapId = map.GetMapID and map:GetMapID()
+        local info = isNum(mapId) and C_Map.GetMapInfo(mapId)
+        say(string.format("map shown=%s id=%s name=%s scale=%s size=%.0fx%.0f strata=%s level=%s",
+            tostring(map:IsShown()), tostring(mapId), tostring(info and info.name), tostring(scroll.GetCanvasScale and scroll:GetCanvasScale()),
+            child:GetWidth() or 0, child:GetHeight() or 0, tostring(child:GetFrameStrata()), tostring(child:GetFrameLevel())))
+        if lastLayoutError then
+            say("last error: " .. tostring(lastLayoutError))
+        end
+        for index, place in ipairs(entries) do
+            local x, y
+            if isNum(mapId) then
+                x, y = pinOnMap(mapId, place)
+            end
+            local frame = frames[index]
+            local point, _, _, ox, oy = frame:GetPoint(1)
+            say(string.format("#%d map=%s zone=%s xy=%s,%s -> %s,%s shown=%s visible=%s parent=%s at=%s %s,%s strata=%s",
+                index, tostring(place.map), tostring(pinZoneName(place)), tostring(place.x), tostring(place.y),
+                tostring(x), tostring(y), tostring(frame:IsShown()), tostring(frame:IsVisible()),
+                tostring(frame:GetParent() and frame:GetParent().badge == frame and "pin" or frame:GetParent() == child and "canvas" or frame:GetParent() and frame:GetParent():GetName()),
+                tostring(point), tostring(ox), tostring(oy), tostring(frame:GetFrameStrata())))
+        end
     end
 
     function State.syncStepMapPins(items)
-        local pins = pinsLib()
-        if not pins or not pins.AddWorldMapIconMap then
-            return
-        end
         if type(items) ~= "table" or not tracker:IsShown() then
             clearStepMapPins()
             return
@@ -5103,24 +5676,16 @@ do
         local parts = {}
         for index, item in ipairs(items) do
             local places = item.places
-            if type(places) == "table" and #places > 0 then
-                local chunks = {}
-                for pinIndex, place in ipairs(places) do
-                    chunks[pinIndex] = tostring(place.map or "-") .. ":" .. tostring(place.x or "-") .. ":" .. tostring(place.y or "-")
-                end
-                parts[index] = tostring(item.number or index) .. "=" .. table.concat(chunks, ",")
-            else
-                local place = item.place
-                local wp = item.waypoint
-                local px = place and place.x or "-"
-                local py = place and place.y or "-"
-                local pm = place and place.map or "-"
-                local wx = wp and wp.wx or "-"
-                local wy = wp and wp.wy or "-"
-                parts[index] = tostring(item.number or index) .. ":" .. tostring(pm) .. ":" .. tostring(px) .. ":" .. tostring(py) .. ":" .. tostring(wx) .. ":" .. tostring(wy)
+            if type(places) ~= "table" or #places == 0 then
+                places = item.place and { item.place } or {}
             end
+            local chunks = {}
+            for pinIndex, place in ipairs(places) do
+                chunks[pinIndex] = tostring(place.map or "-") .. ":" .. tostring(place.x or "-") .. ":" .. tostring(place.y or "-")
+            end
+            parts[index] = tostring(item.number or index) .. "=" .. table.concat(chunks, ",")
         end
-        local signature = table.concat(parts, "|")
+        local signature = table.concat(parts, "|") .. "|" .. tostring(ns.db.roundBadges)
         if signature == State.mapPins.signature then
             return
         end
@@ -5128,39 +5693,46 @@ do
         clearStepMapPins()
         State.mapPins.signature = signature
 
-        local used = 0
         for index, item in ipairs(items) do
             local places = item.places
-            if type(places) == "table" and #places > 0 then
-                for _, place in ipairs(places) do
-                    used = used + 1
-                    local frame = acquireStepMapPin(used)
-                    if not placePin(pins, frame, item, index, place, nil) then
-                        frame:Hide()
-                        used = used - 1
+            if type(places) ~= "table" or #places == 0 then
+                places = item.place and { item.place } or {}
+            end
+            local _, badgeText = badgeLabel(item, index)
+            for _, place in ipairs(places) do
+                if type(place) == "table" and isNum(place.x) and isNum(place.y) then
+                    local slot = #entries + 1
+                    entries[slot] = place
+                    local frame = acquireStepMapPin(slot)
+                    paintStepMapPin(frame, index, item)
+                    frame.tipTitle = string.format("Step %s", badgeText)
+                    if place.note and place.note ~= "" then
+                        frame.tipTitle = frame.tipTitle .. " · " .. place.note
                     end
-                end
-            else
-                local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
-                if hasPin then
-                    used = used + 1
-                    local frame = acquireStepMapPin(used)
-                    if not placePin(pins, frame, item, index) then
-                        frame:Hide()
-                        used = used - 1
-                    end
+                    local x = place.x > 1 and place.x or place.x * 100
+                    local y = place.y > 1 and place.y or place.y * 100
+                    frame.tipPlace = string.format("%s  %.1f, %.1f", pinZoneName(place) or "?", x, y)
                 end
             end
         end
-        for index = used + 1, #State.mapPins.frames do
-            State.mapPins.frames[index]:Hide()
-        end
+        safeLayout()
     end
 
     State.clearStepMapPins = clearStepMapPins
 end
 
 function ns.RefreshTracker(force)
+    if not State.perf then
+        return State.refreshTracker(force)
+    end
+    local key = force and "refresh (forced)" or "refresh"
+    local start = debugprofilestop()
+    State.refreshTracker(force)
+    ns.PerfAdd(key, debugprofilestop() - start)
+    State.perfCalls[key] = (State.perfCalls[key] or 0) + 1
+end
+
+State.refreshTracker = function(force)
     if not ns.db or not tracker:IsShown() or (not ns.db.standaloneGuide and not ns.db.replaceGuide) then
         if State.clearStepMapPins then
             State.clearStepMapPins()
@@ -5240,8 +5812,14 @@ function ns.RefreshTracker(force)
             State.remeasure = true
         end
     end
-    styleTracker()
-    paintRowColors()
+    -- Restyling re-expands every row's text, so unchanged polls only do it
+    -- once a second to pick up options changes.
+    local now = GetTime and GetTime() or 0
+    if force or contentChanged or sizeChanged or now >= (State.restyleAt or 0) then
+        State.restyleAt = now + 1
+        styleTracker()
+        paintRowColors()
+    end
     styleStepButtons()
     reassertActions()
     if State.syncStepMapPins then
@@ -5559,10 +6137,12 @@ function ns.OnGuideScan()
             return
         end
         concealGuide(rxp)
-        ns.RefreshTracker()
     elseif ns.db and ns.db.standaloneGuide then
         concealGuide(rxp)
-        ns.RefreshTracker()
+        -- A shown tracker already polls in its own OnUpdate.
+        if not tracker:IsShown() then
+            ns.RefreshTracker()
+        end
     end
 end
 
@@ -5610,22 +6190,82 @@ function ns.SyncReplacement()
     end
 end
 
-tracker:SetScript("OnUpdate", function(self, delta)
-    if not self:IsMouseOver() then
-        clearGuideTips()
-    else
-        placeTrackerTooltip()
+function ns.StartPerf(seconds)
+    if type(debugprofilestop) ~= "function" then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r Profiling is not available on this client.")
+        return
     end
-    pcall(updateArrows)
-    pcall(updateCompletingStickies, delta)
-    pcall(updateFlightStrip)
-    pcall(updateNavStrip)
-    pcall(updateTrainStrip)
+    State.perf = {}
+    State.perfCalls = {}
+    State.perfStarted = GetTime()
+    State.perfUntil = State.perfStarted + (seconds or 10)
+    DEFAULT_CHAT_FRAME:AddMessage(string.format("|cffce7bffWaynotes|r Profiling for %ds. Play normally with the tracker open.", seconds or 10))
+end
+
+function ns.PerfAdd(key, ms)
+    local perf = State.perf
+    if perf then
+        perf[key] = (perf[key] or 0) + ms
+    end
+end
+
+function State.finishPerf()
+    local perf = State.perf
+    local span = math.max(0.001, GetTime() - (State.perfStarted or 0))
+    State.perf = nil
+    local keys, total = {}, 0
+    for key, ms in pairs(perf) do
+        keys[#keys + 1] = key
+        total = total + ms
+    end
+    table.sort(keys, function(a, b) return perf[a] > perf[b] end)
+    DEFAULT_CHAT_FRAME:AddMessage(string.format("|cffce7bffWaynotes perf|r %.2f ms per second total over %.0fs", total / span, span))
+    for _, key in ipairs(keys) do
+        local calls = State.perfCalls and State.perfCalls[key]
+        local suffix = calls and string.format(" (%.1f calls/s)", calls / span) or ""
+        DEFAULT_CHAT_FRAME:AddMessage(string.format("|cffce7bffWaynotes perf|r   %s: %.2f ms/s%s", key, perf[key] / span, suffix))
+    end
+end
+
+function State.timed(key, fn, ...)
+    if not State.perf then
+        return pcall(fn, ...)
+    end
+    local start = debugprofilestop()
+    local ok, err = pcall(fn, ...)
+    ns.PerfAdd(key, debugprofilestop() - start)
+    return ok, err
+end
+
+tracker:SetScript("OnUpdate", function(self, delta)
+    if self:IsMouseOver() then
+        State.mouseOver = true
+        placeTrackerTooltip()
+    elseif State.mouseOver then
+        State.mouseOver = false
+        clearGuideTips()
+    end
+    State.timed("arrows", updateArrows)
+    State.timed("completing", updateCompletingStickies, delta)
+    State.timed("flight", updateFlightStrip)
+    State.stripElapsed = (State.stripElapsed or 0) + delta
+    if State.stripElapsed >= UI.STRIP_UPDATE_SECONDS then
+        State.stripElapsed = 0
+        State.timed("nav", updateNavStrip)
+    end
+    State.trainElapsed = (State.trainElapsed or 0) + delta
+    if State.trainElapsed >= UI.TRAIN_UPDATE_SECONDS then
+        State.trainElapsed = 0
+        State.timed("train", updateTrainStrip)
+    end
     if not (ns.db and ns.db.standaloneGuide) then
-        pcall(RG.maintainReview)
+        State.timed("review", RG.maintainReview)
+    end
+    if State.perf and GetTime() >= State.perfUntil then
+        State.finishPerf()
     end
     State.elapsed = State.elapsed + delta
-    if State.elapsed < 0.2 then
+    if State.elapsed < UI.TRACKER_POLL_SECONDS then
         return
     end
     State.elapsed = 0
@@ -5644,6 +6284,7 @@ tracker:SetScript("OnHide", function()
     clearGuideTips()
     State.completing = {}
     State.stickyShown = {}
+    glowHost:Hide()
     shadowHost:Hide()
     if State.flight.strip then
         State.flight.strip:Hide()
