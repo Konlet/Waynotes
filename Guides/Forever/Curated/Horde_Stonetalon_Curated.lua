@@ -121,7 +121,7 @@ ns.RegisterGuide({
             y = 97.0,
         },
         {
-            text = "Talk to [FRIENDLY]Witch Doctor Jin'Zil[/] in Malaka'jin. Turn in [QUEST]Letter to Jin'Zil[/]. Accept [QUEST]Jin'Zil's Forest Magic[/].",
+            text = "Talk to [FRIENDLY]Witch Doctor Jin'Zil[/]. Turn in [QUEST]Letter to Jin'Zil[/]. Accept [QUEST]Jin'Zil's Forest Magic[/].",
             quests = { 1057, 1058 },
             when = "accepted",
             map = 1442,
@@ -166,9 +166,9 @@ ns.RegisterGuide({
             sticky = true,
         },
         {
-            text = "Gather [LOOT]Deepmoss Eggs[/] in the area.",
+            text = "Gather [LOOT]Deepmoss Eggs[/].",
             quest = 1069,
-            objective = 3,
+            objective = 1,
             when = "objectives",
             map = 1442,
             x = 61.4,
@@ -176,10 +176,10 @@ ns.RegisterGuide({
             details = {
                 "[LOOT]Deepmoss Egg[/] (15)",
             },
-            note = "When broken, the eggs have a chance tospawn [ENEMY]Deepmoss Hatchlings[/]. They're not tough.",
+            note = "When broken, the eggs have a chance to spawn [ENEMY]Deepmoss Hatchlings[/]. They're not tough.",
         },
         {
-            text = "Talk to [FRIENDLY]Ziz Fizziks[/] in the hut. Accept [QUEST]Super Reaper 6000[/] (turn in [QUEST]Ziz Fizziks[/] first).",
+            text = "Talk to [FRIENDLY]Ziz Fizziks[/] in the hut. Turn in [QUEST]Ziz Fizziks[/]. Accept [QUEST]Super Reaper 6000[/].",
             quest = 1093,
             when = "accepted",
             map = 1442,
@@ -188,7 +188,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "In Windshear Crag, loot [LOOT]Super Reaper 6000 Blueprints[/] from [ENEMY]Operators[/].",
+            text = "Loot [LOOT]Super Reaper 6000 Blueprints[/] from [ENEMY]Operators[/].",
             quest = 1093,
             when = "objectives",
             map = 1442,
@@ -199,7 +199,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In Windshear Crag, kill [ENEMY]Venture Co. Loggers[/] and finish [QUEST]Goblin Invaders[/].",
+            text = "Kill [ENEMY]Venture Co. Loggers[/].",
             quest = 1062,
             when = "objectives",
             map = 1442,
@@ -361,7 +361,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Sons of Cenarius[/], [ENEMY]Daughters of Cenarius[/], and [ENEMY]Cenarion Botanists[/] for [QUEST]Cenarius' Legacy[/]. Skip elites you cannot handle.",
+            text = "Kill [ENEMY]Sons of Cenarius[/], [ENEMY]Daughters of Cenarius[/], and [ENEMY]Cenarion Botanists[/].",
             quest = 1087,
             when = "objectives",
             map = 1442,
@@ -402,7 +402,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In the Charred Vale, plant [LOOT]Gaea Seeds[/] in the dirt mounds for [QUEST]New Life[/].",
+            text = "Return to the Charred Vale. Plant [LOOT]Gaea Seeds[/] in the dirt mounds.",
             quest = 6381,
             when = "objectives",
             map = 1442,

@@ -126,7 +126,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "In Durnholde, kill Rogues and Watchmen for the Wanted poster.",
+            text = "Kill Rogues and Watchmen for the Wanted poster.",
             map = 1424,
             x = 79.0,
             y = 43.1,
@@ -138,7 +138,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In Durnholde, kill [ENEMY]Syndicate Shadow Mages[/] for [LOOT]Vials of Innocent Blood[/].",
+            text = "Kill [ENEMY]Syndicate Shadow Mages[/] for [LOOT]Vials of Innocent Blood[/].",
             map = 1424,
             x = 79.0,
             y = 43.1,
@@ -444,7 +444,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In Hillsbrad Town Hall, kill [ENEMY]Magistrate Burnside[/]. Destroy the [PICK]Hillsbrad Proclamation[/], loot the [PICK]Town Registry[/], and kill [ENEMY]Hillsbrad Councilmen[/].",
+            text = "Kill [ENEMY]Magistrate Burnside[/]. Destroy the [PICK]Hillsbrad Proclamation[/], loot the [PICK]Town Registry[/], and kill [ENEMY]Hillsbrad Councilmen[/].",
             map = 1424,
             x = 29.7,
             y = 41.7,
@@ -540,7 +540,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In Alterac, kill [ENEMY]Ricter[/], [ENEMY]Alina[/], [ENEMY]Dermot[/], and [ENEMY]Kegan Darkmar[/] for Bloodstone pieces.",
+            text = "Kill [ENEMY]Ricter[/], [ENEMY]Alina[/], [ENEMY]Dermot[/], and [ENEMY]Kegan Darkmar[/] for Bloodstone pieces.",
             map = 1416,
             x = 20.2,
             y = 84.1,
@@ -566,7 +566,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At the Ruins of Alterac area, charge the [PICK]Flame of Uzel[/].",
+            text = "Charge the [PICK]Flame of Uzel[/].",
             map = 1416,
             x = 37.55,
             y = 66.24,

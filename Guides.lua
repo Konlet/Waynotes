@@ -1062,6 +1062,63 @@ stepApplies = function(step)
     return true
 end
 
+-- Next ". " sentence break. Periods inside [TAG]…[/] or |c…|r do not count
+-- (e.g. [ENEMY]Venture Co. Loggers[/], [ENEMY]Mr. Smite[/]).
+local function findSentenceBreak(text)
+    local i = 1
+    local n = #text
+    while i <= n do
+        local ch = text:sub(i, i)
+        if ch == "[" then
+            local closeBracket = text:find("]", i + 1, true)
+            if not closeBracket then
+                return nil
+            end
+            local tag = text:sub(i + 1, closeBracket - 1)
+            if tag:match("^%u+$") then
+                local bodyStart = closeBracket + 1
+                local closeNamed = text:find("[/" .. tag .. "]", bodyStart, true)
+                local closeShort = text:find("[/]", bodyStart, true)
+                local closeEnd
+                if closeNamed and (not closeShort or closeNamed <= closeShort) then
+                    closeEnd = closeNamed + #tag + 2
+                elseif closeShort then
+                    closeEnd = closeShort + 2
+                end
+                if closeEnd then
+                    i = closeEnd + 1
+                else
+                    i = closeBracket + 1
+                end
+            else
+                i = closeBracket + 1
+            end
+        elseif ch == "|" and text:sub(i + 1, i + 1) == "c" then
+            local close = text:find("|r", i + 2, true)
+            if close then
+                i = close + 2
+            else
+                i = i + 1
+            end
+        elseif ch == "." then
+            local after = text:sub(i + 1, i + 1)
+            if after ~= "" and after:match("%s") then
+                local endAt = i + 1
+                local j = i + 2
+                while j <= n and text:sub(j, j):match("%s") do
+                    endAt = j
+                    j = j + 1
+                end
+                return i, endAt
+            end
+            i = i + 1
+        else
+            i = i + 1
+        end
+    end
+    return nil
+end
+
 -- Keep shared note text; drop "Horde:" / "Alliance:" sentences for the other faction.
 local function filterFactionLabeledText(text, faction)
     if type(text) ~= "string" or text == "" then
@@ -1112,17 +1169,19 @@ local function filterFactionLabeledText(text, faction)
         end
         local bodyEnd
         local searchFrom = bodyStart
-        while true do
-            local dot = text:find("%.", searchFrom, true)
-            if not dot or (nextLabel and dot >= nextLabel) then
-                break
+        local limit = nextLabel and (nextLabel - 1) or n
+        local region = text:sub(searchFrom, limit)
+        -- Reuse sentence-break rules so "Venture Co." inside tags does not
+        -- truncate a faction-labeled note body.
+        local relDot = select(1, findSentenceBreak(region))
+        if relDot then
+            bodyEnd = searchFrom + relDot - 1
+        else
+            -- Trailing period with no following whitespace still ends the body.
+            local trailing = region:match("()%.%s*$")
+            if trailing then
+                bodyEnd = searchFrom + trailing - 1
             end
-            local after = text:sub(dot + 1, dot + 1)
-            if after == "" or after:match("%s") then
-                bodyEnd = dot
-                break
-            end
-            searchFrom = dot + 1
         end
         if not bodyEnd then
             if nextLabel then
@@ -2353,7 +2412,7 @@ local function authoredPresentation(step)
     if text ~= "" then
         local rest = text
         while rest ~= "" do
-            local startAt, endAt = rest:find("%.%s+")
+            local startAt, endAt = findSentenceBreak(rest)
             if not startAt then
                 local last = strtrim(rest)
                 if last ~= "" then

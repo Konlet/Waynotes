@@ -667,7 +667,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Around the flats: kill basilisks for [QUEST]A Bump in the Road[/].",
+            text = "Kill basilisks for [QUEST]A Bump in the Road[/].",
             map = 1441,
             x = 82.8,
             y = 55.2,
@@ -716,7 +716,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Loot [PICK]Rocket Car Rubble[/] around the flats.",
+            text = "Loot [PICK]Rocket Car Rubble[/].",
             map = 1441,
             x = 82.8,
             y = 55.2,

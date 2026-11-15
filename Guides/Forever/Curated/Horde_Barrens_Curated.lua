@@ -253,7 +253,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Plainstriders[/] for [LOOT]Plainstrider Beaks[/] around Crossroads.",
+            text = "Kill [ENEMY]Plainstriders[/] for [LOOT]Plainstrider Beaks[/].",
             quest = 844,
             when = "objectives",
             map = 1413,
@@ -317,7 +317,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At Thorn Hill, kill [ENEMY]Kreenig Snarlsnout[/] and finish [ENEMY]Razormane Geomancers[/] and [ENEMY]Defenders[/].",
+            text = "Kill [ENEMY]Kreenig Snarlsnout[/] and finish [ENEMY]Razormane Geomancers[/] and [ENEMY]Defenders[/].",
             quest = 872,
             when = "objectives",
             map = 1413,
@@ -463,7 +463,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Along the shore, kill [ENEMY]Southsea Brigands[/] and [ENEMY]Cannoneers[/].",
+            text = "Kill [ENEMY]Southsea Brigands[/] and [ENEMY]Cannoneers[/].",
             quest = 887,
             when = "objectives",
             map = 1413,
@@ -572,7 +572,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At the Forgotten Pools, explore the lake for [QUEST]The Forgotten Pools[/].",
+            text = "Explore the lake for [QUEST]The Forgotten Pools[/].",
             quest = 870,
             when = "objectives",
             map = 1413,
@@ -825,7 +825,7 @@ ns.RegisterGuide({
             y = 42.8,
         },
         {
-            text = "Kill Kolkar around the Stagnant Oasis until [ENEMY]Verog the Dervish[/] spawns. Loot his head.",
+            text = "Kill Kolkar until [ENEMY]Verog the Dervish[/] spawns. Loot his head.",
             quest = 851,
             when = "objectives",
             map = 1413,
@@ -1015,7 +1015,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Hezrul Bloodmark[/] as he patrols Lushwater Oasis. Loot his head. Finish [LOOT]Centaur Bracers[/] here.",
+            text = "Kill [ENEMY]Hezrul Bloodmark[/] as he patrols. Loot his head. Finish [LOOT]Centaur Bracers[/] here.",
             quest = 852,
             when = "objectives",
             map = 1413,
@@ -1420,7 +1420,7 @@ ns.RegisterGuide({
             note = "Tough solo area around 18-20. Group if needed, or wait until ~22.",
         },
         {
-            text = "[WARN]Optional escort:[/] Talk to [FRIENDLY]Gilthares Firebough[/] in Northwatch. Accept and finish [QUEST]Free From the Hold[/].",
+            text = "[WARN]Optional escort:[/] Talk to [FRIENDLY]Gilthares Firebough[/]. Accept and finish [QUEST]Free From the Hold[/].",
             quest = 898,
             when = "complete",
             map = 1413,
