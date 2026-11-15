@@ -24,6 +24,17 @@ local transportLegsByFrom
 local placeIndex
 local aliasIndex
 local graphBuilt = false
+local innsNeedCoords = false
+-- Poll-scoped caches: GuideObjectives calls TravelApplyToItem once per shown
+-- step, and without these each sticky re-ran full flight/boat routing.
+local unlockedCache
+local unlockedCacheGen = 0
+local flightUnlockGen = 0
+local routeCache = {}
+local routeCacheGen = 0
+local nearbyHintCache
+local nearbyHintChecked = false
+local ROUTE_GRID_YARDS = 50
 
 local function isNumber(value)
     return type(value) == "number"
@@ -172,19 +183,25 @@ local function walkSeconds(yards)
 end
 
 local function fillMissingInnCoords()
+    local missing = false
     for _, place in pairs(placeIndex) do
         if type(place) == "table" and place.kind == "inn" and not isNumber(place.wx) then
             local wx, wy, instance = zoneWorld(place.map, place.x, place.y, place.zone)
             if wx then
                 place.wx, place.wy, place.instance = wx, wy, instance
+            else
+                missing = true
             end
         end
     end
+    innsNeedCoords = missing
 end
 
 local function ensureGraph()
     if graphBuilt then
-        fillMissingInnCoords()
+        if innsNeedCoords then
+            fillMissingInnCoords()
+        end
         return
     end
     graphBuilt = true
@@ -361,9 +378,23 @@ local function ensureGraph()
             addAlias(placeIndex, alias, place)
         end
     end
+    fillMissingInnCoords()
+end
+
+local function bumpFlightUnlockGen()
+    flightUnlockGen = flightUnlockGen + 1
+    unlockedCache = nil
+    unlockedCacheGen = 0
+    routeCache = {}
+    routeCacheGen = 0
+    nearbyHintCache = nil
+    nearbyHintChecked = false
 end
 
 local function unlockedFlightPaths()
+    if unlockedCache and unlockedCacheGen == flightUnlockGen then
+        return unlockedCache
+    end
     local db = charDB().flightPaths
     local unlocked = {}
     for key, value in pairs(db) do
@@ -385,6 +416,8 @@ local function unlockedFlightPaths()
             end
         end
     end
+    unlockedCache = unlocked
+    unlockedCacheGen = flightUnlockGen
     return unlocked
 end
 
@@ -394,11 +427,34 @@ local function markFlightUnlocked(nodeId, name)
         return
     end
     local db = charDB().flightPaths
+    local changed = false
     if type(name) == "string" and name ~= "" then
+        changed = db[nodeId] ~= name
         db[nodeId] = name
     elseif not db[nodeId] then
         db[nodeId] = true
+        changed = true
     end
+    if changed then
+        bumpFlightUnlockGen()
+    end
+end
+
+local function routeCacheKey(dest, opts, px, py, pinstance)
+    local prefer = (opts and opts.prefer) or dest.prefer or "-"
+    local gx = math.floor((px or 0) / ROUTE_GRID_YARDS + 0.5)
+    local gy = math.floor((py or 0) / ROUTE_GRID_YARDS + 0.5)
+    return table.concat({
+        tostring(dest.wx or "-"),
+        tostring(dest.wy or "-"),
+        tostring(dest.instance or "-"),
+        tostring(dest.nodeId or "-"),
+        tostring(prefer),
+        tostring(gx),
+        tostring(gy),
+        tostring(pinstance or "-"),
+        tostring(flightUnlockGen),
+    }, ":")
 end
 
 local function matchNodeIdByTaxiName(taxiName)
@@ -670,6 +726,8 @@ end
 
 function ns.TravelBeginHints()
     hearthButtonClaimed = false
+    nearbyHintCache = nil
+    nearbyHintChecked = false
 end
 
 local function attachHearthButton(item, bindName)
@@ -1021,17 +1079,25 @@ function ns.TravelFlightPathStepDone(step)
 end
 
 function ns.TravelNearbyUnlearnedFlight(maxYards)
+    maxYards = maxYards or NEARBY_FP_YARDS
+    if nearbyHintChecked and nearbyHintCache and nearbyHintCache.maxYards == maxYards then
+        return nearbyHintCache.place
+    end
     ensureGraph()
     local px, py, instance = playerPoint()
     if not px then
+        nearbyHintChecked = true
+        nearbyHintCache = { maxYards = maxYards, place = nil }
         return nil
     end
     local node, dist = nearestFlightNode(px, py, instance, false, true)
-    if not node or not dist or dist > (maxYards or NEARBY_FP_YARDS) then
-        return nil
+    local place
+    if node and dist and dist <= maxYards then
+        place = flightNodePlace(node)
+        place.yards = dist
     end
-    local place = flightNodePlace(node)
-    place.yards = dist
+    nearbyHintChecked = true
+    nearbyHintCache = { maxYards = maxYards, place = place }
     return place
 end
 
@@ -1645,6 +1711,12 @@ function ns.TravelBestPath(dest, opts)
         return nil
     end
 
+    local cacheKey = routeCacheKey(dest, opts, px, py, pinstance)
+    local cached = routeCache[cacheKey]
+    if cached ~= nil then
+        return cached or nil
+    end
+
     local unlocked = unlockedFlightPaths()
     local faction = playerFaction()
     local candidates = {}
@@ -1655,14 +1727,17 @@ function ns.TravelBestPath(dest, opts)
     end
 
     local prefer = opts.prefer or dest.prefer
+    local best
     if prefer == "hearth" then
         local hearth = routeHearth(dest, px, py, pinstance, unlocked, faction, true)
         if hearth then
+            routeCache[cacheKey] = hearth
             return hearth
         end
     elseif prefer == "fly" then
         local fly = routeFly(dest, px, py, pinstance, unlocked, faction)
         if fly then
+            routeCache[cacheKey] = fly
             return fly
         end
     end
@@ -1684,7 +1759,7 @@ function ns.TravelBestPath(dest, opts)
         end
     end
 
-    local best = candidates[1]
+    best = candidates[1]
     for index = 2, #candidates do
         local route = candidates[index]
         if route.seconds + 0.01 < (best.seconds or math.huge) then
@@ -1697,6 +1772,14 @@ function ns.TravelBestPath(dest, opts)
                 best = route
             end
         end
+    end
+    -- Cache nil misses as false so repeated sticky polls skip the full search.
+    routeCache[cacheKey] = best or false
+    if routeCacheGen < 64 then
+        routeCacheGen = routeCacheGen + 1
+    else
+        routeCache = { [cacheKey] = routeCache[cacheKey] }
+        routeCacheGen = 1
     end
     return best
 end

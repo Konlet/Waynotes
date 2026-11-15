@@ -80,9 +80,19 @@ end
 local function refresh()
     if ns.RefreshTracker then
         ns.RefreshTracker(true)
+    elseif ns.MarkTrackerDirty then
+        ns.MarkTrackerDirty(true)
     end
     if ns.RefreshOptions then
         ns.RefreshOptions()
+    end
+end
+
+local function markStepsDirty(force)
+    if ns.MarkTrackerDirty then
+        ns.MarkTrackerDirty(force)
+    elseif ns.RefreshTracker then
+        ns.RefreshTracker(force and true or false)
     end
 end
 
@@ -557,22 +567,24 @@ local function questOn(id)
     if type(id) ~= "number" or id <= 0 then
         return false
     end
-    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
-        local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, id)
-        if ok and type(index) == "number" and index > 0 then
-            return true
-        end
-    end
+    -- Trust a successful modern API result. Falling through to a full quest-log
+    -- scan on "not on quest" made every sticky poll O(steps * log size).
     if C_QuestLog and C_QuestLog.IsOnQuest then
         local ok, on = pcall(C_QuestLog.IsOnQuest, id)
-        if ok and on then
-            return true
+        if ok then
+            return on and true or false
         end
     end
     if IsOnQuest then
         local ok, on = pcall(IsOnQuest, id)
-        if ok and on then
-            return true
+        if ok then
+            return on and true or false
+        end
+    end
+    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+        local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, id)
+        if ok then
+            return type(index) == "number" and index > 0
         end
     end
     if not GetNumQuestLogEntries or not GetQuestLogTitle then
@@ -1836,6 +1848,26 @@ function ns.GuideCatchUp()
     return moved
 end
 
+-- Light pulse: only arrival-check travel steps. Quest progress is event-driven.
+function ns.GuidePulseTravel()
+    local guide = activeGuide()
+    if not guide then
+        return false
+    end
+    local entry = progress(guide.id)
+    local step = guide.steps[entry.step]
+    if not step or not stepApplies(step) then
+        return false
+    end
+    local travel = step.when == "travel"
+        or (ns.TravelIsTravelStep and ns.TravelIsTravelStep(step))
+        or (ns.TravelIsFlightPathStep and ns.TravelIsFlightPathStep(step))
+    if not travel then
+        return false
+    end
+    return ns.GuideCatchUp()
+end
+
 inferLevels = function(name, id)
     local text = (name or "") .. " " .. (id or "")
     local a, b = text:match("(%d+)%s*%-%s*(%d+)")
@@ -2322,7 +2354,8 @@ local function scrubPlayerText(text)
     cleaned = cleaned:gsub("%s+", " ")
     cleaned = strtrim(cleaned)
     cleaned = cleaned:gsub("^[%.,;:%-%s]+", "")
-    cleaned = cleaned:gsub("[%.,;:%-%s]+$", "")
+    -- Keep a trailing period: curated notes (and authored sentences) end with one.
+    cleaned = cleaned:gsub("[,;:%-%s]+$", "")
     cleaned = strtrim(cleaned)
     if cleaned == "" or cleaned == "|cRB_WARN_|r" or cleaned:match("^|cRB_WARN_%.?|r$") or cleaned:match("^%[%a+%]%[%/%a*%]$") then
         return nil
@@ -3763,11 +3796,15 @@ watcher:RegisterEvent("ADDON_LOADED")
 watcher:RegisterEvent("PLAYER_LOGIN")
 watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
 watcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+watcher:RegisterEvent("ZONE_CHANGED")
+watcher:RegisterEvent("ZONE_CHANGED_INDOORS")
 watcher:RegisterEvent("QUEST_ACCEPTED")
 watcher:RegisterEvent("QUEST_TURNED_IN")
 watcher:RegisterEvent("QUEST_REMOVED")
 watcher:RegisterEvent("QUEST_LOG_UPDATE")
 watcher:RegisterEvent("UNIT_QUEST_LOG_CHANGED")
+watcher:RegisterEvent("BAG_UPDATE_DELAYED")
+watcher:RegisterEvent("PLAYER_LEVEL_UP")
 
 local function objectiveParts(id)
     local parts = {}
@@ -4133,9 +4170,8 @@ local function runCatchUp()
     -- Quest progress always wins over a manual review pause.
     reviewKey = nil
     local moved = ns.GuideCatchUp()
-    if moved then
-        refresh()
-    end
+    -- Always dirty the tracker: objective text can change without a step advance.
+    markStepsDirty(moved and true or false)
     if checkOffStep and progressed and #progressed > 0 then
         considerOffStepJump(progressed)
     end
@@ -4225,6 +4261,15 @@ watcher:SetScript("OnEvent", function(_, event, name)
         end
         queueCatchUp(0.5, false)
         queueDungeonCheck(0.75)
+        markStepsDirty(true)
+        return
+    end
+    if event == "ZONE_CHANGED" or event == "ZONE_CHANGED_INDOORS" then
+        markStepsDirty(false)
+        return
+    end
+    if event == "BAG_UPDATE_DELAYED" or event == "PLAYER_LEVEL_UP" then
+        markStepsDirty(false)
         return
     end
     if event == "UNIT_QUEST_LOG_CHANGED" and name ~= "player" then

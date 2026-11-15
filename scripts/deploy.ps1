@@ -1,9 +1,15 @@
 # Deploy curated Waynotes files to the Forever AddOns folder.
 # Mirrors the zip export: Waynotes.toc load list, logos, and Media.
 # Only Guides/Forever/Curated/*_Curated.lua guides are included.
+#
+# Destination resolution (first match wins):
+#   1. -Destination argument
+#   2. WAYNOTES_ADDONS env var (Waynotes folder, or its AddOns parent)
+#   3. scripts/deploy.path (one line; gitignored, per-machine)
+#   4. First existing path from the candidate list below
 
 param(
-    [string]$Destination = "C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\Waynotes"
+    [string]$Destination = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -13,8 +19,59 @@ if (-not (Test-Path $root)) {
     Write-Error "Addon root not found: $root"
 }
 
+$candidates = @(
+    "X:\World of Warcraft\_forever_\Interface\AddOns\Waynotes"
+    "C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\Waynotes"
+    "D:\World of Warcraft\_forever_\Interface\AddOns\Waynotes"
+    "E:\World of Warcraft\_forever_\Interface\AddOns\Waynotes"
+)
+
+function Resolve-AddonsDestination {
+    param([string]$Requested)
+
+    if ($Requested) {
+        return $Requested.TrimEnd("\", "/")
+    }
+
+    $envPath = $env:WAYNOTES_ADDONS
+    if ($envPath) {
+        $envPath = $envPath.Trim().TrimEnd("\", "/")
+        if ((Split-Path -Leaf $envPath) -ieq "AddOns") {
+            return (Join-Path $envPath "Waynotes")
+        }
+        return $envPath
+    }
+
+    $localPathFile = Join-Path $PSScriptRoot "deploy.path"
+    if (Test-Path -LiteralPath $localPathFile) {
+        $line = (Get-Content -LiteralPath $localPathFile -TotalCount 1).Trim()
+        if ($line -and -not $line.StartsWith("#")) {
+            $line = $line.TrimEnd("\", "/")
+            if ((Split-Path -Leaf $line) -ieq "AddOns") {
+                return (Join-Path $line "Waynotes")
+            }
+            return $line
+        }
+    }
+
+    foreach ($path in $candidates) {
+        $parent = Split-Path -Parent $path
+        if (Test-Path -LiteralPath $parent) {
+            return $path
+        }
+    }
+
+    $tried = @()
+    if ($env:WAYNOTES_ADDONS) { $tried += "WAYNOTES_ADDONS=$($env:WAYNOTES_ADDONS)" }
+    $tried += "scripts\deploy.path"
+    $tried += $candidates
+    Write-Error ("Forever AddOns folder not found. Tried:`n  " + ($tried -join "`n  ") + "`nCreate scripts\deploy.path with one line, e.g.`n  X:\World of Warcraft\_forever_\Interface\AddOns\Waynotes")
+}
+
+$Destination = Resolve-AddonsDestination -Requested $Destination
+
 $addonsParent = Split-Path -Parent $Destination
-if (-not (Test-Path $addonsParent)) {
+if (-not (Test-Path -LiteralPath $addonsParent)) {
     Write-Error "AddOns folder not found: $addonsParent"
 }
 
