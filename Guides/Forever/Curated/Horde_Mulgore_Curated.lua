@@ -2,8 +2,8 @@ local _, ns = ...
 
 -- Curated Tauren Mulgore 1-12.
 -- Hybrid of Forever quest coverage with tight quest chaining.
--- Multi-step class lines live in Horde_Mulgore_ClassQuests.lua and
--- Horde_Barrens_ClassQuests.lua; this file only drops pointer steps at hubs.
+-- Multi-step class lines live in Horde_Mulgore_Class_Curated.lua and
+-- Horde_Barrens_Class_Curated.lua; this file only drops pointer steps at hubs.
 -- Forever-only lines (Adventurer, camping, Longwalkers, Drive Them Out, etc.) stay in.
 -- Pins use Forever UiMap percents (Mulgore map changed vs Era).
 -- Accept/turn-in pins can be omitted when QuestieDB supplies NPC coordinates.
@@ -333,6 +333,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel to Bloodhoof Village.",
+            when = "travel",
             map = 1412,
             x = 46.66,
             y = 63.42,

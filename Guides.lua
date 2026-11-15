@@ -328,6 +328,10 @@ local function cleanStep(step)
     if arriveYards and arriveYards > 0 then
         copy.arriveYards = arriveYards
     end
+    local nearYards = tonumber(step.nearYards)
+    if nearYards and nearYards > 0 then
+        copy.nearYards = nearYards
+    end
     if type(step.fpath) == "string" and strtrim(step.fpath) ~= "" then
         copy.fpath = strtrim(step.fpath)
     end
@@ -798,9 +802,27 @@ local function objectiveTokens(text)
     local plain = objectivePlain(text)
     plain = plain:gsub("%d+%s*/%s*%d+", " ")
     plain = plain:gsub("%(%d+%)", " ")
-    plain = plain:gsub("%d+", " ")
     local tokens = {}
     local seen = {}
+    -- Keep coded names like XT:4 / XT-9 as one token. Plain %a+ would drop
+    -- the short "xt" (# < 3) and stripping digits would erase the rest.
+    plain = plain:gsub("(%a+)[%:%-](%d+)", function(letters, digits)
+        local token = (letters .. ":" .. digits):lower()
+        if not seen[token] then
+            seen[token] = true
+            tokens[#tokens + 1] = token
+        end
+        return " "
+    end)
+    plain = plain:gsub("(%a+)(%d+)", function(letters, digits)
+        local token = (letters .. digits):lower()
+        if #letters >= 2 and not seen[token] then
+            seen[token] = true
+            tokens[#tokens + 1] = token
+        end
+        return " "
+    end)
+    plain = plain:gsub("%d+", " ")
     for word in plain:gmatch("%a+") do
         if #word >= 3 then
             local token = objectiveToken(word)
@@ -1494,8 +1516,9 @@ local function stepDone(step)
     return true
 end
 
--- Manual vendor/train/travel steps have no quest gate. During catch-up, skip them
--- once a later quest step is already satisfied (you have progressed past them).
+-- Manual vendor/train steps (and ungated "Travel to X" text) have no quest gate.
+-- During catch-up, skip them once a later quest step is already satisfied.
+-- Gated when = "travel" steps are isAutoStep and must not use this shortcut.
 local function laterAutoStepDone(guide, fromIndex)
     if not guide then
         return false
@@ -1819,7 +1842,7 @@ function ns.GuideCatchUp()
             guard = guard + 1
         elseif reviewKey == guide.id .. ":" .. entry.step then
             break
-        elseif stepDone(step) or (not isQuestAutoStep(step) and laterAutoStepDone(guide, entry.step)) then
+        elseif stepDone(step) or (not isAutoStep(step) and laterAutoStepDone(guide, entry.step)) then
             local hopped = neighbor(guide, entry.step, 1)
             if not hopped then
                 break
@@ -2265,7 +2288,8 @@ local function detailKey(text)
     plain = plain:gsub("|cRXP_[A-Z]+_", "")
     plain = plain:gsub("|c%x%x%x%x%x%x%x%x", "")
     plain = plain:gsub("|r", "")
-    plain = plain:gsub("[%[%]%.,;:!%?\"']", " ")
+    -- Keep ":" so coded names like XT:4 stay intact. Strip other punctuation.
+    plain = plain:gsub("[%[%]%.,;!%?\"']", " ")
     plain = plain:gsub("%s+", " ")
     plain = strtrim(plain)
     if plain == "" then
@@ -2307,8 +2331,22 @@ local function detailCovers(longKey, shortKey)
     }
     local function words(key)
         local list = {}
-        for word in key:gmatch("%w+") do
-            if #word >= 3 and not skip[word] then
+        local seen = {}
+        -- Coded names like XT:4. Skip "Name: 3/8" live-progress colons.
+        local rest = key:gsub("(%a+)[%:%-]%s*(%d+)(/?)", function(letters, digits, slash)
+            if slash == "/" then
+                return letters .. " " .. digits .. slash
+            end
+            local token = letters .. ":" .. digits
+            if not seen[token] then
+                seen[token] = true
+                list[#list + 1] = token
+            end
+            return " "
+        end)
+        for word in rest:gmatch("%w+") do
+            if #word >= 3 and not skip[word] and not seen[word] then
+                seen[word] = true
                 list[#list + 1] = word
             end
         end
@@ -2328,6 +2366,10 @@ local function detailCovers(longKey, shortKey)
         if have[word] then
             shared = shared + 1
         end
+    end
+    -- One coded id (xt:4) is distinctive enough; plain words still need overlap.
+    if shared == #shortWords and shared == 1 and shortWords[1]:find("%d") then
+        return true
     end
     return shared >= math.max(2, math.ceil(#shortWords * 0.75))
 end
@@ -2363,6 +2405,16 @@ local function scrubPlayerText(text)
     return cleaned
 end
 
+local function isTalkDetail(text)
+    if type(text) ~= "string" then
+        return false
+    end
+    local plain = text:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+    plain = plain:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    plain = strtrim(plain)
+    return plain:match("^[Tt]alk to%s+") ~= nil or plain:match("^[Ss]peak with%s+") ~= nil
+end
+
 local function addDetail(details, seen, text, headlineKey)
     text = scrubPlayerText(text)
     if type(text) ~= "string" then
@@ -2370,6 +2422,10 @@ local function addDetail(details, seen, text, headlineKey)
     end
     text = strtrim(text)
     if text == "" or #details >= 6 then
+        return
+    end
+    -- Talk/speak lines belong in the headline only.
+    if isTalkDetail(text) then
         return
     end
     local key = detailKey(text)
@@ -2436,6 +2492,7 @@ local function whoLine(who, turnIn)
 end
 
 -- Split "Talk to X. Turn in Y. Accept Z." into a short headline plus detail lines.
+-- Talk/speak sentences always stay in the headline, never in details.
 local function authoredPresentation(step)
     local details = {}
     local seen = {}
@@ -2463,6 +2520,27 @@ local function authoredPresentation(step)
             headline = sentences[1]
         end
     end
+    -- Fold later Talk/Speak sentences into the title so they are not details.
+    local keep = {}
+    for index = 2, #sentences do
+        local sentence = sentences[index]
+        if isTalkDetail(sentence) then
+            if isTalkDetail(headline) then
+                headline = headline .. ". " .. sentence
+            else
+                local lead = headline
+                local talk = sentence
+                if talk:match("^[Tt]alk to%s+") then
+                    talk = talk:gsub("^[Tt]alk", "talk")
+                elseif talk:match("^[Ss]peak with%s+") then
+                    talk = talk:gsub("^[Ss]peak", "speak")
+                end
+                headline = lead .. " and " .. talk
+            end
+        else
+            keep[#keep + 1] = sentence
+        end
+    end
     local headlineKey = detailKey(headline)
     local noteFaction = playerFactionForNotes()
     -- Authored notes before extra sentences / detail lists so they cannot be
@@ -2471,8 +2549,8 @@ local function authoredPresentation(step)
     if guideNote then
         addDetail(details, seen, guideNote, headlineKey)
     end
-    for index = 2, #sentences do
-        addDetail(details, seen, sentences[index], headlineKey)
+    for _, sentence in ipairs(keep) do
+        addDetail(details, seen, sentence, headlineKey)
     end
     if type(step.details) == "table" then
         for _, line in ipairs(step.details) do
@@ -2608,24 +2686,28 @@ local function authorPin(step)
     return authorPins(step)[1]
 end
 
--- Kill and collect objectives share an area pin: show NEAR within KILL_AREA_YARDS.
+-- Kill and collect objectives share an area pin: show NEAR within nearYards
+-- (default KILL_AREA_YARDS in the tracker, or 10 for a single kill/loot/pick).
+local SINGLE_TARGET_NEAR_YARDS = 10
+
+local function hasAreaTag(text)
+    if type(text) ~= "string" then
+        return false
+    end
+    return text:find("[ENEMY]", 1, true)
+        or text:find("[LOOT]", 1, true)
+        or text:find("[PICK]", 1, true)
+        or text:find("RB_ENEMY_", 1, true)
+        or text:find("RB_LOOT_", 1, true)
+        or text:find("RB_PICK_", 1, true)
+        or text:find("|cffff5722", 1, true)
+        or text:find("|cff00bcd4", 1, true)
+        or text:find("|cffdb2eef", 1, true)
+end
+
 local function stepIsAreaObjective(step)
     if step.when ~= "objectives" then
         return false
-    end
-    local function hasAreaTag(text)
-        if type(text) ~= "string" then
-            return false
-        end
-        return text:find("[ENEMY]", 1, true)
-            or text:find("[LOOT]", 1, true)
-            or text:find("[PICK]", 1, true)
-            or text:find("RB_ENEMY_", 1, true)
-            or text:find("RB_LOOT_", 1, true)
-            or text:find("RB_PICK_", 1, true)
-            or text:find("|cffff5722", 1, true)
-            or text:find("|cff00bcd4", 1, true)
-            or text:find("|cffdb2eef", 1, true)
     end
     if hasAreaTag(step.text) then
         return true
@@ -2638,6 +2720,41 @@ local function stepIsAreaObjective(step)
         end
     end
     return false
+end
+
+-- One named kill or one (1) loot/pick uses a tight pin. Grind counts stay wide.
+local function stepNearYards(step)
+    local authored = tonumber(step.nearYards)
+    if authored and authored > 0 then
+        return authored
+    end
+    if not stepIsAreaObjective(step) then
+        return nil
+    end
+    local maxCount = 0
+    local function consider(text)
+        if not hasAreaTag(text) then
+            return
+        end
+        local count = tonumber(text:match("%((%d+)%)"))
+        if count and count > 0 then
+            if count > maxCount then
+                maxCount = count
+            end
+        else
+            maxCount = math.max(maxCount, 1)
+        end
+    end
+    consider(step.text)
+    if type(step.details) == "table" then
+        for _, line in ipairs(step.details) do
+            consider(line)
+        end
+    end
+    if maxCount == 1 then
+        return SINGLE_TARGET_NEAR_YARDS
+    end
+    return nil
 end
 
 local function pinForStep(step)
@@ -2793,6 +2910,7 @@ local function buildItem(step, full)
         stepIndex = step.index,
         sticky = step.sticky and true or false,
         kill = stepIsAreaObjective(step) or nil,
+        nearYards = stepNearYards(step),
         stepQuests = entries,
         questId = primary and primary.id,
         questName = primary and primary.name,
@@ -2828,6 +2946,11 @@ local function buildItem(step, full)
             item.places = places
             item.place = places[1]
             item.waypoint = worldPoint(pins[1])
+            -- Travel multi-pins are a path: follow in order, no cycle button.
+            if step.when == "travel" and #places > 1 then
+                item.pinOrder = true
+                item.arriveYards = step.arriveYards
+            end
         end
         if ns.TravelApplyToItem then
             item = ns.TravelApplyToItem(item, step) or item

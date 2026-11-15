@@ -18,6 +18,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Enter the Talondeep Path tunnel from Stonetalon and follow the lanterns into Ashenvale. Travel to Zoram'gar Outpost.",
+            when = "travel",
             note = "Stay on the road and avoid Astranaar guards on the way.",
             map = 1440,
             x = 12.2,
@@ -103,6 +104,7 @@ ns.RegisterGuide({
         },
         {
             text = "Take the flight path (or Hearthstone) from Zoram'gar toward Thunder Bluff.",
+            when = "travel",
             note = "Fly from Andruk, or hearth if it is bound to Thunder Bluff.",
             map = 1440,
             x = 12.23,
@@ -113,6 +115,7 @@ ns.RegisterGuide({
         },
         {
             text = "Travel to the Elder Rise in Thunder Bluff.",
+            when = "travel",
             map = 1456,
             x = 69.85,
             y = 30.91,
@@ -206,6 +209,7 @@ ns.RegisterGuide({
         },
         {
             text = "Enter Ashenvale and travel to Splintertree Post.",
+            when = "travel",
             map = 1440,
             x = 73.18,
             y = 61.59,
@@ -508,6 +512,7 @@ ns.RegisterGuide({
         },
         {
             text = "Fly to Zoram'gar Outpost.",
+            when = "travel",
             map = 1440,
             x = 11.7,
             y = 34.4,

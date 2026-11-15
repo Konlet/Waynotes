@@ -346,6 +346,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Return to Tarren Mill with your Shipment of Iron and any banked [LOOT]Hillsbrad Human Skulls[/].",
+            when = "travel",
             map = 1424,
             x = 62.3,
             y = 20.5,

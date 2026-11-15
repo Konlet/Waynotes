@@ -2893,8 +2893,24 @@ local function updateCompletingStickies(dt)
     end
 end
 
+local function rowNearYards(row)
+    if row and row.pinOrder then
+        local arrive = tonumber(row.arriveYards)
+        if arrive and arrive > 0 then
+            return arrive
+        end
+        return 10
+    end
+    local yards = row and tonumber(row.nearYards)
+    if yards and yards > 0 then
+        return yards
+    end
+    return UI.KILL_AREA_YARDS
+end
+
 local function killAreaPin(row, dist)
-    if not row or not row.kill or type(dist) ~= "number" or dist > UI.KILL_AREA_YARDS then
+    local nearYards = rowNearYards(row)
+    if not row or not row.kill or type(dist) ~= "number" or dist > nearYards then
         return false
     end
     local place = row.place
@@ -2903,7 +2919,7 @@ local function killAreaPin(row, dist)
     end
     -- PinZoneDistance is nil until the player is in the pin's zone.
     local zoneDist = ns.PinZoneDistance(place.map, place.x, place.y, place.zone)
-    return type(zoneDist) == "number" and zoneDist <= UI.KILL_AREA_YARDS
+    return type(zoneDist) == "number" and zoneDist <= nearYards
 end
 
 local function placeDistance(place)
@@ -2946,7 +2962,7 @@ local function pinVisitSet(row)
 end
 
 -- Multi-pin steps: arrow the nearest unvisited spot; mark reached within
--- KILL_AREA_YARDS, then switch to the next nearest remaining pin.
+-- nearYards (default KILL_AREA_YARDS), then switch to the next nearest remaining pin.
 -- Pins that leave out map share the step's map and zone, so distance and
 -- arrow lookups do not fail on them.
 local function inheritPinMaps(places, base)
@@ -2988,10 +3004,44 @@ local function chooseStepPlace(row)
 
     local visited = pinVisitSet(row) or {}
     local key = pinVisitKey(row)
+    local nearYards = rowNearYards(row)
+
+    -- Travel paths: walk pins in authored order. No nearest-jump, no cycle.
+    if row.pinOrder then
+        local targetIndex
+        for index = 1, #places do
+            if not visited[index] then
+                targetIndex = index
+                break
+            end
+        end
+        if not targetIndex then
+            targetIndex = #places
+        else
+            local dist = placeDistance(places[targetIndex])
+            if type(dist) == "number" and dist <= nearYards then
+                visited[targetIndex] = true
+                if targetIndex < #places then
+                    targetIndex = targetIndex + 1
+                end
+            end
+        end
+        local pending = 0
+        for index = 1, #places do
+            if not visited[index] then
+                pending = pending + 1
+            end
+        end
+        row.place = places[targetIndex]
+        row.pinIndex = targetIndex
+        row.pinPending = pending
+        return places[targetIndex]
+    end
+
     local forced = key and State.pinCycle[key]
     if type(forced) == "table" and places[forced.index] then
         local forcedDist = placeDistance(places[forced.index])
-        local within = type(forcedDist) == "number" and forcedDist <= UI.KILL_AREA_YARDS
+        local within = type(forcedDist) == "number" and forcedDist <= nearYards
         if within and forced.armed then
             visited[forced.index] = true
             State.pinCycle[key] = nil
@@ -3037,7 +3087,7 @@ local function chooseStepPlace(row)
     end
 
     local best, bestDist, bestIndex, pending = nearest(true)
-    if best and type(bestDist) == "number" and bestDist <= UI.KILL_AREA_YARDS then
+    if best and type(bestDist) == "number" and bestDist <= nearYards then
         visited[bestIndex] = true
         local nextPlace, nextDist, nextIndex = nearest(true)
         if nextPlace then
@@ -3673,6 +3723,9 @@ local function bindStepTip(row, item)
     row.tipWaypoint = item.waypoint
     row.keepTravelWaypoint = item.travel and true or nil
     row.kill = item.kill and true or nil
+    row.nearYards = item.nearYards
+    row.arriveYards = item.arriveYards
+    row.pinOrder = item.pinOrder and true or nil
     row.tipTitle = RG.plainText(item.headline)
     if type(item.places) == "table" and #item.places > 1 then
         chooseStepPlace(row)
@@ -3711,6 +3764,10 @@ end
 local function cycleStepPin(row)
     local places = row and row.places
     if type(places) ~= "table" or #places < 2 then
+        return
+    end
+    -- Travel paths are sequential; cycling is disabled.
+    if row.pinOrder then
         return
     end
     local key = pinVisitKey(row)
@@ -5141,6 +5198,7 @@ local function layout(items, resetScroll)
         row.__rxpbCompleting = completing or nil
         local hasPin = item.waypoint or (item.place and type(item.place.x) == "number" and type(item.place.y) == "number")
         local multiPin = type(item.places) == "table" and #item.places > 1
+        local canCyclePins = multiPin and not item.pinOrder
         if completing and row.arrow then
             local tintR, tintG, tintB = stickyCompleteGreen()
             local centerX = -2 - (UI.ARROW_COLUMN / 2)
@@ -5173,7 +5231,7 @@ local function layout(items, resetScroll)
             local cycleSize = 12
             local cycleGap = 2
             local centerX = -2 - (UI.ARROW_COLUMN / 2)
-            if multiPin then
+            if canCyclePins then
                 centerX = centerX - (cycleSize + cycleGap) / 2
             end
             -- Restore arrow/pin if this row previously showed the sticky check.
@@ -5190,6 +5248,8 @@ local function layout(items, resetScroll)
             row.places = inheritPinMaps(item.places, item.place)
             row.place = item.place
             row.stepIndex = item.stepIndex
+            row.pinOrder = item.pinOrder and true or nil
+            row.arriveYards = item.arriveYards
             row.arrow.__rxpbWp = item.waypoint
             refreshRowWaypoint(row)
             if row.arrowShadow then
@@ -5211,7 +5271,7 @@ local function layout(items, resetScroll)
                 row.distance:SetJustifyH("CENTER")
                 row.distance:SetTextColor(tintR, tintG, tintB)
             end
-            if multiPin and row.nextPin then
+            if canCyclePins and row.nextPin then
                 local ar, ag, ab = ns.Color("accent")
                 row.nextPin:SetSize(cycleSize, cycleSize)
                 row.nextPin:Show()

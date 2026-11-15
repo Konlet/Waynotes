@@ -16,7 +16,7 @@ Every rule here is tied to how `Guides.lua` and `Travel.lua` actually read guide
 | Folder | `Guides/Forever/Curated/` |
 | File name | `<Faction>_<Zone>_Curated.lua`, for example `Horde_Stonetalon_Curated.lua`. Use `Dungeons_`, `Professions_`, or a race prefix such as `Skyborne_` for non-zone packs. |
 | Load order | The file must be listed in `Waynotes.toc`. `scripts/export-forever.ps1` refuses any guide outside `Guides/Forever/Curated/*_Curated.lua`. |
-| Linked guides | Any guide referenced by `next` or a step's `guide` field must also be in a file listed in the TOC. Files such as `Horde_Barrens_ClassQuests.lua` are not exported, so links into them do nothing for players. |
+| Linked guides | Any guide referenced by `next` or a step's `guide` field must also be in a file listed in the TOC. Class side guides live in `Guides/Forever/Curated/<Faction>_<Zone>_Class_Curated.lua`. Do not link into unshipped `*_ClassQuests.lua` files. |
 | Reference material | `Guides/REFERENCE/` holds third-party source guides (RestedXP, Zygor). Read them for routing ideas only. Never copy their wording directly, and never ship them. |
 
 ### File header
@@ -97,6 +97,7 @@ ns.RegisterGuide({
 | `fpath` | string | Flight path pickup. Names the flight hub, for example `"Crossroads"`. The step completes once that node is learned. |
 | `travel` | string, table, or `true` | Explicit travel destination for routing. See section 4.4. |
 | `arriveYards` | number | Arrival radius for `when = "travel"` steps. Default is 10 yards. |
+| `nearYards` | number | Radius for kill/loot/pick objective steps to show NEAR and to mark multi-pin spots visited. Default is 100 yards, or 10 yards when the step only needs one kill, loot, or pick. |
 
 Fields not in this table are ignored by the loader. In particular, do not put `text` inside a `pins` entry; use `note`.
 
@@ -169,6 +170,8 @@ Completes once every listed quest is turned in. Use for turn-ins that do not lea
 
 Completes once the quest's objectives are finished. This is also the default when a step has a quest and no `when`, but always write it out.
 
+Kill, loot, and pick objectives show **NEAR** once the player is within range of the pin (and the arrow becomes a pin). The default radius is **100 yards** for grind counts (2+), and **10 yards** when the step only needs one kill, loot, or pick (a named target or a `(1)` detail). Set `nearYards` when the camp is larger or tighter than that default. The same radius marks multi-pin spots as visited.
+
 ```lua
 {
     text = "Enter Stonetalon. Kill [ENEMY]Grimtotem Ruffians[/] and [ENEMY]Grimtotem Mercenaries[/] at Camp Aparaje.",
@@ -177,6 +180,7 @@ Completes once the quest's objectives are finished. This is also the default whe
     map = 1442,
     x = 81.5,
     y = 88.4,
+    nearYards = 150,
     details = {
         "[ENEMY]Grimtotem Ruffian[/] (8)",
         "[ENEMY]Grimtotem Mercenary[/] (6)",
@@ -203,7 +207,7 @@ When one quest has objectives in different camps, split it with `objective`:
 
 ### 4.4 `when = "travel"`
 
-Completes once the player arrives within 10 yards of the pin (unless `arriveYards` is set), or once the player enters the zone the step names. Use for zone transitions and long runs with no quest gate.
+Completes once the player arrives within 10 yards of the pin (unless `arriveYards` is set), or once the player enters the zone the step names. Use for zone transitions and long runs with no quest gate. With several `pins`, they are waypoints in order: the arrow advances to each next pin, there is no cycle button, and the step completes at the last pin.
 
 The zone check uses the destination from `travel` (a string, or `travel.name`), otherwise the text after "Travel to", "Fly to", "Run to", and similar openers. It must match the in-game zone name exactly, ignoring a leading "The", case, and apostrophes. So `Travel to Stonetalon Mountains.` completes on crossing the border, while `Travel to the Barrens / Stonetalon border camp.` and `Travel to The Crossroads.` still need the pin. Write the full zone name for "reach the zone" steps, not a short form like "Stonetalon".
 
@@ -292,7 +296,12 @@ Do not use a manual step when a quest id or travel check would work.
 
 ### Multiple pins
 
-Use `pins` when the same objective spawns in several separate spots. The arrow goes to the nearest unvisited pin, and the player can cycle pins with the pin button. `map` is inherited from the step unless a pin sets its own. Each pin accepts `map`, `x`, `y`, and `note` (or `label`). Any other key is dropped.
+Use `pins` when the same objective spawns in several separate spots, or when a travel step follows a short path of waypoints.
+
+- **Objectives** (`when = "objectives"`): the arrow goes to the nearest unvisited pin, and the player can cycle pins with the pin button.
+- **Travel** (`when = "travel"`): pins are a path. The arrow follows them in authored order with no cycle button, and the step completes at the last pin.
+
+`map` is inherited from the step unless a pin sets its own. Each pin accepts `map`, `x`, `y`, and `note` (or `label`). Any other key is dropped.
 
 ```lua
 {
@@ -432,6 +441,7 @@ Detail rules:
 - Every quest objective in an `objectives` step gets its own count line.
 - Every turn-in on an `accepted` step that also turns in quests gets a `Turn in` line.
 - Do not repeat the headline as a detail.
+- Never put `Talk to` or `Speak with` in `details`. Those belong only in `text`. Prefer one sentence that names the NPC first: `Talk to [FRIENDLY]Lar[/] in Sen'jin. Turn in [QUEST]X[/].` not `Return to Sen'jin. Talk to Lar. Turn in X.`
 - Do not add an `NPC: [FRIENDLY]Name[/]` line when that NPC is already named in `text`. The headline is enough. Only use an NPC detail when the giver or turn-in is not in the headline (rare).
 
 ### 7.4 Notes
@@ -570,6 +580,7 @@ Run through every item. Agents should report any failed item instead of silently
 - [ ] No headline repeats the loot or kill target that the details already count.
 - [ ] No "until [QUEST]… is finished/done/complete" (or similar) in kill or loot headlines.
 - [ ] No `NPC:` detail when that NPC is already named in `text`.
+- [ ] No `Talk to` or `Speak with` lines in `details`.
 - [ ] Sentences end with periods; details do not.
 - [ ] No em dashes, arrows, or curly quotes.
 

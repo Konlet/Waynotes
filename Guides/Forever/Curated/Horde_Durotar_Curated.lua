@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Curated Orc/Troll Durotar 1-12.
 -- Hybrid of Forever quest coverage with tight quest chaining.
--- Multi-step class lines live in Horde_Durotar_ClassQuests.lua; this file
+-- Multi-step class lines live in Horde_Durotar_Class_Curated.lua; this file
 -- only drops pointer steps at the right hubs.
 -- Pins omitted: QuestieDB supplies NPC coordinates for accept and turn-in steps.
 
@@ -347,9 +347,12 @@ ns.RegisterGuide({
         },
         {
             classes = { "Shaman" },
-            text = "Shamans: open the side guide Durotar Shaman Call of Earth, finish it through the cave, then resume here for the medallion turn-in.",
-            note = "Finish the Shaman Call of Earth side guide, then resume here.",
-            guide = "horde-durotar-shaman-earth",
+            text = "Talk to [FRIENDLY]Canaga Earthcaller[/]. Accept [QUEST]Call of Earth[/].",
+            map = 1411,
+            x = 42.4,
+            y = 68.8,
+            quest = 5649,
+            when = "accepted",
         },
         {
             excludeClasses = { "Warlock" },
@@ -380,6 +383,7 @@ ns.RegisterGuide({
             map = 1411,
             x = 43.8,
             y = 53.8,
+            nearYards = 10,
             quest = 6394,
             when = "objectives",
             details = {
@@ -387,10 +391,25 @@ ns.RegisterGuide({
             },
         },
         {
+            sticky = true,
+            classes = { "Shaman" },
+            text = "Kill Felstalkers.",
+            map = 1411,
+            x = 43.7,
+            y = 53.8,
+            quest = 1516,
+            when = "objectives",
+            details = {
+                "[LOOT]Felstalker Hoof[/] (2)",
+                "This quest is only for Shamans.",
+            },
+        },
+        {
             text = "Enter the Burning Blade Coven. Kill [ENEMY]Yarrog Baneshadow[/] for the [LOOT]Burning Blade Medallion[/].",
             map = 1411,
             x = 42.7,
             y = 52.9,
+            nearYards = 10,
             quest = 794,
             when = "objectives",
             details = {
@@ -418,10 +437,54 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Click the [PICK]Lost Journal[/] on the barrel near [FRIENDLY]Zureetha[/] if it is there. Accept [QUEST]The Adventurer[/].",
+            text = "Click the [PICK]Lost Journal[/] on the barrel near [FRIENDLY]Zureetha[/]. Accept [QUEST]The Adventurer[/].",
             map = 1411,
             x = 42.8,
             y = 69.2,
+            quest = 96652,
+            when = "accepted",
+        },
+        {
+            classes = { "Shaman" },
+            text = "Talk to [FRIENDLY]Canaga Earthcaller[/]. Turn in [QUEST]Call of Earth[/]. Accept [QUEST]Call of Earth[/].",
+            map = 1411,
+            x = 42.4,
+            y = 69.2,
+            quest = 1517,
+            when = "accepted",
+        },
+        {
+            classes = { "Shaman" },
+            text = "Travel to the Hidden Path.",
+            map = 1411,
+            pins = {
+                { x = 41.6, y = 73.1 },
+                { x = 40.7, y = 74.3 },
+                { x = 42.6, y = 75.0 },
+                { x = 43.7, y = 75.4 },
+            },
+            when = "travel",
+        },
+        {
+            classes = { "Shaman" },
+            text = "Use the [LOOT]Earth Sapta[/] next to the Spirit Rock, then talk to the [FRIENDLY]Minor Manifestation of Earth[/]. Turn in [QUEST]Call of Earth[/]. Accept [QUEST]Call of Earth[/].",
+            map = 1411,
+            x = 44.1,
+            y = 76.1,
+            quest = 1518,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]Call of Earth[/]",
+            },
+        },
+        {
+            classes = { "Shaman" },
+            text = "Talk to [FRIENDLY]Canaga Earthcaller[/]. Turn in [QUEST]Call of Earth[/].",
+            map = 1411,
+            x = 42.4,
+            y = 69.2,
+            quest = 1518,
+            when = "complete",
         },
         {
             classes = { "Priest" },
@@ -460,6 +523,7 @@ ns.RegisterGuide({
             x = 56.0,
             y = 74.7,
             text = "Travel to Sen'jin Village.",
+            when = "travel",
         },
         {
             text = "Talk to [FRIENDLY]Lar Prowltusk[/] as he patrols. Accept [QUEST]Thwarting Kolkar Aggression[/].",
@@ -1124,6 +1188,7 @@ ns.RegisterGuide({
             x = 45.5,
             y = 13.0,
             text = "Enter Orgrimmar.",
+            when = "travel",
         },
         {
             text = "Talk to [FRIENDLY]Thatog[/] upstairs near the Drag. Accept [QUEST]Meal Appeal[/].",

@@ -11,6 +11,9 @@ local _, ns = ...
 -- when = "travel" advances once you arrive near map/x/y (or step.travel).
 --        Use for zone transitions and long runs with no quest gate.
 --        Optional arriveYards overrides the default arrival radius.
+-- nearYards overrides the NEAR radius on kill/loot/pick objective steps
+--        (and multi-pin visit distance). Default is 100 yards, or 10 when
+--        the step only needs one kill, loot, or pick.
 -- objective = N advances an objectives step once quest objective N is
 --        done (1-based leaderboard index). Use this to split multi-enemy
 --        quests onto different pins when spawn camps are not nearby.

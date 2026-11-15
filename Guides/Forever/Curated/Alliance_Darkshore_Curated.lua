@@ -3,7 +3,7 @@ local _, ns = ...
 -- Curated Alliance Darkshore.
 -- First pass: Auberdine hub, coast, Bashal'Aran, Ameth'Aran, Buzzboxes.
 -- Second pass: Grove of the Ancients, Master's Glaive, north coast, Blackwood, Lost Master.
--- Multi-step class lines live in Alliance_Darkshore_ClassQuests.lua; this file
+-- Multi-step class lines live in Alliance_Darkshore_Class_Curated.lua; this file
 -- only drops pointer steps at the right hubs.
 -- Night Elves enter around 11-12 via Rut'theran. Other races typically boat in around 14.
 

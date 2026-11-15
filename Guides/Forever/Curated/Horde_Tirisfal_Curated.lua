@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Curated Undead Tirisfal Glades 1-13.
 -- Hybrid of Forever quest coverage with tight quest chaining.
--- Multi-step class lines live in Horde_Tirisfal_ClassQuests.lua; this file
+-- Multi-step class lines live in Horde_Tirisfal_Class_Curated.lua; this file
 -- only drops pointer steps at the right hubs.
 -- Forever-only lines (Adventurer, camping, Patience/Discipline, Bandarion, etc.) stay in.
 -- Skips: Orgrimmar Forever detour, full Gunther island elite chain (optional note).

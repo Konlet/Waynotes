@@ -277,6 +277,7 @@ ns.RegisterGuide({
         },
         {
             text = "Hearth to Thendal Village, or run back if you prefer. Finish any remaining [PICK]Windstone Clusters[/] on the way.",
+            when = "travel",
             map = 2521,
             x = 42.76,
             y = 23.65,
@@ -496,9 +497,7 @@ ns.RegisterGuide({
             quest = 94413,
             when = "accepted",
             details = {
-                "Speak with [FRIENDLY]Rathiril Sunlance[/]",
-                "Accept and turn in [QUEST]The High Order[/]",
-                "Accept [QUEST]A Magical Affront[/]",
+                "Turn in [QUEST]The High Order[/]",
             },
         },
         {
@@ -508,9 +507,6 @@ ns.RegisterGuide({
             y = 43.24,
             quest = 93461,
             when = "objectives",
-            details = {
-                "Speak with the Innkeeper",
-            },
         },
         {
             text = "Talk to [FRIENDLY]Constable Aonda[/]. Turn in [QUEST]Welcome to Shen'dar Village[/]. Accept [QUEST]The Criminal Element[/].",
@@ -1028,14 +1024,14 @@ ns.RegisterGuide({
         },
         {
             text = "Go to Valanaar. Optional deathskip: die at the marker, then talk to the [FRIENDLY]Spirit Healer[/].",
+            when = "travel",
             map = 2521,
             x = 49.4,
             y = 58.76,
             details = {
                 "Die at 49.4, 58.76 (use /sit in combat to die faster)",
-                "Talk to the [FRIENDLY]Spirit Healer[/] at 54.99, 68.14",
             },
-            note = "Be careful crossing the field on foot. You can die easily.",
+            note = "Spirit Healer is at 54.99, 68.14. Be careful crossing the field on foot.",
         },
         {
             text = "Talk to [FRIENDLY]Nyalah Brightfire[/]. Accept [QUEST]Crab Season[/].",
@@ -1300,8 +1296,8 @@ ns.RegisterGuide({
             when = "objectives",
             details = {
                 "Jump off the cliff",
-                "Talk to the [FRIENDLY]Spirit Healer[/] at 54.99, 68.14",
             },
+            note = "Spirit Healer is at 54.99, 68.14.",
         },
         {
             text = "Click the [PICK]Bloodstained Satchel[/]. Turn in [QUEST]The Missing Scholar[/]. Accept [QUEST]The Missing Scholar[/].",
@@ -1465,7 +1461,6 @@ ns.RegisterGuide({
             quest = 92703,
             when = "accepted",
             details = {
-                "Speak with [FRIENDLY]Aamelia Windfield[/]",
                 "Follow Aamelia and make your final stand",
                 "Turn in [QUEST]Standing Our Ground[/]",
             },
@@ -1968,16 +1963,20 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Valennia Stormfist[/]. Then talk to [FRIENDLY]Ayessa Dawnsinger[/] and [FRIENDLY]Elaadrin Evengale[/] to recruit them.",
+            text = "Talk to [FRIENDLY]Valennia Stormfist[/], then recruit [FRIENDLY]Ayessa Dawnsinger[/] and [FRIENDLY]Elaadrin Evengale[/].",
             map = 2521,
-            x = 59.15,
-            y = 79.79,
+            x = 66.18,
+            y = 76.65,
             quest = 92640,
             when = "objectives",
+            pins = {
+                { x = 66.18, y = 76.65, note = "Valennia Stormfist" },
+                { x = 59.15, y = 79.79, note = "Ayessa Dawnsinger" },
+                { x = 66.54, y = 79.89, note = "Elaadrin Evengale" },
+            },
             details = {
-                "Speak with [FRIENDLY]Valennia Stormfist[/] (66.18, 76.65)",
-                "Recruit the Windshapers: [FRIENDLY]Ayessa Dawnsinger[/] (59.15, 79.79)",
-                "Recruit the High Order: [FRIENDLY]Elaadrin Evengale[/] (66.54, 79.89)",
+                "Recruit [FRIENDLY]Ayessa Dawnsinger[/]",
+                "Recruit [FRIENDLY]Elaadrin Evengale[/]",
             },
         },
         {
@@ -2365,6 +2364,7 @@ ns.RegisterGuide({
         },
         {
             text = "Hearth to Thendal Village, or run back if you prefer.",
+            when = "travel",
             map = 2521,
             x = 42.76,
             y = 23.65,
@@ -2631,9 +2631,7 @@ ns.RegisterGuide({
             quest = 94411,
             when = "accepted",
             details = {
-                "Speak with [FRIENDLY]Illaya Amberwind[/]",
-                "Accept and turn in [QUEST]The Windshapers[/]",
-                "Accept [QUEST]Meddlesome Mages[/]",
+                "Turn in [QUEST]The Windshapers[/]",
             },
         },
         {
@@ -2643,9 +2641,6 @@ ns.RegisterGuide({
             y = 43.24,
             quest = 92514,
             when = "objectives",
-            details = {
-                "Speak with the Innkeeper",
-            },
         },
         {
             text = "Talk to [FRIENDLY]Constable Aonda[/]. Turn in [QUEST]Welcome to Shen'dar Village[/]. Accept [QUEST]The Criminal Element[/].",
@@ -3171,14 +3166,14 @@ ns.RegisterGuide({
         },
         {
             text = "Go to Valanaar. Optional deathskip: die at the marker, then talk to the [FRIENDLY]Spirit Healer[/].",
+            when = "travel",
             map = 2521,
             x = 49.4,
             y = 58.76,
             details = {
                 "Die at 49.4, 58.76 (use /sit in combat to die faster)",
-                "Talk to the [FRIENDLY]Spirit Healer[/] at 54.99, 68.14",
             },
-            note = "Be careful crossing the field on foot. You can die easily.",
+            note = "Spirit Healer is at 54.99, 68.14. Be careful crossing the field on foot.",
         },
         {
             text = "Talk to [FRIENDLY]Nyalah Brightfire[/]. Accept [QUEST]Crab Season[/].",

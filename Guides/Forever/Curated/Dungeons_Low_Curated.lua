@@ -20,6 +20,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel into the Cleft of Shadow in Orgrimmar. The Ragefire Chasm entrance is the crack in the ground there.",
+            when = "travel",
             map = 1454,
             x = 52.5,
             y = 49.0,
@@ -86,6 +87,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel to the Wailing Caverns cave in the Barrens, above the Lushwater Oasis.",
+            when = "travel",
             map = 1413,
             x = 45.9,
             y = 36.2,
@@ -212,6 +214,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel to Moonbrook in Westfall. The Deadmines entrance is the large mine building on the west side of town.",
+            when = "travel",
             map = 1436,
             x = 42.6,
             y = 71.8,
@@ -313,6 +316,7 @@ ns.RegisterGuide({
         {
             faction = "Alliance",
             text = "Travel to Ironforge. Go to the High Seat, run down the ramp into Old Ironforge, and stop at the Hall of Thanes door.",
+            when = "travel",
             map = 1455,
             x = 39.1,
             y = 56.2,
@@ -321,6 +325,7 @@ ns.RegisterGuide({
         {
             faction = "Horde",
             text = "Travel to Ironforge and down into Old Ironforge. The Hall of Thanes door is at the bottom of that ramp. Move carefully. Ironforge is an Alliance city.",
+            when = "travel",
             map = 1455,
             x = 28.0,
             y = 47.8,
@@ -411,6 +416,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel to the Undercity Courtyard. The Ruins of Lordaeron entrance is in the ruins above the city.",
+            when = "travel",
             map = 1458,
             x = 72.3,
             y = 11.4,
