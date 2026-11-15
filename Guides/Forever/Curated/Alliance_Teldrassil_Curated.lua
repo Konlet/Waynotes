@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Curated Night Elf Teldrassil 1-12.
 -- Hybrid of Forever quest coverage with tight quest chaining.
--- Multi-step class lines live in Alliance_Teldrassil_ClassQuests.lua; this file
+-- Multi-step class lines live in Alliance_Teldrassil_Class_Curated.lua; this file
 -- only drops pointer steps at the right hubs.
 -- Forever-only lines (Adventurer, camping, Nature's Call, Oracle Tree, etc.) stay in.
 -- Pins omitted where QuestieDB supplies NPC coordinates for accept and turn-in steps.
@@ -958,6 +958,7 @@ ns.RegisterGuide({
         },
         {
             text = "Fly to Auberdine and continue with the Darkshore guide.",
+            when = "travel",
             map = 1439,
             x = 36.3,
             y = 45.6,

@@ -6,7 +6,7 @@ local _, ns = ...
 --        oases, harpies, then Camp Taurajo lead-in.
 -- 20-25: Southern Barrens (quilboar, Gann, Northwatch, Jorn chain),
 --        then hand off to Stonetalon with the usual breadcrumbs.
--- Multi-step class lines live in Horde_Barrens_ClassQuests.lua.
+-- Multi-step class lines live in Horde_Barrens_Class_Curated.lua.
 -- Orc/Troll entry assumes Conscript of the Horde from Durotar.
 -- Tauren entry assumes Journey to the Crossroads from Camp Taurajo (Mulgore curated).
 
@@ -56,6 +56,7 @@ ns.RegisterGuide({
         },
         {
             text = "Travel to The Crossroads.",
+            when = "travel",
             map = 1413,
             x = 52.0,
             y = 30.0,
@@ -379,6 +380,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel to Ratchet.",
+            when = "travel",
             map = 1413,
             x = 62.7,
             y = 37.0,
@@ -1147,6 +1149,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel to Camp Taurajo.",
+            when = "travel",
             map = 1413,
             x = 44.5,
             y = 59.2,

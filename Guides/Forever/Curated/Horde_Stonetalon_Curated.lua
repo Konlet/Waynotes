@@ -19,6 +19,7 @@ ns.RegisterGuide({
     steps = {
         {
             text = "Travel to the Barrens / Stonetalon border camp.",
+            when = "travel",
             map = 1413,
             x = 35.3,
             y = 27.9,
@@ -240,15 +241,19 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Return to Windshear when you are about level 20+. Kill [ENEMY]XT:4[/] and [ENEMY]XT:9[/] for [QUEST]Shredding Machines[/].",
+            text = "In Windshear Crag, kill [ENEMY]XT:4[/] and [ENEMY]XT:9[/].",
             quest = 1068,
             when = "objectives",
             map = 1442,
             x = 62.2,
             y = 52.0,
+            pins = {
+                { x = 67.3, y = 46.6, note = "XT:4" },
+                { x = 70.7, y = 56.1, note = "XT:9" },
+            },
             details = {
-                "Kill [ENEMY]XT:4[/]",
-                "Kill [ENEMY]XT:9[/]",
+                "[ENEMY]XT:4[/] (1)",
+                "[ENEMY]XT:9[/] (1)",
             },
         },
         {

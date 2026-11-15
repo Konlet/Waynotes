@@ -1809,15 +1809,37 @@ local function playerInDestinationZone(step)
 end
 
 -- when = "travel" advances once the player is near the step destination,
--- or inside the zone the step names.
+-- or inside the zone the step names. Multi-pin travel paths complete at the
+-- last pin (intermediate pins are waypoints along the route) and never by
+-- zone-name match alone.
 function ns.TravelStepDone(step)
     if type(step) ~= "table" then
         return false
     end
-    if playerInDestinationZone(step) then
+    local multiPin = type(step.pins) == "table" and #step.pins > 1
+    if not multiPin and playerInDestinationZone(step) then
         return true
     end
     local dest = destinationFromStep(step)
+    if multiPin then
+        local last = step.pins[#step.pins]
+        if type(last) == "table" and isNumber(last.x) and isNumber(last.y) then
+            local map = tonumber(last.map) or step.map or (dest and dest.map)
+            local zone = last.zone or (dest and dest.zone)
+            dest = {
+                map = map,
+                x = last.x,
+                y = last.y,
+                zone = zone,
+            }
+            if isNumber(map) and ns.PinToPlayerWorld then
+                local wx, wy, instance = ns.PinToPlayerWorld(map, last.x, last.y, zone)
+                if isNumber(wx) then
+                    dest.wx, dest.wy, dest.instance = wx, wy, instance
+                end
+            end
+        end
+    end
     if not dest then
         return false
     end
