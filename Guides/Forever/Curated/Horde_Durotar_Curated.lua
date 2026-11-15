@@ -32,22 +32,44 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Talk to [FRIENDLY]Gornek[/]. Turn in [QUEST]Your Place In The World[/]. Accept [QUEST]Cutting Teeth[/].",
+            text = "Talk to [FRIENDLY]Gornek[/]. Turn in [QUEST]Your Place In The World[/]. Accept [QUEST]Cutting Teeth[/] and [QUEST]Wayward Weapons[/].",
             map = 1411,
             x = 42.1,
             y = 68.3,
-            quest = 788,
+            quests = { 788, 97279 },
             when = "accepted",
-            details = {
-                "Turn in [QUEST]Your Place In The World[/]",
-                "NPC: [FRIENDLY]Gornek[/]",
-            },
         },
         {
             classes = { "Warlock" },
             text = "Warlocks: open the side guide Durotar Warlock Familiars, finish it, then resume here.",
             note = "Finish the Warlock Familiars side guide, then resume here.",
             guide = "horde-durotar-warlock-familiars",
+        },
+        {
+            sticky = true,
+            text = "Kill [ENEMY]Mottled Boars[/].",
+            map = 1411,
+            x = 43.5,
+            y = 67.0,
+            quest = 788,
+            when = "objectives",
+            details = {
+                "[ENEMY]Mottled Boar[/] (10)",
+                "Kill [ENEMY]Mottled Boar[/]",
+            },
+        },
+        {
+            sticky = true,
+            text = "Loot [PICK]Abandoned Training Weapons[/] on the ground.",
+            map = 1411,
+            x = 44.4,
+            y = 64.9,
+            quest = 97279,
+            when = "objectives",
+            details = {
+                "[PICK]Abandoned Training Weapon[/] (6)",
+            },
+            note = "They are stone hatchets flat on the ground and stuck into cactuses.",
         },
         {
             text = "Talk to [FRIENDLY]Hana'zua[/]. Accept [QUEST]Sarkoth[/].",
@@ -81,18 +103,6 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Mottled Boars[/] until [QUEST]Cutting Teeth[/] is finished.",
-            map = 1411,
-            x = 43.5,
-            y = 67.0,
-            quest = 788,
-            when = "objectives",
-            details = {
-                "[ENEMY]Mottled Boar[/] (10)",
-                "Kill [ENEMY]Mottled Boar[/]",
-            },
-        },
-        {
             text = "Talk to [FRIENDLY]Gornek[/]. Turn in [QUEST]Cutting Teeth[/] and [QUEST]Sarkoth[/]. Accept [QUEST]Sting of the Scorpid[/]. Accept your class parchment or tablet.",
             map = 1411,
             x = 42.1,
@@ -103,6 +113,15 @@ ns.RegisterGuide({
                 "Turn in [QUEST]Cutting Teeth[/]",
                 "Turn in [QUEST]Sarkoth[/]",
             },
+        },
+        {
+            text = "Talk to [FRIENDLY]Kzan Thornslash[/] in the Den. Turn in [QUEST]Wayward Weapons[/].",
+            map = 1411,
+            x = 40.5,
+            y = 68.0,
+            quest = 97279,
+            when = "complete",
+            note = "Inside the cave dev. Also feel free to consider a gathering profession from here.",
         },
         {
             classes = { "Warrior" },
@@ -235,20 +254,20 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Galgar[/]. Accept [QUEST]Galgar's Cactus Apple Surprise[/].",
-            map = 1411,
-            x = 42.7,
-            y = 67.2,
-            quest = 4402,
-            when = "accepted",
-        },
-        {
             excludeClasses = { "Warlock" },
             text = "Talk to [FRIENDLY]Zureetha Fargaze[/]. Accept [QUEST]Vile Familiars[/].",
             map = 1411,
             x = 42.9,
             y = 69.2,
             quest = 792,
+            when = "accepted",
+        },
+        {
+            text = "Talk to [FRIENDLY]Galgar[/]. Accept [QUEST]Galgar's Cactus Apple Surprise[/].",
+            map = 1411,
+            x = 42.7,
+            y = 67.2,
+            quest = 4402,
             when = "accepted",
         },
         {
@@ -261,7 +280,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [LOOT]Cactus Apples[/] for [QUEST]Galgar's Cactus Apple Surprise[/].",
+            text = "Loot [LOOT]Cactus Apples[/].",
             map = 1411,
             x = 43.4,
             y = 61.8,
@@ -273,7 +292,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Wake Lazy Peons with the [LOOT]Foreman's Blackjack[/].",
+            text = "Wake [FRIENDLY]Lazy Peons[/] with the [LOOT]Foreman's Blackjack[/].",
             map = 1411,
             x = 43.4,
             y = 61.8,
@@ -281,12 +300,12 @@ ns.RegisterGuide({
             when = "objectives",
             details = {
                 "Peons Awoken (5)",
-                "Use [LOOT]Foreman's Blackjack[/] on Lazy Peon",
+                "Use [LOOT]Foreman's Blackjack[/] on [FRIENDLY]Lazy Peon[/]",
             },
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Scorpid Workers[/] for tails.",
+            text = "Kill [ENEMY]Scorpid Workers[/].",
             map = 1411,
             x = 43.4,
             y = 61.8,
@@ -449,9 +468,6 @@ ns.RegisterGuide({
             y = 73.3,
             quest = 786,
             when = "accepted",
-            details = {
-                "NPC: [FRIENDLY]Lar Prowltusk[/]",
-            },
         },
         {
             text = "Talk to [FRIENDLY]Xar'Ti[/]. Accept [QUEST]Bloodtalon Matriarch[/].",
@@ -514,9 +530,6 @@ ns.RegisterGuide({
             y = 73.3,
             quest = 786,
             when = "complete",
-            details = {
-                "NPC: [FRIENDLY]Lar Prowltusk[/]",
-            },
         },
         {
             text = "Kill [ENEMY]Ridgeshade Lurkers[/] and Creepers for [QUEST]Legging It[/].",
@@ -655,7 +668,6 @@ ns.RegisterGuide({
                 "Turn in [QUEST]Vanquish the Betrayers[/]",
                 "Turn in [QUEST]The Admiral's Orders[/]",
                 "Turn in [QUEST]Legging It[/]",
-                "NPC: [FRIENDLY]Gar'Thok[/]",
             },
         },
         {
@@ -1036,7 +1048,6 @@ ns.RegisterGuide({
             when = "accepted",
             details = {
                 "Turn in [QUEST]Margoz[/]",
-                "NPC: [FRIENDLY]Margoz[/]",
             },
         },
         {
@@ -1064,9 +1075,6 @@ ns.RegisterGuide({
             y = 22.9,
             quest = 835,
             when = "complete",
-            details = {
-                "NPC: [FRIENDLY]Rezlak[/]",
-            },
         },
         {
             text = "In Thunder Ridge, kill [ENEMY]Lightning Hides[/] and [ENEMY]Thunder Lizards[/] for [LOOT]Charged Thunder Lizard Organs[/] if you have Stormy Potential. Optional: kill [ENEMY]Halikor[/] for his hoof.",
@@ -1286,7 +1294,6 @@ ns.RegisterGuide({
             when = "accepted",
             details = {
                 "Turn in [QUEST]Conscript of the Horde[/]",
-                "NPC: [FRIENDLY]Kargal Battlescar[/]",
             },
         },
         {

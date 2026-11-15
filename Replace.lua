@@ -63,6 +63,16 @@ State.stickyShown = {}
 State.completing = {}
 State.pinVisits = {}
 State.pinCycle = {}
+State.guideConcealed = false
+State.concealWalkKey = nil
+State.trackerDirty = true
+State.trackerForce = true
+State.dirtyAt = 0
+State.travelElapsed = 0
+State.positionElapsed = 0
+State.lastPulseX = nil
+State.lastPulseY = nil
+State.lastPulseInstance = nil
 
 
 local tracker = CreateFrame("Frame", "WaynotesTracker", UIParent, "BackdropTemplate")
@@ -202,10 +212,14 @@ UI.GPS_ARROW_ROW = 18
 UI.GPS_ARROW_MAIN = 24
 -- Same-zone yards at which a kill objective swaps the arrow for the pin.
 UI.KILL_AREA_YARDS = 100
-UI.AIM_RESOLVE_SECONDS = 0.1
+UI.AIM_RESOLVE_SECONDS = 0.2
 UI.STRIP_UPDATE_SECONDS = 0.25
 UI.TRAIN_UPDATE_SECONDS = 1
-UI.TRACKER_POLL_SECONDS = 0.5
+-- Full step rebuilds are event-driven. These only gate light pulse work.
+UI.TRACKER_COALESCE_SECONDS = 0.05
+UI.TRAVEL_PULSE_SECONDS = 0.5
+UI.POSITION_PULSE_SECONDS = 0.5
+UI.POSITION_DIRTY_YARDS = 40
 -- Sticky complete: brief hold on the green check, then fade the row out.
 UI.STICKY_COMPLETE_HOLD = 0.15
 UI.STICKY_COMPLETE_FADE = 0.45
@@ -4873,7 +4887,7 @@ local function updateScrollThumb(view, content, offset, maxScroll)
 end
 
 local function scrollRange()
-    local chrome = UI.TRACKER_CHROME + (State.flight.chrome or 0) + (State.nav.chrome or 0)
+    local chrome = UI.TRACKER_CHROME + (State.flight.chrome or 0) + (State.nav.chrome or 0) + (State.train.chrome or 0)
     local view = (tracker:GetHeight() or 0) - chrome
     local content = body:GetHeight() or 0
     if view < 1 then
@@ -4917,7 +4931,7 @@ local function applyTrackerBox(contentHeight, resetScroll)
     end
     body:SetWidth(inner)
     body:SetHeight(contentHeight)
-    local chrome = UI.TRACKER_CHROME + (State.flight.chrome or 0) + (State.nav.chrome or 0)
+    local chrome = UI.TRACKER_CHROME + (State.flight.chrome or 0) + (State.nav.chrome or 0) + (State.train.chrome or 0)
     local limit = readTrackerHeight()
     local height = chrome + contentHeight
     if limit then
@@ -5610,16 +5624,23 @@ do
 
     local debugOnOpen = false
     local driver = CreateFrame("Frame")
-    driver:SetScript("OnUpdate", function()
+    driver:SetScript("OnUpdate", function(self)
         -- The world map can load after the first sync; register once it exists.
         if not provider and #entries > 0 and rawget(_G, "WorldMapFrame") then
             safeLayout()
+        end
+        if provider and not debugOnOpen then
+            self:SetScript("OnUpdate", nil)
+            return
         end
         if debugOnOpen then
             local map = worldMap()
             if map and map:IsShown() then
                 debugOnOpen = false
                 ns.MapBadgeDebug()
+                if provider then
+                    self:SetScript("OnUpdate", nil)
+                end
             end
         end
     end)
@@ -5721,6 +5742,17 @@ do
     State.clearStepMapPins = clearStepMapPins
 end
 
+-- Step rebuilds go through one pulse: mark dirty on events, coalesce, then refresh.
+function ns.MarkTrackerDirty(force)
+    State.trackerDirty = true
+    if force then
+        State.trackerForce = true
+    end
+    if not State.dirtyAt or State.dirtyAt == 0 then
+        State.dirtyAt = (GetTime and GetTime() or 0) + UI.TRACKER_COALESCE_SECONDS
+    end
+end
+
 function ns.RefreshTracker(force)
     if not State.perf then
         return State.refreshTracker(force)
@@ -5730,6 +5762,57 @@ function ns.RefreshTracker(force)
     State.refreshTracker(force)
     ns.PerfAdd(key, debugprofilestop() - start)
     State.perfCalls[key] = (State.perfCalls[key] or 0) + 1
+end
+
+local function rememberPulsePosition()
+    local hbd = RG.hereBeDragons and RG.hereBeDragons()
+    if not hbd or not hbd.GetPlayerWorldPosition then
+        return
+    end
+    local x, y, instance = hbd:GetPlayerWorldPosition()
+    if type(x) == "number" and type(y) == "number" then
+        State.lastPulseX, State.lastPulseY, State.lastPulseInstance = x, y, instance
+    end
+end
+
+local function playerMovedEnough()
+    local hbd = RG.hereBeDragons and RG.hereBeDragons()
+    if not hbd or not hbd.GetPlayerWorldPosition then
+        return false
+    end
+    local x, y, instance = hbd:GetPlayerWorldPosition()
+    if type(x) ~= "number" or type(y) ~= "number" then
+        return false
+    end
+    if State.lastPulseX == nil then
+        State.lastPulseX, State.lastPulseY, State.lastPulseInstance = x, y, instance
+        return false
+    end
+    if type(State.lastPulseInstance) == "number" and type(instance) == "number" and State.lastPulseInstance ~= instance then
+        State.lastPulseX, State.lastPulseY, State.lastPulseInstance = x, y, instance
+        return true
+    end
+    local dx, dy = x - State.lastPulseX, y - State.lastPulseY
+    local yards = UI.POSITION_DIRTY_YARDS
+    if (dx * dx + dy * dy) >= (yards * yards) then
+        State.lastPulseX, State.lastPulseY, State.lastPulseInstance = x, y, instance
+        return true
+    end
+    return false
+end
+
+local function pulseTravelCatchUp()
+    if not ns.db or not ns.db.standaloneGuide then
+        return
+    end
+    local pulse = ns.GuidePulseTravel or ns.GuideCatchUp
+    if not pulse then
+        return
+    end
+    local ok, moved = pcall(pulse)
+    if ok and moved then
+        ns.MarkTrackerDirty(true)
+    end
 end
 
 State.refreshTracker = function(force)
@@ -5796,6 +5879,7 @@ State.refreshTracker = function(force)
         if State.syncStepMapPins then
             State.syncStepMapPins(items)
         end
+        rememberPulsePosition()
         return
     end
 
@@ -5812,19 +5896,21 @@ State.refreshTracker = function(force)
             State.remeasure = true
         end
     end
-    -- Restyling re-expands every row's text, so unchanged polls only do it
+    -- Restyling re-expands every row's text, so unchanged rebuilds only do it
     -- once a second to pick up options changes.
     local now = GetTime and GetTime() or 0
-    if force or contentChanged or sizeChanged or now >= (State.restyleAt or 0) then
+    local needsChrome = force or contentChanged or sizeChanged or now >= (State.restyleAt or 0)
+    if needsChrome then
         State.restyleAt = now + 1
         styleTracker()
         paintRowColors()
+        styleStepButtons()
+        reassertActions()
     end
-    styleStepButtons()
-    reassertActions()
-    if State.syncStepMapPins then
+    if State.syncStepMapPins and (force or contentChanged) then
         State.syncStepMapPins(items)
     end
+    rememberPulsePosition()
 end
 
 local function hookMouse(frame)
@@ -5884,8 +5970,9 @@ local function walkMouse(frame, depth)
     end
 
     if frame.GetNumChildren then
-        for index = 1, frame:GetNumChildren() do
-            walkMouse(select(index, frame:GetChildren()), depth + 1)
+        local children = { frame:GetChildren() }
+        for index = 1, #children do
+            walkMouse(children[index], depth + 1)
         end
     end
 end
@@ -5949,7 +6036,7 @@ local function rememberCog(cog)
     }
 end
 
-local function placeCog()
+local function placeCog(force)
     local cog = guideCog()
     if not cog or not ns.ReplacingGuide or not ns.ReplacingGuide() then
         return
@@ -5971,6 +6058,14 @@ local function placeCog()
             self:SetPoint("TOPRIGHT", tracker, "TOPRIGHT", -4, -4)
             State.cogBusy = false
         end)
+    end
+
+    if not force then
+        local parent = cog.GetParent and cog:GetParent()
+        local _, relativeTo = cog:GetPoint(1)
+        if parent == tracker and relativeTo == tracker and cog:IsShown() then
+            return
+        end
     end
 
     State.cogBusy = true
@@ -6007,7 +6102,8 @@ local function concealSatellite(frame)
     if not frame then
         return
     end
-    if not State.satelliteHooked[frame] and frame.SetAlpha then
+    local first = not State.satelliteHooked[frame]
+    if first and frame.SetAlpha then
         State.satelliteHooked[frame] = true
         hooksecurefunc(frame, "SetAlpha", function(self, alpha)
             if State.alphaBusy or not ns.ReplacingGuide or not ns.ReplacingGuide() then
@@ -6033,18 +6129,26 @@ local function concealSatellite(frame)
                 State.alphaBusy = false
             end)
         end
+    elseif not State.satelliteHooked[frame] then
+        State.satelliteHooked[frame] = true
     end
     hookMouse(frame)
-    if frame.IsShown and frame:IsShown() then
+    local shown = frame.IsShown and frame:IsShown()
+    local visible = shown or (frame.GetAlpha and (frame:GetAlpha() or 0) > 0.01)
+    if shown then
         frame.__rxpbWasShown = true
     end
-    State.alphaBusy = true
-    frame:SetAlpha(0)
-    if not InCombatLockdown() then
-        pcall(frame.Hide, frame)
+    if visible or first then
+        State.alphaBusy = true
+        frame:SetAlpha(0)
+        if not InCombatLockdown() then
+            pcall(frame.Hide, frame)
+        end
+        State.alphaBusy = false
     end
-    State.alphaBusy = false
-    walkMouse(frame, 0)
+    if first or not State.guideConcealed then
+        walkMouse(frame, 0)
+    end
 end
 
 local function revealSatellite(frame)
@@ -6062,6 +6166,12 @@ local function revealSatellite(frame)
 end
 
 local function concealGuide(rxp)
+    local current = rxp.CurrentStepFrame
+    local childCount = current and current.GetNumChildren and current:GetNumChildren() or 0
+    local walkKey = tostring(childCount)
+    local needWalk = State.concealWalkKey ~= walkKey
+    local already = State.guideConcealed and not needWalk
+
     State.alphaBusy = true
     rxp:SetAlpha(1)
     State.alphaBusy = false
@@ -6069,10 +6179,14 @@ local function concealGuide(rxp)
     for _, frame in ipairs(chromeFrames(rxp)) do
         if frame then
             hookChromeAlpha(frame)
-            State.alphaBusy = true
-            frame:SetAlpha(0)
-            State.alphaBusy = false
-            walkMouse(frame, 0)
+            if not already or (frame.GetAlpha and (frame:GetAlpha() or 0) > 0.01) then
+                State.alphaBusy = true
+                frame:SetAlpha(0)
+                State.alphaBusy = false
+            end
+            if needWalk or not State.guideConcealed then
+                walkMouse(frame, 0)
+            end
         end
     end
 
@@ -6086,10 +6200,14 @@ local function concealGuide(rxp)
     for _, frame in ipairs(satelliteFrames()) do
         concealSatellite(frame)
     end
-    placeCog()
+    placeCog(false)
+    State.guideConcealed = true
+    State.concealWalkKey = walkKey
 end
 
 local function revealGuide(rxp)
+    State.guideConcealed = false
+    State.concealWalkKey = nil
     State.alphaBusy = true
     for _, frame in ipairs(chromeFrames(rxp)) do
         if frame and frame.SetAlpha then
@@ -6120,7 +6238,11 @@ local function hookStepText()
     end
     current.__rxpbTextHook = true
     hooksecurefunc(current, "UpdateText", function()
-        pcall(ns.RefreshTracker)
+        if ns.MarkTrackerDirty then
+            ns.MarkTrackerDirty(false)
+        else
+            pcall(ns.RefreshTracker)
+        end
     end)
 end
 
@@ -6139,8 +6261,10 @@ function ns.OnGuideScan()
         concealGuide(rxp)
     elseif ns.db and ns.db.standaloneGuide then
         concealGuide(rxp)
-        -- A shown tracker already polls in its own OnUpdate.
-        if not tracker:IsShown() then
+        -- A shown tracker rebuilds from the shared dirty pulse.
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
+        else
             ns.RefreshTracker()
         end
     end
@@ -6245,6 +6369,7 @@ tracker:SetScript("OnUpdate", function(self, delta)
         State.mouseOver = false
         clearGuideTips()
     end
+    -- Light work every frame / short cadence. Step rebuilds only when dirty.
     State.timed("arrows", updateArrows)
     State.timed("completing", updateCompletingStickies, delta)
     State.timed("flight", updateFlightStrip)
@@ -6261,19 +6386,41 @@ tracker:SetScript("OnUpdate", function(self, delta)
     if not (ns.db and ns.db.standaloneGuide) then
         State.timed("review", RG.maintainReview)
     end
+
+    State.travelElapsed = (State.travelElapsed or 0) + delta
+    if State.travelElapsed >= UI.TRAVEL_PULSE_SECONDS then
+        State.travelElapsed = 0
+        State.timed("travel", pulseTravelCatchUp)
+    end
+    State.positionElapsed = (State.positionElapsed or 0) + delta
+    if State.positionElapsed >= UI.POSITION_PULSE_SECONDS then
+        State.positionElapsed = 0
+        if playerMovedEnough() then
+            ns.MarkTrackerDirty(false)
+        end
+    end
+
+    if State.trackerDirty then
+        local now = GetTime and GetTime() or 0
+        if now >= (State.dirtyAt or 0) then
+            local force = State.trackerForce and true or false
+            State.trackerDirty = false
+            State.trackerForce = false
+            State.dirtyAt = 0
+            ns.RefreshTracker(force)
+        end
+    end
+
     if State.perf and GetTime() >= State.perfUntil then
         State.finishPerf()
     end
-    State.elapsed = State.elapsed + delta
-    if State.elapsed < UI.TRACKER_POLL_SECONDS then
-        return
-    end
-    State.elapsed = 0
-    ns.RefreshTracker()
 end)
 
 tracker:SetScript("OnShow", function()
     State.lastSignature = nil
+    State.trackerDirty = false
+    State.trackerForce = false
+    State.dirtyAt = 0
     ns.RefreshTracker(true)
     pcall(updateFlightStrip)
     pcall(updateNavStrip)

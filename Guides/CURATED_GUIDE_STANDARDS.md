@@ -401,6 +401,8 @@ Use these sentence shapes, in this order when combined: location, NPC, turn-ins,
 | Several quests | `Turn in [QUEST]A[/], [QUEST]B[/], and [QUEST]C[/].` (Oxford comma) |
 | Kill | `Kill [ENEMY]Mobs[/] at Location.` |
 | Loot from mobs | `Loot [LOOT]Item[/] from [ENEMY]Mobs[/].` |
+
+Do not write "until [QUEST]… is finished" (or "done" / "complete"). The step already advances when the objectives are done. Name the mobs and, if useful, the place.
 | Click object | `Click the [PICK]Object[/].` |
 | Use item | `Use the [LOOT]Item[/] at Location.` |
 | Escort | `Talk to [FRIENDLY]NPC[/]. Accept [QUEST]Quest[/]. Escort her to Location.` |
@@ -430,6 +432,7 @@ Detail rules:
 - Every quest objective in an `objectives` step gets its own count line.
 - Every turn-in on an `accepted` step that also turns in quests gets a `Turn in` line.
 - Do not repeat the headline as a detail.
+- Do not add an `NPC: [FRIENDLY]Name[/]` line when that NPC is already named in `text`. The headline is enough. Only use an NPC detail when the giver or turn-in is not in the headline (rare).
 
 ### 7.4 Notes
 
@@ -466,6 +469,7 @@ note = "Verog only spawns after enough Razormane die. Camp his spawn point if it
 | `Press Next when done.`, `Click Next to continue.` | UI instructions. The engine strips them. | Delete it. |
 | `Accept quest 6548.`, `Guide ID: horde-barrens-16-20` | Raw ids. The engine strips them and leaves broken sentences. | Use the quest name in a `[QUEST]` tag. |
 | `Kill [ENEMY]Grellkin[/] for [LOOT]Fel Moss[/].` when details already list `[LOOT]Fel Moss[/] (8)` | Restates the objective that the details show. | `Kill [ENEMY]Grellkin[/] at the lake.` |
+| `Kill [ENEMY]Mottled Boars[/] until [QUEST]Cutting Teeth[/] is finished.` | "Until the quest is finished" is obvious; the step already waits on objectives. | `Kill [ENEMY]Mottled Boars[/].` |
 | `Destroy the [LOOT]Manual[/].`, `Delete these items.` | Inventory cleanup steps. | Remove the step. |
 | `Turn in Avenge My Village and get the next one.` | Vague follow-up wording. | Name the follow-up quest. |
 | `In Windshear Crag, kill [ENEMY]Venture Co. Loggers[/].` right after talking to Ziz there | Restates a place the player already knows. | `Kill [ENEMY]Venture Co. Loggers[/].` |
@@ -564,6 +568,8 @@ Run through every item. Agents should report any failed item instead of silently
 - [ ] Every NPC, mob, quest, item, and object name is color tagged.
 - [ ] No "if needed", "skip", "optional" (outside a `[WARN]` prefix), "Press Next", raw ids, or cleanup steps.
 - [ ] No headline repeats the loot or kill target that the details already count.
+- [ ] No "until [QUEST]… is finished/done/complete" (or similar) in kill or loot headlines.
+- [ ] No `NPC:` detail when that NPC is already named in `text`.
 - [ ] Sentences end with periods; details do not.
 - [ ] No em dashes, arrows, or curly quotes.
 
