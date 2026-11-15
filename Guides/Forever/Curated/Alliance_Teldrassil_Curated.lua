@@ -33,7 +33,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Kill [ENEMY]Young Nightsabers[/] and [ENEMY]Young Thistle Boars[/] around Shadowglen.",
+            text = "Kill [ENEMY]Young Nightsabers[/] and [ENEMY]Young Thistle Boars[/].",
             map = 1438,
             x = 61.0,
             y = 43.0,
@@ -544,7 +544,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Around the lake, kill timberlings for [LOOT]Timberling Seeds[/].",
+            text = "Kill timberlings for [LOOT]Timberling Seeds[/].",
             map = 1438,
             x = 59.0,
             y = 68.0,
@@ -556,7 +556,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [PICK]Timberling Sprouts[/] around the lake.",
+            text = "Loot [PICK]Timberling Sprouts[/].",
             map = 1438,
             x = 59.0,
             y = 68.0,
@@ -945,7 +945,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In Darnassus, talk to [FRIENDLY]Mydrannul[/] near the bank exit, then talk to [FRIENDLY]Nessa Shadowsong[/] in Rut'theran. Accept [QUEST]Nessa Shadowsong[/] in the city if you do not have it, turn it in at Nessa, accept [QUEST]The Bounty of Teldrassil[/], turn that in at [FRIENDLY]Vesprystus[/], then accept [QUEST]Flight to Auberdine[/].",
+            text = "Talk to [FRIENDLY]Mydrannul[/] near the bank exit, then talk to [FRIENDLY]Nessa Shadowsong[/] in Rut'theran. Accept [QUEST]Nessa Shadowsong[/] if you do not have it, turn it in at Nessa, accept [QUEST]The Bounty of Teldrassil[/], turn that in at [FRIENDLY]Vesprystus[/], then accept [QUEST]Flight to Auberdine[/].",
             map = 1438,
             x = 56.3,
             y = 92.4,

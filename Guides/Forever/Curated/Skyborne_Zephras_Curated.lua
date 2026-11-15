@@ -51,7 +51,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Juvenile Vuldren[/] around Thendal Grove.",
+            text = "Kill [ENEMY]Juvenile Vuldren[/].",
             map = 2521,
             x = 45.3,
             y = 27.0,
@@ -63,7 +63,7 @@ ns.RegisterGuide({
             note = "Spots near 44-47, 26-28 have the highest density.",
         },
         {
-            text = "Kill [ENEMY]Pesky Cirrusflies[/] around Thendal Grove. Prioritize the Cirrusflies.",
+            text = "Kill [ENEMY]Pesky Cirrusflies[/]. Prioritize the Cirrusflies.",
             map = 2521,
             x = 45.3,
             y = 27.0,
@@ -282,7 +282,7 @@ ns.RegisterGuide({
             y = 23.65,
         },
         {
-            text = "Finish clicking [PICK]Windstone Clusters[/] around Thendal Grove.",
+            text = "Finish clicking [PICK]Windstone Clusters[/].",
             map = 2521,
             x = 46.8,
             y = 24.2,
@@ -651,7 +651,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "On the way to the bandit cave, kill [ENEMY]Galestriders[/] for [LOOT]Strider Meat and Small Eggs[/].",
+            text = "Kill [ENEMY]Galestriders[/] for [LOOT]Strider Meat[/] and [LOOT]Small Eggs[/] on the way.",
             map = 2521,
             x = 49.5,
             y = 36.5,
@@ -903,7 +903,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Finish [QUEST]A Last Request[/] around the watchtower.",
+            text = "Finish [QUEST]A Last Request[/].",
             map = 2521,
             x = 41.1,
             y = 64.1,
@@ -930,7 +930,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At the Highlands camp, jump from the tower and use Walk on Air toward 50.3, 57.0 if you like. Kill [ENEMY]Al'Aketh Stormcallers[/] and [ENEMY]Living Lightning[/].",
+            text = "Jump from the tower and use Walk on Air toward 50.3, 57.0 if you like. Kill [ENEMY]Al'Aketh Stormcallers[/] and [ENEMY]Living Lightning[/].",
             map = 2521,
             x = 49.8,
             y = 55.5,
@@ -1382,7 +1382,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Click [PICK]Ripe Stormapples[/] and kill [ENEMY]Hungry Bandits[/] in the orchard.",
+            text = "Click [PICK]Ripe Stormapples[/] and kill [ENEMY]Hungry Bandits[/].",
             map = 2521,
             x = 46.26,
             y = 78.04,
@@ -1496,7 +1496,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Kill [ENEMY]Enchanted Skyhoppers[/] around Valanaar. Ignore them while a Tornado speed buff is active.",
+            text = "Kill [ENEMY]Enchanted Skyhoppers[/]. Ignore them while a Tornado speed buff is active.",
             map = 2521,
             x = 63.0,
             y = 77.0,
@@ -1734,7 +1734,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Click [PICK]Abandoned Belongings[/] (refugee crates) around the forest camp.",
+            text = "Click [PICK]Abandoned Belongings[/] (refugee crates).",
             map = 2521,
             x = 58.0,
             y = 31.5,
@@ -1758,7 +1758,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Wind Hollows[/] around the forest camp.",
+            text = "Kill [ENEMY]Wind Hollows[/].",
             map = 2521,
             x = 58.0,
             y = 31.5,
@@ -1801,7 +1801,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [LOOT]Al'Aketh Cultist's Ears[/] from the [ENEMY]Al'Aketh[/] around the cult camp.",
+            text = "Loot [LOOT]Al'Aketh Cultist's Ears[/] from the [ENEMY]Al'Aketh[/].",
             map = 2521,
             x = 63.4,
             y = 37.8,
@@ -1812,7 +1812,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Al'Aketh Footsoldiers[/] and [ENEMY]Al'Aketh Stormchasers[/] around the cult camp.",
+            text = "Kill [ENEMY]Al'Aketh Footsoldiers[/] and [ENEMY]Al'Aketh Stormchasers[/].",
             map = 2521,
             x = 63.4,
             y = 37.8,
@@ -2111,7 +2111,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Juvenile Vuldren[/] around Thendal Grove.",
+            text = "Kill [ENEMY]Juvenile Vuldren[/].",
             map = 2521,
             x = 45.3,
             y = 27.0,
@@ -2123,7 +2123,7 @@ ns.RegisterGuide({
             note = "Spots near 44-47, 26-28 have the highest density.",
         },
         {
-            text = "Kill [ENEMY]Pesky Cirrusflies[/] around Thendal Grove. Prioritize the Cirrusflies.",
+            text = "Kill [ENEMY]Pesky Cirrusflies[/]. Prioritize the Cirrusflies.",
             map = 2521,
             x = 45.3,
             y = 27.0,
@@ -2408,7 +2408,7 @@ ns.RegisterGuide({
             note = "Jump off the mountain near 48.9, 21.5 to die and respawn at the Thendal graveyard, then continue with Windstones.",
         },
         {
-            text = "Finish clicking [PICK]Windstone Clusters[/] around Thendal Grove.",
+            text = "Finish clicking [PICK]Windstone Clusters[/].",
             map = 2521,
             x = 46.8,
             y = 24.2,
@@ -2805,7 +2805,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "On the way to the bandit cave, kill [ENEMY]Galestriders[/] for [LOOT]Strider Meat and Small Eggs[/].",
+            text = "Kill [ENEMY]Galestriders[/] for [LOOT]Strider Meat[/] and [LOOT]Small Eggs[/] on the way.",
             map = 2521,
             x = 49.5,
             y = 36.5,
@@ -3046,7 +3046,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Finish [QUEST]A Last Request[/] around the watchtower.",
+            text = "Finish [QUEST]A Last Request[/].",
             map = 2521,
             x = 41.1,
             y = 64.1,
@@ -3073,7 +3073,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At the Highlands camp, jump from the tower and use Walk on Air toward 50.3, 57.0 if you like. Kill [ENEMY]Al'Aketh Stormcallers[/] and [ENEMY]Living Lightning[/].",
+            text = "Jump from the tower and use Walk on Air toward 50.3, 57.0 if you like. Kill [ENEMY]Al'Aketh Stormcallers[/] and [ENEMY]Living Lightning[/].",
             map = 2521,
             x = 49.8,
             y = 55.5,
@@ -3479,7 +3479,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Click [PICK]Ripe Stormapples[/] and kill [ENEMY]Hungry Bandits[/] in the orchard.",
+            text = "Click [PICK]Ripe Stormapples[/] and kill [ENEMY]Hungry Bandits[/].",
             map = 2521,
             x = 46.26,
             y = 78.04,
@@ -3730,7 +3730,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Click [PICK]Abandoned Belongings[/] (refugee crates) around the forest camp.",
+            text = "Click [PICK]Abandoned Belongings[/] (refugee crates).",
             map = 2521,
             x = 58.0,
             y = 31.5,
@@ -3754,7 +3754,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Wind Hollows[/] around the forest camp.",
+            text = "Kill [ENEMY]Wind Hollows[/].",
             map = 2521,
             x = 58.0,
             y = 31.5,
@@ -3785,7 +3785,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [LOOT]Al'Aketh Cultist's Ears[/] from the [ENEMY]Al'Aketh[/] around the cult camp.",
+            text = "Loot [LOOT]Al'Aketh Cultist's Ears[/] from the [ENEMY]Al'Aketh[/].",
             map = 2521,
             x = 63.4,
             y = 37.8,
@@ -3797,7 +3797,7 @@ ns.RegisterGuide({
             note = "Mercy Falls on Deaf Ears is optional for Horde.",
         },
         {
-            text = "Kill [ENEMY]Al'Aketh Footsoldiers[/] and [ENEMY]Al'Aketh Stormchasers[/] around the cult camp.",
+            text = "Kill [ENEMY]Al'Aketh Footsoldiers[/] and [ENEMY]Al'Aketh Stormchasers[/].",
             map = 2521,
             x = 63.4,
             y = 37.8,

@@ -1,8 +1,9 @@
-# Deploy Waynotes to the Forever AddOns folder.
-# Excludes development-only trees (_questiedb, __pycache__, .git, .cursor).
+# Deploy curated Waynotes files to the Forever AddOns folder.
+# Mirrors the zip export: Waynotes.toc load list, logos, and Media.
+# Only Guides/Forever/Curated/*_Curated.lua guides are included.
 
 param(
-    [string]$Destination = "X:\World of Warcraft\_forever_\Interface\AddOns\Waynotes"
+    [string]$Destination = "C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\Waynotes"
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,39 +18,117 @@ if (-not (Test-Path $addonsParent)) {
     Write-Error "AddOns folder not found: $addonsParent"
 }
 
-New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+$tocName = "Waynotes.toc"
+$tocPath = Join-Path $root $tocName
+if (-not (Test-Path -LiteralPath $tocPath)) {
+    Write-Error "Missing $tocName"
+}
+
+$tocFiles = @()
+foreach ($line in Get-Content -LiteralPath $tocPath) {
+    $trimmed = $line.Trim()
+    if ($trimmed -eq "" -or $trimmed.StartsWith("#")) {
+        continue
+    }
+    $tocFiles += ($trimmed -replace "/", "\")
+}
+
+if ($tocFiles.Count -eq 0) {
+    Write-Error "$tocName has no load entries"
+}
+
+$curated = @()
+foreach ($relative in $tocFiles) {
+    $source = Join-Path $root $relative
+    if (-not (Test-Path -LiteralPath $source)) {
+        Write-Error "TOC file missing: $relative"
+    }
+    if ($relative -like "Guides\*") {
+        if ($relative -notmatch '^Guides\\Forever\\Curated\\.+_Curated\.lua$') {
+            Write-Error "Waynotes.toc lists a non-curated guide: $relative"
+        }
+        $curated += $relative
+    }
+}
+
+if ($curated.Count -eq 0) {
+    Write-Error "Waynotes.toc lists no Curated guides"
+}
+
+$extras = @("logo.png", "logo.tga")
+foreach ($name in $extras) {
+    $source = Join-Path $root $name
+    if (-not (Test-Path -LiteralPath $source)) {
+        Write-Error "Missing addon file: $name"
+    }
+}
+
+$mediaDir = Join-Path $root "Media"
+if (-not (Test-Path -LiteralPath $mediaDir)) {
+    Write-Error "Missing Media folder"
+}
+
+$mediaFiles = @(Get-ChildItem -LiteralPath $mediaDir -File | Where-Object {
+    $_.Name -ne "_arrow_preview.png" -and $_.Name -ne ".DS_Store"
+})
+if ($mediaFiles.Count -eq 0) {
+    Write-Error "Media folder has no runtime files"
+}
+
+function Copy-AddonFile {
+    param(
+        [string]$SourcePath,
+        [string]$DestPath
+    )
+    $destDir = Split-Path -Parent $DestPath
+    if (-not (Test-Path -LiteralPath $destDir)) {
+        New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+    }
+    Copy-Item -LiteralPath $SourcePath -Destination $DestPath -Force
+}
 
 Write-Host "Deploying Waynotes"
 Write-Host "  from: $root"
 Write-Host "  to:   $Destination"
 
-$args = @(
-    $root,
-    $Destination,
-    "/E",
-    "/XD", "_questiedb", "__pycache__", ".git", ".cursor", "scripts",
-    "/XF", "*.pyc", "*.py", ".DS_Store",
-    "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np"
-)
+if (Test-Path -LiteralPath $Destination) {
+    Remove-Item -LiteralPath $Destination -Recurse -Force
+}
+New-Item -ItemType Directory -Force -Path $Destination | Out-Null
 
-& robocopy @args
-$code = $LASTEXITCODE
-
-# Robocopy: 0-7 are success (0 = nothing copied, 1+ = files copied/extra).
-if ($code -ge 8) {
-    Write-Error "robocopy failed with exit code $code"
+Copy-AddonFile -SourcePath $tocPath -DestPath (Join-Path $Destination $tocName)
+foreach ($relative in $tocFiles) {
+    Copy-AddonFile -SourcePath (Join-Path $root $relative) -DestPath (Join-Path $Destination $relative)
+}
+foreach ($name in $extras) {
+    Copy-AddonFile -SourcePath (Join-Path $root $name) -DestPath (Join-Path $Destination $name)
+}
+foreach ($file in $mediaFiles) {
+    Copy-AddonFile -SourcePath $file.FullName -DestPath (Join-Path $Destination "Media\$($file.Name)")
 }
 
-$toc = Join-Path $Destination "Waynotes.toc"
-if (-not (Test-Path $toc)) {
-    Write-Error "Deploy incomplete: Waynotes.toc missing at $Destination"
+$deployedGuides = @(Get-ChildItem -LiteralPath (Join-Path $Destination "Guides") -Recurse -File -ErrorAction SilentlyContinue)
+$nonCurated = @($deployedGuides | Where-Object {
+    $_.FullName -notmatch '\\Guides\\Forever\\Curated\\.+_Curated\.lua$'
+})
+if ($nonCurated.Count -gt 0) {
+    Write-Error ("Deploy contains non-curated guides:`n" + (($nonCurated | ForEach-Object { $_.FullName }) -join "`n"))
+}
+if ($deployedGuides.Count -ne $curated.Count) {
+    Write-Error "Expected $($curated.Count) curated guides, deploy has $($deployedGuides.Count)"
 }
 
-Write-Host "Deploy ok (robocopy code $code)"
+$deployedToc = Join-Path $Destination $tocName
+if (-not (Test-Path -LiteralPath $deployedToc)) {
+    Write-Error "Deploy incomplete: $tocName missing at $Destination"
+}
+
+Write-Host "Deploy ok"
+Write-Host "  curated guides: $($curated.Count)"
 Get-Item (Join-Path $Destination "Core.lua"),
          (Join-Path $Destination "Replace.lua"),
          (Join-Path $Destination "Guides.lua"),
-         $toc |
+         $deployedToc |
     Select-Object Name, Length, LastWriteTime |
     Format-Table -AutoSize
 

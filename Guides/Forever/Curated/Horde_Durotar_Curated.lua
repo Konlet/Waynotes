@@ -502,7 +502,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Optional: talk to [FRIENDLY]Pal'juh[/] in Kolkar Crag for Lost in the Shadows and escort him out.",
+            text = "Optional: talk to [FRIENDLY]Pal'juh[/] for Lost in the Shadows and escort him out.",
             map = 1411,
             x = 46.3,
             y = 78.6,
@@ -608,7 +608,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Around Tiragarde, loot the [LOOT]Raider's Bow[/], [LOOT]Raider's Battleaxe[/], and [LOOT]Raider's Shield[/] for [QUEST]For Honor[/].",
+            text = "Loot the [LOOT]Raider's Bow[/], [LOOT]Raider's Battleaxe[/], and [LOOT]Raider's Shield[/] for [QUEST]For Honor[/].",
             map = 1411,
             x = 57.3,
             y = 56.5,
@@ -800,7 +800,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "On Echo Isles, loot [LOOT]Minshina's Skull[/].",
+            text = "Loot [LOOT]Minshina's Skull[/].",
             map = 1411,
             x = 67.4,
             y = 86.4,
@@ -1290,7 +1290,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Ak'Zeloth[/] at Far Watch Post. Turn in [QUEST]Ak'Zeloth[/].",
+            text = "Talk to [FRIENDLY]Ak'Zeloth[/]. Turn in [QUEST]Ak'Zeloth[/].",
             map = 1413,
             x = 62.3,
             y = 20.1,

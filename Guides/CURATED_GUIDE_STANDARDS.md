@@ -343,14 +343,14 @@ Good: a sticky loot objective followed by a kill objective in the same camp.
 ```lua
 {
     sticky = true,
-    text = "In Windshear Crag, loot [LOOT]Super Reaper 6000 Blueprints[/] from [ENEMY]Operators[/].",
+    text = "Loot [LOOT]Super Reaper 6000 Blueprints[/] from [ENEMY]Operators[/].",
     quest = 1093,
     when = "objectives",
     map = 1442, x = 66.4, y = 55.9,
     details = { "[LOOT]Super Reaper 6000 Blueprints[/] (1)" },
 },
 {
-    text = "In Windshear Crag, kill [ENEMY]Venture Co. Loggers[/].",
+    text = "Kill [ENEMY]Venture Co. Loggers[/].",
     quest = 1062,
     when = "objectives",
     map = 1442, x = 66.4, y = 55.9,
@@ -409,7 +409,7 @@ Use these sentence shapes, in this order when combined: location, NPC, turn-ins,
 | Hearth | `Set your Hearthstone to Town.` |
 | Optional | `[WARN]Optional group:[/] Accept [QUEST]Quest[/] ...` |
 
-A short location lead-in is allowed when it helps: `In Windshear Crag, kill ...`, `At Thorn Hill, loot ...`.
+A short location lead-in is allowed only when the player is arriving somewhere new: `In the Charred Vale, kill ...`, `At Thorn Hill, loot ...`. Do not restate the place the player is already in from the previous step or travel pin (`In Windshear Crag, ...` right after talking to Ziz in that crag). Prefer `Return to Location` when they left and come back.
 
 ### 7.3 Details lines
 
@@ -468,6 +468,7 @@ note = "Verog only spawns after enough Razormane die. Camp his spawn point if it
 | `Kill [ENEMY]Grellkin[/] for [LOOT]Fel Moss[/].` when details already list `[LOOT]Fel Moss[/] (8)` | Restates the objective that the details show. | `Kill [ENEMY]Grellkin[/] at the lake.` |
 | `Destroy the [LOOT]Manual[/].`, `Delete these items.` | Inventory cleanup steps. | Remove the step. |
 | `Turn in Avenge My Village and get the next one.` | Vague follow-up wording. | Name the follow-up quest. |
+| `In Windshear Crag, kill [ENEMY]Venture Co. Loggers[/].` right after talking to Ziz there | Restates a place the player already knows. | `Kill [ENEMY]Venture Co. Loggers[/].` |
 | `Go kill some harpies over there.` | No target name or location. | `In the Charred Vale, kill [ENEMY]Bloodfury Harpies[/].` |
 | `This quest is kind of annoying, so...` | Opinion and filler. | Delete it. |
 | Second person chatter (`You'll love this area`, `Good luck!`) | Not an instruction. | Delete it. |

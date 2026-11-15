@@ -517,7 +517,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At Winterhoof Well, loot [PICK]Well Stones[/] from around the well.",
+            text = "At Winterhoof Well, loot [PICK]Well Stones[/].",
             map = 1412,
             x = 51.84,
             y = 68.51,
@@ -986,7 +986,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "At the Venture Co. Mine, kill Workers and Supervisors.",
+            text = "Kill Workers and Supervisors.",
             map = 1412,
             x = 58.35,
             y = 52.65,

@@ -91,7 +91,7 @@ ns.RegisterGuide({
             y = 36.2,
         },
         {
-            text = "Inside the cave mouth, talk to [FRIENDLY]Nalpak[/]. Accept [QUEST]Deviate Hides[/] (20 [LOOT]Deviate Hides[/]). Talk to [FRIENDLY]Ebru[/]. Accept [QUEST]Deviate Eradication[/] (7 [ENEMY]Deviate Ravagers[/], 7 [ENEMY]Deviate Vipers[/], 7 [ENEMY]Deviate Shamblers[/], 7 [ENEMY]Deviate Dreadfangs[/]).",
+            text = "Talk to [FRIENDLY]Nalpak[/]. Accept [QUEST]Deviate Hides[/] (20 [LOOT]Deviate Hides[/]). Talk to [FRIENDLY]Ebru[/]. Accept [QUEST]Deviate Eradication[/] (7 [ENEMY]Deviate Ravagers[/], 7 [ENEMY]Deviate Vipers[/], 7 [ENEMY]Deviate Shamblers[/], 7 [ENEMY]Deviate Dreadfangs[/]).",
             map = 1413,
             x = 46.0,
             y = 35.7,

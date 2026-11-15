@@ -268,7 +268,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Paladin" },
-            text = "Inside the mine, free [FRIENDLY]Webbed Forsaken[/] for [QUEST]A Light in the Darkness[/].",
+            text = "Free [FRIENDLY]Webbed Forsaken[/] for [QUEST]A Light in the Darkness[/].",
             map = 1420,
             x = 26.8,
             y = 59.4,
@@ -511,7 +511,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Use the [LOOT]Executor's Motivator[/] on five Deathguards around Brill for [QUEST]Discipline[/].",
+            text = "Use the [LOOT]Executor's Motivator[/] on five Deathguards for [QUEST]Discipline[/].",
             map = 1420,
             x = 61.0,
             y = 52.0,
@@ -818,7 +818,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Agamand Mills: kill [ENEMY]Devlin Agamand[/] for [QUEST]The Haunted Mills[/].",
+            text = "Kill [ENEMY]Devlin Agamand[/] for [QUEST]The Haunted Mills[/].",
             map = 1420,
             x = 47.3,
             y = 35.7,
@@ -1241,7 +1241,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Bleeding Horrors[/] and [ENEMY]Wandering Spirits[/] at Balnir Farmstead for [QUEST]Rear Guard Patrol[/].",
+            text = "Kill [ENEMY]Bleeding Horrors[/] and [ENEMY]Wandering Spirits[/] for [QUEST]Rear Guard Patrol[/].",
             map = 1420,
             x = 76.2,
             y = 60.4,
