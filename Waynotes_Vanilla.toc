@@ -7,7 +7,7 @@
 ## IconTexture: Interface\AddOns\Waynotes\logo
 ## Dependencies: RXPGuides
 ## RequiredDeps: RXPGuides
-## OptionalDeps: QuestieDB
+## OptionalDeps: QuestieDB, WhatsTraining
 ## SavedVariables: WaynotesDB
 ## SavedVariablesPerCharacter: WaynotesCharDB
 

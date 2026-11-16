@@ -6,7 +6,7 @@
 ## Category: Quests
 ## IconTexture: Interface\AddOns\Waynotes\logo
 ## AllowLoadGameType: forever, camelot
-## OptionalDeps: RXPGuides, QuestieDB
+## OptionalDeps: RXPGuides, QuestieDB, WhatsTraining
 ## SavedVariables: WaynotesDB
 ## SavedVariablesPerCharacter: WaynotesCharDB
 

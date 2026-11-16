@@ -6,7 +6,7 @@
 ## Category: Quests
 ## IconTexture: Interface\AddOns\RestedXP-Better\logo
 ## AllowLoadGameType: forever, camelot
-## OptionalDeps: RXPGuides, QuestieDB, HereBeDragons
+## OptionalDeps: RXPGuides, QuestieDB, HereBeDragons, WhatsTraining
 ## SavedVariables: WaynotesDB
 ## SavedVariablesPerCharacter: WaynotesCharDB
 
