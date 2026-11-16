@@ -246,7 +246,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Paladin" },
-            text = "Talk to the [FRIENDLY]Frightened Paladin[/] and finish the dialogue for [QUEST]Coming to Terms[/].",
+            text = "Talk to the [FRIENDLY]Frightened Paladin[/] and finish the dialogue.",
             map = 1420,
             x = 27.7,
             y = 63.8,
@@ -268,7 +268,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Paladin" },
-            text = "Free [FRIENDLY]Webbed Forsaken[/] for [QUEST]A Light in the Darkness[/].",
+            text = "Free [FRIENDLY]Webbed Forsaken[/].",
             map = 1420,
             x = 26.8,
             y = 59.4,
@@ -511,7 +511,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Use the [LOOT]Executor's Motivator[/] on five Deathguards for [QUEST]Discipline[/].",
+            text = "Use the [LOOT]Executor's Motivator[/] on five Deathguards.",
             map = 1420,
             x = 61.0,
             y = 52.0,
@@ -622,7 +622,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Get Dillinger's report for [QUEST]Patience[/]. Loot [PICK]Dry Branches[/], then turn in [QUEST]Sticks and Bones[/] at Eleanor.",
+            text = "Get Dillinger's report. Loot [PICK]Dry Branches[/], then turn in [QUEST]Sticks and Bones[/] at Eleanor.",
             map = 1420,
             x = 57.9,
             y = 54.1,
@@ -818,7 +818,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Devlin Agamand[/] for [QUEST]The Haunted Mills[/].",
+            text = "Kill [ENEMY]Devlin Agamand[/].",
             map = 1420,
             x = 47.3,
             y = 35.7,
@@ -952,7 +952,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Yvette Farthing[/] for [QUEST]A Letter Undelivered[/].",
+            text = "Talk to [FRIENDLY]Yvette Farthing[/]. Accept [QUEST]A Letter Undelivered[/].",
             map = 1420,
             x = 61.6,
             y = 52.6,
@@ -1037,6 +1037,7 @@ ns.RegisterGuide({
     forever = true,
     listed = true,
     races = { "Undead" },
+    next = "horde-silverpine-13-15",
     minLevel = 10,
     maxLevel = 13,
     steps = {
@@ -1053,7 +1054,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Captain Perrine[/] in the tower. Kill the zealots and missionaries for [QUEST]At War With The Scarlet Crusade[/].",
+            text = "Kill [ENEMY]Captain Perrine[/] in the tower. Kill the zealots and missionaries.",
             map = 1420,
             x = 51.1,
             y = 67.8,
@@ -1147,7 +1148,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Optional: talk to [FRIENDLY]Alessandro Luca[/] for [QUEST]Prompt Potion Runner[/], deliver it to [FRIENDLY]Doctor Martin Felben[/] in the Apothecarium.",
+            text = "[WARN]Optional:[/] talk to [FRIENDLY]Alessandro Luca[/]. Accept [QUEST]Prompt Potion Runner[/], deliver it to [FRIENDLY]Doctor Martin Felben[/] in the Apothecarium.",
             map = 1458,
             x = 58.6,
             y = 54.7,
@@ -1230,7 +1231,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Mage" },
-            text = "Loot [PICK]Balnir Snapdragons[/] in the garden for [QUEST]The Balnir Farmstead[/].",
+            text = "Loot [PICK]Balnir Snapdragons[/] in the garden.",
             map = 1420,
             x = 76.9,
             y = 62.4,
@@ -1241,7 +1242,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Bleeding Horrors[/] and [ENEMY]Wandering Spirits[/] for [QUEST]Rear Guard Patrol[/].",
+            text = "Kill [ENEMY]Bleeding Horrors[/] and [ENEMY]Wandering Spirits[/].",
             map = 1420,
             x = 76.2,
             y = 60.4,
@@ -1491,6 +1492,7 @@ ns.RegisterGuide({
             y = 40.9,
             quest = 445,
             when = "complete",
+            guide = "horde-silverpine-13-15",
             note = "Hand-off: Silverpine Forest (Sepulcher).",
         },
     },

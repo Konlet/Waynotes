@@ -335,6 +335,11 @@ local function cleanStep(step)
     if type(step.fpath) == "string" and strtrim(step.fpath) ~= "" then
         copy.fpath = strtrim(step.fpath)
     end
+    if type(step.hearth) == "string" and strtrim(step.hearth) ~= "" then
+        copy.hearth = strtrim(step.hearth)
+    elseif type(step.bind) == "string" and strtrim(step.bind) ~= "" then
+        copy.hearth = strtrim(step.bind)
+    end
     if type(step.guide) == "string" and strtrim(step.guide) ~= "" then
         copy.guide = strtrim(step.guide)
     end
@@ -430,9 +435,14 @@ function ns.RegisterGuide(guide)
     local classes = copyNames(guide.classes, CLASS_CANON)
     local excludeRaces = copyNames(guide.excludeRaces, RACE_CANON)
     local excludeClasses = copyNames(guide.excludeClasses, CLASS_CANON)
-    -- Class side quests nest under the class name in the guide menu.
+    local subgroup = type(guide.subgroup) == "string" and strtrim(guide.subgroup) or ""
+    if subgroup == "" then
+        subgroup = nil
+    end
+    -- Class side quests nest under Class Guides > ClassName in the menu.
     if classes and #classes == 1 then
-        group = classes[1]
+        group = "Class Guides"
+        subgroup = classes[1]
     end
     if not byId[id] then
         order[#order + 1] = id
@@ -460,6 +470,7 @@ function ns.RegisterGuide(guide)
         id = id,
         name = name,
         group = group,
+        subgroup = subgroup,
         faction = faction,
         minLevel = minLevel,
         maxLevel = maxLevel,
@@ -490,15 +501,17 @@ local function groupSortKey(group)
     if group == "Alliance" or group == "Horde" then
         return "0:" .. group
     end
+    if group == "Class Guides" then
+        return "2:" .. group
+    end
     return "1:" .. (group or "")
 end
 
 function ns.GuideList()
     local list = {}
-    local showAll = ns.db and ns.db.showIrrelevantGuides and true or false
     for _, id in ipairs(order) do
         local guide = byId[id]
-        if guide and guide.listed and (showAll or ns.GuideRelevant(guide)) then
+        if guide and guide.listed then
             list[#list + 1] = guide
         end
     end
@@ -507,6 +520,11 @@ function ns.GuideList()
         local bGroup = groupSortKey(b.group)
         if aGroup ~= bGroup then
             return aGroup < bGroup
+        end
+        local aSub = a.subgroup or ""
+        local bSub = b.subgroup or ""
+        if aSub ~= bSub then
+            return aSub < bSub
         end
         local aMin = a.minLevel or 0
         local bMin = b.minLevel or 0
@@ -1488,6 +1506,10 @@ local function stepDone(step)
         if ns.TravelFlightPathStepDone and ns.TravelFlightPathStepDone(step) then
             return true
         end
+        -- "Set your Hearthstone to X" advances once the bind location matches.
+        if ns.TravelHearthBindStepDone and ns.TravelHearthBindStepDone(step) then
+            return true
+        end
         return false
     end
     local when = step.when
@@ -1518,7 +1540,9 @@ end
 
 -- Manual vendor/train steps (and ungated "Travel to X" text) have no quest gate.
 -- During catch-up, skip them once a later quest step is already satisfied.
--- Gated when = "travel" steps are isAutoStep and must not use this shortcut.
+-- when = "travel" and hearth-led steps are isAutoStep, but catch-up also skips
+-- them once the next quest auto step is done (player already finished the reason
+-- to go / hearth).
 local function laterAutoStepDone(guide, fromIndex)
     if not guide then
         return false
@@ -1543,6 +1567,40 @@ local function laterAutoStepDone(guide, fromIndex)
         end
     end
     return false
+end
+
+-- "Hearth to X" / "Set your Hearthstone" / "Hearth or return" wording.
+local function isHearthStep(step)
+    if not step or type(step.text) ~= "string" then
+        return false
+    end
+    local text = step.text
+    text = text:gsub("%[[%w_]+%]", ""):gsub("%[/%w*%]", "")
+    text = strtrim(text)
+    if text == "" then
+        return false
+    end
+    if text:match("^[Hh]earth") then
+        return true
+    end
+    local lower = text:lower()
+    return lower:find("set your hearth", 1, true) ~= nil
+        or lower:find("set your hearthstone", 1, true) ~= nil
+end
+
+-- Manuals always; travel and hearth steps also, so an already-finished accept
+-- or turn-in does not park the guide on "Travel to X" / "Hearth to X".
+local function catchUpSkipsViaLaterAuto(step)
+    if not step then
+        return false
+    end
+    if not isAutoStep(step) then
+        return true
+    end
+    if step.when == "travel" then
+        return true
+    end
+    return isHearthStep(step)
 end
 
 -- A later step stays off the tracker while an earlier step is still the work
@@ -1842,7 +1900,7 @@ function ns.GuideCatchUp()
             guard = guard + 1
         elseif reviewKey == guide.id .. ":" .. entry.step then
             break
-        elseif stepDone(step) or (not isAutoStep(step) and laterAutoStepDone(guide, entry.step)) then
+        elseif stepDone(step) or (catchUpSkipsViaLaterAuto(step) and laterAutoStepDone(guide, entry.step)) then
             local hopped = neighbor(guide, entry.step, 1)
             if not hopped then
                 break
@@ -1885,6 +1943,7 @@ function ns.GuidePulseTravel()
     local travel = step.when == "travel"
         or (ns.TravelIsTravelStep and ns.TravelIsTravelStep(step))
         or (ns.TravelIsFlightPathStep and ns.TravelIsFlightPathStep(step))
+        or (ns.TravelIsHearthBindStep and ns.TravelIsHearthBindStep(step))
     if not travel then
         return false
     end
@@ -2160,8 +2219,12 @@ function ns.GuideEnsure()
         guide = ns.RecommendedGuide()
     end
     if not guide then
-        local list = ns.GuideList()
-        guide = list[1]
+        for _, candidate in ipairs(ns.GuideList()) do
+            if ns.GuideRelevant(candidate) then
+                guide = candidate
+                break
+            end
+        end
     end
     if not guide then
         return false
@@ -2215,6 +2278,58 @@ function ns.GuideCanStep(direction)
         return true
     end
     return false
+end
+
+-- Primary non-sticky step the tracker is guiding toward right now.
+function ns.GuidePrimaryStep()
+    local guide = activeGuide()
+    if not guide then
+        return nil
+    end
+    local entry = progress(guide.id)
+    local count = #guide.steps
+    local primaryIndex = entry.step
+    if primaryIndex < 1 then
+        primaryIndex = 1
+    elseif primaryIndex > count then
+        primaryIndex = count
+    end
+    local primary = guide.steps[primaryIndex]
+    if primary and primary.sticky then
+        for index = primaryIndex + 1, count do
+            local step = guide.steps[index]
+            if stepApplies(step) and not step.sticky then
+                return step, index
+            end
+        end
+    elseif primary and not stepApplies(primary) then
+        for index = primaryIndex, count do
+            local step = guide.steps[index]
+            if stepApplies(step) and not step.sticky then
+                return step, index
+            end
+        end
+        return nil
+    end
+    if primary and stepApplies(primary) then
+        return primary, primaryIndex
+    end
+    return nil
+end
+
+function ns.GuideTravelDestination()
+    local step, stepIndex = ns.GuidePrimaryStep()
+    if not step or not ns.TravelResolveStep then
+        return nil, nil, nil
+    end
+    local dest = ns.TravelResolveStep(step)
+    if not dest then
+        return nil, step, stepIndex
+    end
+    if ns.TravelFillDestinationCoords then
+        dest = ns.TravelFillDestinationCoords(dest, step) or dest
+    end
+    return dest, step, stepIndex
 end
 
 function ns.GuideStep(direction)
@@ -2687,42 +2802,87 @@ local function authorPin(step)
 end
 
 -- Kill and collect objectives share an area pin: show NEAR within nearYards
--- (default KILL_AREA_YARDS in the tracker, or 10 for a single kill/loot/pick).
-local SINGLE_TARGET_NEAR_YARDS = 10
+-- (options: nearYardsEnemy / Loot / Pick, or nearYardsSingle for a count of 1).
+
+local function scanAreaTags(text, flags)
+    if type(text) ~= "string" then
+        return
+    end
+    if text:find("[ENEMY]", 1, true)
+        or text:find("RB_ENEMY_", 1, true)
+        or text:find("|cffff5722", 1, true)
+    then
+        flags.enemy = true
+    end
+    if text:find("[LOOT]", 1, true)
+        or text:find("RB_LOOT_", 1, true)
+        or text:find("|cff00bcd4", 1, true)
+    then
+        flags.loot = true
+    end
+    if text:find("[PICK]", 1, true)
+        or text:find("RB_PICK_", 1, true)
+        or text:find("|cffdb2eef", 1, true)
+    then
+        flags.pick = true
+    end
+end
 
 local function hasAreaTag(text)
-    if type(text) ~= "string" then
-        return false
+    local flags = {}
+    scanAreaTags(text, flags)
+    return flags.enemy or flags.loot or flags.pick
+end
+
+local function stepAreaFlags(step)
+    local flags = {}
+    scanAreaTags(step.text, flags)
+    if type(step.details) == "table" then
+        for _, line in ipairs(step.details) do
+            scanAreaTags(line, flags)
+        end
     end
-    return text:find("[ENEMY]", 1, true)
-        or text:find("[LOOT]", 1, true)
-        or text:find("[PICK]", 1, true)
-        or text:find("RB_ENEMY_", 1, true)
-        or text:find("RB_LOOT_", 1, true)
-        or text:find("RB_PICK_", 1, true)
-        or text:find("|cffff5722", 1, true)
-        or text:find("|cff00bcd4", 1, true)
-        or text:find("|cffdb2eef", 1, true)
+    return flags
 end
 
 local function stepIsAreaObjective(step)
     if step.when ~= "objectives" then
         return false
     end
-    if hasAreaTag(step.text) then
-        return true
-    end
-    if type(step.details) == "table" then
-        for _, line in ipairs(step.details) do
-            if hasAreaTag(line) then
-                return true
-            end
-        end
-    end
-    return false
+    local flags = stepAreaFlags(step)
+    return flags.enemy or flags.loot or flags.pick
 end
 
--- One named kill or one (1) loot/pick uses a tight pin. Grind counts stay wide.
+-- Enemy beats loot beats pick when a step mixes tags (kill-and-loot grinds).
+local function stepAreaKind(step)
+    local flags = stepAreaFlags(step)
+    if flags.enemy then
+        return "enemy"
+    end
+    if flags.loot then
+        return "loot"
+    end
+    if flags.pick then
+        return "pick"
+    end
+    return "enemy"
+end
+
+local function defaultNear(kind)
+    if ns.DefaultNearYards then
+        return ns.DefaultNearYards(kind)
+    end
+    if kind == "single" then
+        return 5
+    end
+    if kind == "travel" then
+        return 10
+    end
+    return 100
+end
+
+-- One named kill or one (1) loot/pick uses the single radius. Grind counts use
+-- the matching enemy / loot / pick option.
 local function stepNearYards(step)
     local authored = tonumber(step.nearYards)
     if authored and authored > 0 then
@@ -2752,9 +2912,9 @@ local function stepNearYards(step)
         end
     end
     if maxCount == 1 then
-        return SINGLE_TARGET_NEAR_YARDS
+        return defaultNear("single")
     end
-    return nil
+    return defaultNear(stepAreaKind(step))
 end
 
 local function pinForStep(step)
@@ -2980,11 +3140,16 @@ function ns.GuideObjectives()
             },
         }
     end
-    -- Travel steps advance on arrival; poll while the tracker is open.
+    -- Travel / flight-path / hearth-bind steps advance while the tracker is open.
     do
         local entry = progress(guide.id)
         local step = guide.steps[entry.step]
-        if step and stepApplies(step) and step.when == "travel" then
+        local pulse = step and stepApplies(step) and (
+            step.when == "travel"
+            or (ns.TravelIsFlightPathStep and ns.TravelIsFlightPathStep(step))
+            or (ns.TravelIsHearthBindStep and ns.TravelIsHearthBindStep(step))
+        )
+        if pulse then
             ns.GuideCatchUp()
         end
     end
@@ -3310,14 +3475,22 @@ local function groupCollapsedByDefault(group)
     if defaults[group] then
         return true
     end
-    -- Keep the player's faction leveling guides open; collapse the other side
-    -- when "show unrelated guides" lists both.
+    -- Keep the player's faction leveling guides open; collapse the other side.
     if group == "Alliance" or group == "Horde" then
         local faction = playerFaction()
         if faction and group ~= faction then
             return true
         end
         return false
+    end
+    -- Class Guides > ClassName: keep the player's class open, collapse the rest.
+    local className = group:match("^Class Guides||(.+)$")
+    if className then
+        local mine = ns.PlayerClass and ns.PlayerClass()
+        if mine and className == mine then
+            return false
+        end
+        return true
     end
     return false
 end
@@ -3797,9 +3970,13 @@ presentMenu = function(keepScroll)
         place(row, 20)
     end
     local groupCollapsed = false
+    local subgroupCollapsed = false
+    local lastSubgroup
     for _, guide in ipairs(list) do
         if guide.group ~= lastGroup then
             lastGroup = guide.group
+            lastSubgroup = nil
+            subgroupCollapsed = false
             groupCollapsed = isGuideMenuGroupCollapsed(guide.group)
             index = index + 1
             local row = acquireRow(index)
@@ -3813,20 +3990,55 @@ presentMenu = function(keepScroll)
             place(row, 18)
         end
         if not groupCollapsed then
-            index = index + 1
-            local row = acquireRow(index)
-            resetRow(row)
-            row.guideId = guide.id
-            row:EnableMouse(true)
-            local mark = (recommended and recommended.id == guide.id) and "* " or ""
-            local suffix = guide.faction and (" (" .. guide.faction .. ")") or ""
-            row.label:SetText(mark .. guide.name .. suffix)
-            if ns.GuideId() == guide.id then
-                paintMenuLabel(row.label, accentR, accentG, accentB)
+            local subgroup = guide.subgroup
+            if type(subgroup) == "string" and subgroup ~= "" then
+                if subgroup ~= lastSubgroup then
+                    lastSubgroup = subgroup
+                    local subKey = guide.group .. "||" .. subgroup
+                    subgroupCollapsed = isGuideMenuGroupCollapsed(subKey)
+                    index = index + 1
+                    local row = acquireRow(index)
+                    resetRow(row)
+                    row.action = "toggleGroup"
+                    row.groupName = subKey
+                    row:EnableMouse(true)
+                    local marker = subgroupCollapsed and "+ " or "- "
+                    row.label:SetText("  " .. marker .. subgroup)
+                    paintMenuLabel(row.label, accentR, accentG, accentB)
+                    place(row, 18)
+                end
+                if not subgroupCollapsed then
+                    index = index + 1
+                    local row = acquireRow(index)
+                    resetRow(row)
+                    row.guideId = guide.id
+                    row:EnableMouse(true)
+                    local mark = (recommended and recommended.id == guide.id) and "* " or ""
+                    row.label:SetText("    " .. mark .. guide.name)
+                    if ns.GuideId() == guide.id then
+                        paintMenuLabel(row.label, accentR, accentG, accentB)
+                    else
+                        paintMenuLabel(row.label, textR, textG, textB)
+                    end
+                    place(row, 20)
+                end
             else
-                paintMenuLabel(row.label, textR, textG, textB)
+                lastSubgroup = nil
+                subgroupCollapsed = false
+                index = index + 1
+                local row = acquireRow(index)
+                resetRow(row)
+                row.guideId = guide.id
+                row:EnableMouse(true)
+                local mark = (recommended and recommended.id == guide.id) and "* " or ""
+                row.label:SetText(mark .. guide.name)
+                if ns.GuideId() == guide.id then
+                    paintMenuLabel(row.label, accentR, accentG, accentB)
+                else
+                    paintMenuLabel(row.label, textR, textG, textB)
+                end
+                place(row, 20)
             end
-            place(row, 20)
         end
     end
     finishMenu()
@@ -3848,6 +4060,8 @@ local function buildMenu()
     menu:SetFrameStrata("DIALOG")
     menu:SetFrameLevel(20)
     menu:SetClampedToScreen(true)
+    -- Expand the clamp rect so the frame stays 8px inside the screen edges.
+    menu:SetClampRectInsets(-8, 8, 8, -8)
     menu:EnableMouse(true)
     menu:EnableMouseWheel(true)
     menu:Hide()
@@ -3900,9 +4114,26 @@ function ns.ToggleGuideMenu()
     if not scale or scale == 0 then
         scale = 1
     end
+    local pad = 8
     local x, y = GetCursorPosition()
+    x, y = x / scale, y / scale
+    local width = menu:GetWidth() or 280
+    local height = menu:GetHeight() or 80
+    local screenW = UIParent:GetWidth() or 0
+    local screenH = UIParent:GetHeight() or 0
+    if x < pad then
+        x = pad
+    elseif screenW > 0 and x + width > screenW - pad then
+        x = math.max(pad, screenW - pad - width)
+    end
+    if screenH > 0 and y > screenH - pad then
+        y = screenH - pad
+    end
+    if y - height < pad then
+        y = pad + height
+    end
     menu:ClearAllPoints()
-    menu:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale, y / scale)
+    menu:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
     menu:Show()
 end
 

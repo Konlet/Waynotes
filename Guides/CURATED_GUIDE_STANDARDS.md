@@ -41,7 +41,7 @@ local _, ns = ...
 | `id` | string | Yes | Unique, lowercase, hyphenated: `<faction>-<zone>-<min>-<max>`, for example `"horde-stonetalon-17-26"`. Never rename a shipped id; saved progress is keyed on it. |
 | `name` | string | Yes | Menu label: `"<min>-<max> <Zone Name>"`, for example `"17-26 Stonetalon Mountains"`. Dungeons use the instance name. |
 | `group` | string | Yes | Menu section: `"Horde"`, `"Alliance"`, `"Dungeons"`, `"Professions"`, or a race name. |
-| `faction` | `"Horde"` or `"Alliance"` | Recommended | Hides the guide from the other faction. Leave out for shared guides. |
+| `faction` | `"Horde"` or `"Alliance"` | Recommended | Marks the guide for recommendations and default menu collapse. The other faction's section stays visible but minimized. Leave out for shared guides. |
 | `forever` | boolean | Yes for curated | Always `true`. Marks coordinates as Forever-native so they are not converted again. |
 | `listed` | boolean | Yes | `true` to show in the guide picker. Defaults to `false` when omitted, so a missing value hides the guide. |
 | `minLevel`, `maxLevel` | number | Yes | Level band used for recommendations. Must match `name`. |
@@ -97,7 +97,7 @@ ns.RegisterGuide({
 | `fpath` | string | Flight path pickup. Names the flight hub, for example `"Crossroads"`. The step completes once that node is learned. |
 | `travel` | string, table, or `true` | Explicit travel destination for routing. See section 4.4. |
 | `arriveYards` | number | Arrival radius for `when = "travel"` steps. Default is 10 yards. |
-| `nearYards` | number | Radius for kill/loot/pick objective steps to show NEAR and to mark multi-pin spots visited. Default is 100 yards, or 10 yards when the step only needs one kill, loot, or pick. |
+| `nearYards` | number | Radius for kill/loot/pick objective steps to show NEAR and to mark multi-pin spots visited. Default is 100 yards, or 5 yards when the step only needs one kill, loot, or pick. |
 
 Fields not in this table are ignored by the loader. In particular, do not put `text` inside a `pins` entry; use `note`.
 
@@ -170,7 +170,7 @@ Completes once every listed quest is turned in. Use for turn-ins that do not lea
 
 Completes once the quest's objectives are finished. This is also the default when a step has a quest and no `when`, but always write it out.
 
-Kill, loot, and pick objectives show **NEAR** once the player is within range of the pin (and the arrow becomes a pin). The default radius is **100 yards** for grind counts (2+), and **10 yards** when the step only needs one kill, loot, or pick (a named target or a `(1)` detail). Set `nearYards` when the camp is larger or tighter than that default. The same radius marks multi-pin spots as visited.
+Kill, loot, and pick objectives show **NEAR** once the player is within range of the pin (and the arrow becomes a pin). The default radius is **100 yards** for grind counts (2+), and **5 yards** when the step only needs one kill, loot, or pick (a named target or a `(1)` detail). Set `nearYards` when the camp is larger or tighter than that default. The same radius marks multi-pin spots as visited.
 
 ```lua
 {
@@ -410,8 +410,6 @@ Use these sentence shapes, in this order when combined: location, NPC, turn-ins,
 | Several quests | `Turn in [QUEST]A[/], [QUEST]B[/], and [QUEST]C[/].` (Oxford comma) |
 | Kill | `Kill [ENEMY]Mobs[/] at Location.` |
 | Loot from mobs | `Loot [LOOT]Item[/] from [ENEMY]Mobs[/].` |
-
-Do not write "until [QUEST]… is finished" (or "done" / "complete"). The step already advances when the objectives are done. Name the mobs and, if useful, the place.
 | Click object | `Click the [PICK]Object[/].` |
 | Use item | `Use the [LOOT]Item[/] at Location.` |
 | Escort | `Talk to [FRIENDLY]NPC[/]. Accept [QUEST]Quest[/]. Escort her to Location.` |
@@ -419,6 +417,10 @@ Do not write "until [QUEST]… is finished" (or "done" / "complete"). The step a
 | Flight path | `Talk to [FRIENDLY]NPC[/]. Get the Hub flight path.` |
 | Hearth | `Set your Hearthstone to Town.` |
 | Optional | `[WARN]Optional group:[/] Accept [QUEST]Quest[/] ...` |
+
+Do not write "until [QUEST]… is finished" (or "done" / "complete"). The step already advances when the objectives are done. Name the mobs and, if useful, the place.
+
+Do not write "for [QUEST]Quest[/]" (or "for QuestName" without the tag). The player already sees the quest by mousing over or clicking the step. Name the action, target, and place; leave the quest name to Accept/Turn in lines and to the step's quest link.
 
 A short location lead-in is allowed only when the player is arriving somewhere new: `In the Charred Vale, kill ...`, `At Thorn Hill, loot ...`. Do not restate the place the player is already in from the previous step or travel pin (`In Windshear Crag, ...` right after talking to Ziz in that crag). Prefer `Return to Location` when they left and come back.
 
@@ -480,6 +482,8 @@ note = "Verog only spawns after enough Razormane die. Camp his spawn point if it
 | `Accept quest 6548.`, `Guide ID: horde-barrens-16-20` | Raw ids. The engine strips them and leaves broken sentences. | Use the quest name in a `[QUEST]` tag. |
 | `Kill [ENEMY]Grellkin[/] for [LOOT]Fel Moss[/].` when details already list `[LOOT]Fel Moss[/] (8)` | Restates the objective that the details show. | `Kill [ENEMY]Grellkin[/] at the lake.` |
 | `Kill [ENEMY]Mottled Boars[/] until [QUEST]Cutting Teeth[/] is finished.` | "Until the quest is finished" is obvious; the step already waits on objectives. | `Kill [ENEMY]Mottled Boars[/].` |
+| `Kill [ENEMY]Bloodfury Harpies[/] for [QUEST]Harpies Threaten[/].` | "For [quest]" restates the step link; the player can mouse over or click the step. | `Kill [ENEMY]Bloodfury Harpies[/].` |
+| `Talk to [FRIENDLY]Wiley[/] upstairs for [QUEST]The Defias Brotherhood[/].` | Same "for [quest]" filler on an accept. | `Talk to [FRIENDLY]Wiley[/] upstairs. Accept [QUEST]The Defias Brotherhood[/].` |
 | `Destroy the [LOOT]Manual[/].`, `Delete these items.` | Inventory cleanup steps. | Remove the step. |
 | `Turn in Avenge My Village and get the next one.` | Vague follow-up wording. | Name the follow-up quest. |
 | `In Windshear Crag, kill [ENEMY]Venture Co. Loggers[/].` right after talking to Ziz there | Restates a place the player already knows. | `Kill [ENEMY]Venture Co. Loggers[/].` |
@@ -579,6 +583,7 @@ Run through every item. Agents should report any failed item instead of silently
 - [ ] No "if needed", "skip", "optional" (outside a `[WARN]` prefix), "Press Next", raw ids, or cleanup steps.
 - [ ] No headline repeats the loot or kill target that the details already count.
 - [ ] No "until [QUEST]… is finished/done/complete" (or similar) in kill or loot headlines.
+- [ ] No "for [QUEST]…" (or untagged "for QuestName") in step text or details; quest names belong on Accept/Turn in lines only.
 - [ ] No `NPC:` detail when that NPC is already named in `text`.
 - [ ] No `Talk to` or `Speak with` lines in `details`.
 - [ ] Sentences end with periods; details do not.

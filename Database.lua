@@ -369,3 +369,312 @@ function ns.NpcSpawns(id)
     end
     return list
 end
+
+local entityDb = {
+    npc = function()
+        return NpcDB
+    end,
+    item = function()
+        return ItemDB
+    end,
+    object = function()
+        return ObjectDB
+    end,
+    quest = function()
+        return QuestDB
+    end,
+}
+
+local entityIdCache = {
+    npc = {},
+    item = {},
+    object = {},
+    quest = {},
+}
+
+local nameIndexWarm
+
+local function nameLookupForms(name)
+    local forms = { name }
+    if type(name) ~= "string" or name == "" then
+        return forms
+    end
+    if name:match("[^aeiouAEIOU]y$") then
+        forms[#forms + 1] = name:sub(1, -2) .. "ies"
+    elseif name:match("[^aeiouAEIOU]ies$") then
+        forms[#forms + 1] = name:sub(1, -4) .. "y"
+    elseif name:match("s$") and not name:match("ss$") then
+        forms[#forms + 1] = name:sub(1, -2)
+    else
+        forms[#forms + 1] = name .. "s"
+    end
+    return forms
+end
+
+local function firstNameId(db, name)
+    if type(db) ~= "table" or type(db.IdsByName) ~= "function" or type(name) ~= "string" or name == "" then
+        return nil
+    end
+    local ids = call(db.IdsByName, name)
+    if type(ids) == "table" then
+        for _, id in ipairs(ids) do
+            if type(id) == "number" and id > 0 then
+                return id
+            end
+        end
+    end
+end
+
+-- Resolve a guide-tag name to a QuestieDB id. Exact match first, then
+-- singular/plural variants. Misses cache as false.
+function ns.EntityIdByName(kind, name)
+    kind = kind and tostring(kind):lower() or ""
+    name = textOrNil(name)
+    local cache = entityIdCache[kind]
+    local getDb = entityDb[kind]
+    if not cache or not getDb or not name then
+        return nil
+    end
+    local cached = cache[name]
+    if cached ~= nil then
+        if cached then
+            return cached
+        end
+        return nil
+    end
+    if not ns.QuestieReady() then
+        return nil
+    end
+    local db = getDb()
+    local id = firstNameId(db, name)
+    if not id then
+        for _, form in ipairs(nameLookupForms(name)) do
+            if form ~= name then
+                id = firstNameId(db, form)
+                if id then
+                    break
+                end
+            end
+        end
+    end
+    cache[name] = id or false
+    if id then
+        return id
+    end
+end
+
+local function npcRankLabel(rank)
+    if rank == 1 then
+        return "Elite"
+    end
+    if rank == 2 then
+        return "Rare Elite"
+    end
+    if rank == 3 then
+        return "Boss"
+    end
+    if rank == 4 then
+        return "Rare"
+    end
+end
+
+local function showItemTooltip(owner, id)
+    GameTooltip:SetOwner(owner, "ANCHOR_NONE")
+    local ok = false
+    if GameTooltip.SetItemByID then
+        ok = pcall(GameTooltip.SetItemByID, GameTooltip, id)
+    end
+    if not ok then
+        ok = pcall(GameTooltip.SetHyperlink, GameTooltip, "item:" .. id)
+    end
+    local lines = (GameTooltip.NumLines and GameTooltip:NumLines()) or 0
+    if not ok or lines == 0 then
+        local name = entityName(ItemDB, id) or ("Item " .. id)
+        GameTooltip:ClearLines()
+        GameTooltip:SetText(name, 1, 1, 1)
+        local level = numberOrNil(call(ItemDB.itemLevel, id))
+        local required = numberOrNil(call(ItemDB.requiredLevel, id))
+        if level then
+            GameTooltip:AddLine("Item Level " .. level, 0.8, 0.8, 0.8)
+        end
+        if required then
+            GameTooltip:AddLine("Requires Level " .. required, 0.8, 0.8, 0.8)
+        end
+    end
+    if ns.FinishTooltip then
+        ns.FinishTooltip()
+    else
+        GameTooltip:Show()
+    end
+    return true
+end
+
+local function showNpcTooltip(owner, id)
+    local name = entityName(NpcDB, id)
+    if not name then
+        return false
+    end
+    local sub = textOrNil(call(NpcDB.subName, id))
+    local minLevel = numberOrNil(call(NpcDB.minLevel, id))
+    local maxLevel = numberOrNil(call(NpcDB.maxLevel, id))
+    local rank = numberOrNil(call(NpcDB.rank, id))
+    local pin = pinFor("npc", id)
+    local friendly = textOrNil(call(NpcDB.friendlyToFaction, id))
+    local r, g, b = 1, 0.82, 0
+    if ns.Color then
+        r, g, b = ns.Color("accent")
+    end
+    if friendly == "A" or friendly == "H" or friendly == "AH" then
+        r, g, b = 0.15, 1, 0.15
+    else
+        r, g, b = 1, 0.34, 0.13
+    end
+    GameTooltip:SetOwner(owner, "ANCHOR_NONE")
+    GameTooltip:ClearLines()
+    GameTooltip:SetText(name, r, g, b, 1, true)
+    if sub then
+        GameTooltip:AddLine(sub, 0.85, 0.85, 0.85, true)
+    end
+    local levelLine
+    if minLevel and maxLevel and minLevel ~= maxLevel then
+        levelLine = "Level " .. minLevel .. "-" .. maxLevel
+    elseif minLevel or maxLevel then
+        levelLine = "Level " .. (minLevel or maxLevel)
+    end
+    local rankLabel = npcRankLabel(rank)
+    if levelLine and rankLabel then
+        levelLine = levelLine .. " " .. rankLabel
+    elseif rankLabel then
+        levelLine = rankLabel
+    end
+    if levelLine then
+        GameTooltip:AddLine(levelLine, 1, 1, 1)
+    end
+    if pin and pin.zone then
+        local where = pin.zone
+        if type(pin.x) == "number" and type(pin.y) == "number" then
+            where = string.format("%s (%.1f, %.1f)", where, pin.x, pin.y)
+        end
+        GameTooltip:AddLine(where, 0.8, 0.8, 0.8, true)
+    end
+    if ns.FinishTooltip then
+        ns.FinishTooltip()
+    else
+        GameTooltip:Show()
+    end
+    return true
+end
+
+local function showObjectTooltip(owner, id)
+    local name = entityName(ObjectDB, id)
+    if not name then
+        return false
+    end
+    local pin = pinFor("object", id)
+    local r, g, b = 0.86, 0.18, 0.94
+    if ns.Color then
+        r, g, b = ns.Color("accent")
+    end
+    GameTooltip:SetOwner(owner, "ANCHOR_NONE")
+    GameTooltip:ClearLines()
+    GameTooltip:SetText(name, r, g, b, 1, true)
+    GameTooltip:AddLine("Object", 0.85, 0.85, 0.85)
+    if pin and pin.zone then
+        local where = pin.zone
+        if type(pin.x) == "number" and type(pin.y) == "number" then
+            where = string.format("%s (%.1f, %.1f)", where, pin.x, pin.y)
+        end
+        GameTooltip:AddLine(where, 0.8, 0.8, 0.8, true)
+    end
+    if ns.FinishTooltip then
+        ns.FinishTooltip()
+    else
+        GameTooltip:Show()
+    end
+    return true
+end
+
+-- Hover tip for a guide-tag entity (npc / item / object) resolved via QuestieDB.
+function ns.ShowGuideEntityTooltip(owner, kind, name)
+    if not owner then
+        return false
+    end
+    kind = kind and tostring(kind):lower() or ""
+    local id = ns.EntityIdByName(kind, name)
+    if not id then
+        return false
+    end
+    if kind == "item" then
+        return showItemTooltip(owner, id)
+    end
+    if kind == "npc" then
+        return showNpcTooltip(owner, id)
+    end
+    if kind == "object" then
+        return showObjectTooltip(owner, id)
+    end
+    return false
+end
+
+-- Pay for IdsByName indexes off the hover path. BuildNameIndexAsync yields
+-- inside the caller's coroutine; we resume it a little each frame.
+function ns.WarmQuestieNameIndexes()
+    if nameIndexWarm or not ns.QuestieReady() then
+        return
+    end
+    nameIndexWarm = true
+    local queue = {}
+    for _, kind in ipairs({ "npc", "item", "object", "quest" }) do
+        local getDb = entityDb[kind]
+        local db = getDb and getDb()
+        if type(db) == "table" then
+            queue[#queue + 1] = db
+        end
+    end
+    if #queue == 0 then
+        return
+    end
+    local frame = CreateFrame("Frame")
+    local index = 1
+    local co
+    local function startNext()
+        while index <= #queue do
+            local db = queue[index]
+            index = index + 1
+            if type(db.BuildNameIndexAsync) == "function" then
+                co = coroutine.create(function()
+                    call(db.BuildNameIndexAsync, 200)
+                end)
+                return true
+            end
+            if type(db.BuildNameIndex) == "function" then
+                call(db.BuildNameIndex)
+            end
+        end
+        co = nil
+        return false
+    end
+    startNext()
+    frame:SetScript("OnUpdate", function(self)
+        if not co then
+            if not startNext() then
+                self:SetScript("OnUpdate", nil)
+            end
+            return
+        end
+        if coroutine.status(co) == "dead" then
+            co = nil
+            if not startNext() then
+                self:SetScript("OnUpdate", nil)
+            end
+            return
+        end
+        local ok = coroutine.resume(co)
+        if not ok then
+            co = nil
+            if not startNext() then
+                self:SetScript("OnUpdate", nil)
+            end
+        end
+    end)
+end

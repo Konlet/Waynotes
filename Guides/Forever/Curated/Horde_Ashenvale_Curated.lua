@@ -399,7 +399,7 @@ ns.RegisterGuide({
         },
         {
             classes = { "Shaman" },
-            text = "At the Ruins of Stardust, use your [LOOT]Empty Blue Waterskin[/] on the water. Collect the [LOOT]Filled Blue Waterskin[/] for [QUEST]Call of Water[/].",
+            text = "At the Ruins of Stardust, use your [LOOT]Empty Blue Waterskin[/] on the water. Collect the [LOOT]Filled Blue Waterskin[/].",
             quest = 1534,
             when = "objectives",
             map = 1440,

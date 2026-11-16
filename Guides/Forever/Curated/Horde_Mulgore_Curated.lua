@@ -924,7 +924,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Flatland Prowlers[/] for [QUEST]The Hunter's Way[/].",
+            text = "Kill [ENEMY]Flatland Prowlers[/].",
             map = 1412,
             x = 63.44,
             y = 62.5,
@@ -936,7 +936,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Prairie Wolf Alphas[/] for [QUEST]Wildmane Totem[/].",
+            text = "Kill [ENEMY]Prairie Wolf Alphas[/].",
             map = 1412,
             x = 63.44,
             y = 62.5,
@@ -947,7 +947,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill Galak for [QUEST]Drive Them Out[/], including [ENEMY]Herak the Pillager[/].",
+            text = "Kill Galak, including [ENEMY]Herak the Pillager[/].",
             map = 1412,
             x = 63.44,
             y = 62.5,
@@ -973,7 +973,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Use the [LOOT]Mulgore Expansion Plans[/] for [QUEST]Fizsprocket's Notes[/] and loot the three documents.",
+            text = "Use the [LOOT]Mulgore Expansion Plans[/] and loot the three documents.",
             map = 1412,
             x = 58.35,
             y = 52.65,
@@ -1096,7 +1096,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Finish [ENEMY]Flatland Prowler[/] claws along the way for [QUEST]The Hunter's Way[/].",
+            text = "Finish [ENEMY]Flatland Prowler[/] claws along the way.",
             map = 1412,
             x = 42.49,
             y = 24.68,
@@ -1108,7 +1108,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Cleanse the Wildmane Well for [QUEST]Wildmane Cleansing[/].",
+            text = "Cleanse the Wildmane Well.",
             map = 1412,
             x = 42.49,
             y = 24.68,

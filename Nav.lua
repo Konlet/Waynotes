@@ -67,6 +67,9 @@ do
                     forever = true,
                     npc = entry.npc,
                     nodeId = entry.nodeId,
+                    map = entry.map,
+                    x = entry.x,
+                    y = entry.y,
                     wx = entry.wx,
                     wy = entry.wy,
                     wz = entry.wz,
@@ -271,14 +274,21 @@ end
 
 local function playerPoint()
     local hbd = getHBD()
-    if not hbd or type(hbd.GetPlayerWorldPosition) ~= "function" then
-        return nil
+    if hbd and type(hbd.GetPlayerWorldPosition) == "function" then
+        local ok, wx, wy, instance = pcall(hbd.GetPlayerWorldPosition, hbd)
+        if ok and isNumber(wx) and isNumber(wy) then
+            return wx, wy, instance
+        end
     end
-    local ok, wx, wy, instance = pcall(hbd.GetPlayerWorldPosition, hbd)
-    if not ok or not isNumber(wx) or not isNumber(wy) then
-        return nil
+    -- Forever: HBD player world is often nil outdoors. UnitPosition matches
+    -- Forever flight / dock JSON coordinates.
+    if type(UnitPosition) == "function" then
+        local ok, posY, posX, _, instance = pcall(UnitPosition, "player")
+        if ok and isNumber(posX) and isNumber(posY) then
+            return posX, posY, instance
+        end
     end
-    return wx, wy, instance
+    return nil
 end
 
 local function playerZonePos()
@@ -361,8 +371,9 @@ end
 
 -- Same-zone ranking when classic UiMap conversion fails on Forever. Absolute
 -- yards are approximate; ranking only needs nearby pins to beat far ones.
-local function zonePercentYards(pzx, pzy, dx, dy)
-    local SCALE = 4000
+-- scale defaults to outdoor (~4000); capitals should pass ~1200 via mapPercentScale.
+local function zonePercentYards(pzx, pzy, dx, dy, scale)
+    local SCALE = (isNumber(scale) and scale > 0) and scale or 4000
     local ex = (pzx - dx) * SCALE
     local ey = (pzy - dy) * SCALE
     return (ex * ex + ey * ey) ^ 0.5
@@ -440,6 +451,19 @@ local CLASSIC_MAP_ZONE = {
     [1457] = "Darnassus",
     [1458] = "Undercity",
     [1416] = "Alterac Mountains",
+}
+
+-- Capitals are ~0.8-1.5k yd across. Outdoor zones use ~4000 as a last-resort
+-- percent→yard guess; cities must not inherit that or Undercity reads 3-4x high.
+local OUTDOOR_MAP_SCALE = 4000
+local CITY_MAP_SCALE = 1200
+local CITY_CLASSIC_MAPS = {
+    [1453] = true,
+    [1454] = true,
+    [1455] = true,
+    [1456] = true,
+    [1457] = true,
+    [1458] = true,
 }
 
 local function mapName(map)
@@ -552,6 +576,64 @@ local function pinMapsForWorld(map, zone)
         add(liveMapByZone[zoneKey])
     end
     return list
+end
+
+local function mapPercentScale(map)
+    if isNumber(map) then
+        if CITY_CLASSIC_MAPS[map] then
+            return CITY_MAP_SCALE
+        end
+        for classicId, liveId in pairs(liveMapByClassic) do
+            if liveId == map and CITY_CLASSIC_MAPS[classicId] then
+                return CITY_MAP_SCALE
+            end
+        end
+        local key = normalizeZoneName(mapName(map))
+        if key == "stormwind city" or key == "orgrimmar" or key == "ironforge"
+            or key == "thunder bluff" or key == "darnassus" or key == "undercity" then
+            return CITY_MAP_SCALE
+        end
+    end
+    return OUTDOOR_MAP_SCALE
+end
+
+-- Same-zone yards from C_Map.GetWorldPosFromMapPos .x/.y (trusted continent space).
+-- Prefer this over HBD / outdoor percent*4000 inside capitals.
+local function sameZoneCMapDistance(map, x, y, zone)
+    local pzx, pzy, pmap = playerZonePos()
+    if not isNumber(pzx) or not isNumber(pmap) or not isNumber(x) or not isNumber(y) then
+        return nil
+    end
+    local pzone = playerZoneName()
+    local pinZone = zone or mapName(map)
+    local sameZone = (isNumber(map) and map == pmap) or zonesMatch(pzone, pinZone)
+    if not sameZone then
+        return nil
+    end
+    rememberLiveMap(pmap, pzone)
+    local pwx, pwy, pcont = mapWorld(pmap, pzx, pzy)
+    if not pwx then
+        return nil
+    end
+    local function distFrom(twx, twy, tcont)
+        if not twx then
+            return nil
+        end
+        if pcont and tcont and pcont ~= tcont then
+            return nil
+        end
+        local dx = twx - pwx
+        local dy = twy - pwy
+        return (dx * dx + dy * dy) ^ 0.5
+    end
+    for _, pinMap in ipairs(pinMapsForWorld(map, pinZone)) do
+        local dist = distFrom(mapWorld(pinMap, x, y))
+        if dist then
+            return dist
+        end
+    end
+    -- Classic pin map may not convert on Forever; measure pin % on the live map.
+    return distFrom(mapWorld(pmap, x, y))
 end
 
 -- Cross-zone vector in C_Map world space. Nil when the pin is already same-zone
@@ -733,15 +815,16 @@ local function pinWorldFromZoneDelta(map, pinX, pinY, pzx, pzy, px, py, pinstanc
 end
 
 -- When HBD cannot convert a map at all, approximate the pin in UnitPosition
--- space from zone-percent delta. Outdoor classic zones are ~3-6k yd across.
-local function pinWorldFromPercent(pzx, pzy, pinX, pinY, px, py, pinstance)
+-- space from zone-percent delta. Outdoor classic zones are ~3-6k yd across;
+-- capitals use CITY_MAP_SCALE so Undercity does not inherit the outdoor guess.
+local function pinWorldFromPercent(pzx, pzy, pinX, pinY, px, py, pinstance, map)
     local dx = toFraction(pinX)
     local dy = toFraction(pinY)
     pzx, pzy = toFraction(pzx), toFraction(pzy)
     if not isNumber(pzx) or not isNumber(pzy) or not isNumber(dx) or not isNumber(dy) or not isNumber(px) or not isNumber(py) then
         return nil
     end
-    local SCALE = 4000
+    local SCALE = mapPercentScale(map)
     return px + (dx - pzx) * SCALE, py + (dy - pzy) * SCALE, pinstance
 end
 
@@ -777,7 +860,7 @@ function ns.PinToPlayerWorld(map, x, y, zone)
             if wx then
                 return wx, wy, instance
             end
-            wx, wy, instance = pinWorldFromPercent(pzx, pzy, x, y, px, py, pinstance)
+            wx, wy, instance = pinWorldFromPercent(pzx, pzy, x, y, px, py, pinstance, pmap)
             if wx then
                 return wx, wy, instance
             end
@@ -813,7 +896,7 @@ function ns.PinToPlayerWorld(map, x, y, zone)
                 if wx then
                     return wx, wy, instance
                 end
-                return pinWorldFromPercent(pzx, pzy, x, y, px, py, pinstance)
+                return pinWorldFromPercent(pzx, pzy, x, y, px, py, pinstance, pmap)
             end
         end
     end
@@ -847,13 +930,19 @@ function ns.PinZoneDistance(map, x, y, zone)
     if not sameZone then
         return nil
     end
+    -- C_Map continent yards first. HBD city scales (and outdoor 4000) are wrong
+    -- in capitals like Undercity.
+    local cmapDist = sameZoneCMapDistance(map, x, y, pinZone)
+    if isNumber(cmapDist) then
+        return cmapDist
+    end
     if hbd and isNumber(pmap) and type(hbd.GetZoneDistance) == "function" then
         local ok, dist = pcall(hbd.GetZoneDistance, hbd, pmap, pzx, pzy, pmap, dx, dy)
         if ok and isNumber(dist) then
             return dist
         end
     end
-    -- Prefer live-map size over a flat 4000 yd guess when HBD can convert corners.
+    -- Prefer live-map size over a flat outdoor guess when HBD can convert corners.
     if hbd and isNumber(pmap) and type(hbd.GetWorldCoordinatesFromZone) == "function" then
         local ok0, wx0, wy0, inst0 = pcall(hbd.GetWorldCoordinatesFromZone, hbd, 0, 0, pmap)
         local ok1, wx1, wy1, inst1 = pcall(hbd.GetWorldCoordinatesFromZone, hbd, 1, 1, pmap)
@@ -867,7 +956,7 @@ function ns.PinZoneDistance(map, x, y, zone)
             end
         end
     end
-    return zonePercentYards(pzx, pzy, dx, dy)
+    return zonePercentYards(pzx, pzy, dx, dy, mapPercentScale(pmap or map))
 end
 
 -- Prefer a UnitPosition-relative waypoint when possible; otherwise the closest
@@ -925,21 +1014,22 @@ local function pinDistance(hbd, pzx, pzy, pmap, pzone, pin, px, py, pinstance)
 
     -- Same zone: measure on the player's live map with Forever percents.
     if sameZone and isNumber(dx) and isNumber(dy) and isNumber(pzx) and isNumber(pmap) then
-        local zoneDist
-        if hbd and type(hbd.GetZoneDistance) == "function" then
+        local zoneDist = sameZoneCMapDistance(pin.map, pin.x, pin.y, pin.zone)
+        if not zoneDist and hbd and type(hbd.GetZoneDistance) == "function" then
             local ok, yards = pcall(hbd.GetZoneDistance, hbd, pmap, pzx, pzy, pmap, dx, dy)
             if ok and isNumber(yards) then
                 zoneDist = yards
             end
         end
         if not zoneDist then
-            zoneDist = zonePercentYards(pzx, pzy, dx, dy)
+            zoneDist = zonePercentYards(pzx, pzy, dx, dy, mapPercentScale(pmap or pin.map))
         end
 
         local worldDist
         wx, wy, instance, worldDist = closestPinWorld(pin, pmap, pzx, pzy, px, py, pinstance)
-        -- UnitPosition-relative waypoint yards match what the arrow displays.
-        local dist = worldDist or zoneDist
+        -- Prefer C_Map / zone yards in cities; UnitPosition-relative HBD deltas
+        -- can still inherit a bad map scale there.
+        local dist = zoneDist or worldDist
         if dist then
             return dist, wx, wy, instance or pinstance
         end
@@ -1084,10 +1174,51 @@ local function candidateWorld(pin, pinstance)
     return nil
 end
 
+local function resolveFlightZonePin(dest)
+    if type(dest) ~= "table" then
+        return dest
+    end
+    if isNumber(dest.map) and isNumber(dest.x) and isNumber(dest.y) then
+        dest._pinResolved = true
+        return dest
+    end
+    -- Avoid repeating Questie / HBD world→zone work every strip pulse.
+    if dest._pinResolved then
+        return dest
+    end
+    dest._pinResolved = true
+    -- NPC spawn pins (Questie / Forever) beat world→zone conversion for aiming.
+    if dest.npc and ns.NpcPin then
+        local ok, pin = pcall(ns.NpcPin, dest.npc)
+        if ok and type(pin) == "table" and isNumber(pin.map) and isNumber(pin.x) and isNumber(pin.y) then
+            dest.map, dest.x, dest.y = pin.map, pin.x, pin.y
+            if type(pin.zone) == "string" and pin.zone ~= "" then
+                dest.zone = pin.zone
+            end
+            return dest
+        end
+    end
+    if isNumber(dest.wx) and isNumber(dest.wy) then
+        local map, x, y = zoneFromWorldAny(dest.wx, dest.wy, dest.instance)
+        if map then
+            dest.map, dest.x, dest.y = map, x, y
+        end
+    end
+    return dest
+end
+
+-- Fill map/x/y on flight/dock targets so tracker arrows aim in UnitPosition space.
+function ns.NavResolveTargetPin(dest)
+    return resolveFlightZonePin(dest)
+end
+
 local function destWorld(dest)
     if type(dest) ~= "table" then
         return nil
     end
+    -- Flight / dock JSON wx/wy are Forever map-world. Convert to a zone pin and
+    -- aim through PinToPlayerWorld so the arrow matches UnitPosition space.
+    resolveFlightZonePin(dest)
     -- Prefer UnitPosition-aligned coords so NavDistance / NavFacing match tracker arrows.
     if isNumber(dest.map) and isNumber(dest.x) and isNumber(dest.y) then
         local wx, wy, instance = ns.PinToPlayerWorld(dest.map, dest.x, dest.y, dest.zone)
@@ -1100,8 +1231,18 @@ local function destWorld(dest)
         return dest.waypoint.wx, dest.waypoint.wy, dest.waypoint.instance
     end
     if isNumber(dest.wx) and isNumber(dest.wy) then
-        dest.waypoint = { wx = dest.wx, wy = dest.wy, instance = dest.instance }
-        return dest.wx, dest.wy, dest.instance
+        -- Last resort: axis-align map-world JSON into UnitPosition space.
+        local px, py = playerPoint()
+        local wx, wy = dest.wx, dest.wy
+        if isNumber(px) and isNumber(py) then
+            local direct = (px - wx) * (px - wx) + (py - wy) * (py - wy)
+            local swapped = (px - wy) * (px - wy) + (py - wx) * (py - wx)
+            if swapped + 100 < direct then
+                wx, wy = dest.wy, dest.wx
+            end
+        end
+        dest.waypoint = { wx = wx, wy = wy, instance = dest.instance }
+        return wx, wy, dest.instance
     end
     return nil
 end
@@ -1252,6 +1393,12 @@ function ns.NavDistance(dest)
         if cross and isNumber(cross.dist) then
             return cross.dist
         end
+        -- Same-zone (CrossZoneVector is nil): use C_Map / PinZoneDistance so
+        -- city yards match the tracker instead of HBD outdoor scales.
+        local zoneDist = ns.PinZoneDistance(dest.map, dest.x, dest.y, dest.zone)
+        if isNumber(zoneDist) then
+            return zoneDist
+        end
     end
     local hbd = getHBD()
     local px, py, pinstance = playerPoint()
@@ -1284,6 +1431,18 @@ function ns.NavFacing(dest)
     local ok, angle, dist = pcall(hbd.GetWorldVector, hbd, pinstance or 0, px, py, wx, wy)
     if not ok or not isNumber(angle) then
         return nil
+    end
+    -- Prefer same-zone C_Map yards for the label; keep HBD angle for aiming.
+    if isNumber(dest.x) and isNumber(dest.y) then
+        local zoneDist = ns.PinZoneDistance(dest.map, dest.x, dest.y, dest.zone)
+        if isNumber(zoneDist) then
+            dist = zoneDist
+        else
+            local cross = ns.CrossZoneVector(dest.map, dest.x, dest.y, dest.zone)
+            if cross and isNumber(cross.dist) then
+                dist = cross.dist
+            end
+        end
     end
     local facing = GetPlayerFacing and GetPlayerFacing() or nil
     if not isNumber(facing) then

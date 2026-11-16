@@ -241,7 +241,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Razormane Water Seekers[/], [ENEMY]Thornweavers[/], and [ENEMY]Hunters[/] for [QUEST]Disrupt the Attacks[/].",
+            text = "Kill [ENEMY]Razormane Water Seekers[/], [ENEMY]Thornweavers[/], and [ENEMY]Hunters[/].",
             quest = 871,
             when = "objectives",
             map = 1413,
@@ -307,7 +307,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "At Thorn Hill, loot the [PICK]Crossroads Supply Crates[/] for [QUEST]Supplies for the Crossroads[/].",
+            text = "At Thorn Hill, loot the [PICK]Crossroads Supply Crates[/].",
             quest = 5041,
             when = "objectives",
             map = 1413,
@@ -511,15 +511,26 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Recover the [LOOT]Shipment of Boots[/] and [LOOT]Telescopic Lens[/] from the pirate camps.",
+            sticky = true,
+            text = "Recover the [LOOT]Telescopic Lens[/] from the pirate camp.",
             quest = 888,
-            when = "objectives",
+            when = "objective",
             map = 1413,
             x = 63.6,
             y = 49.2,
             details = {
-                "[LOOT]Shipment of Boots[/] (1)",
                 "[LOOT]Telescopic Lens[/] (1)",
+            },
+        },
+        {
+            text = "Recover the [LOOT]Shipment of Boots[/] from the pirate camp.",
+            quest = 888,
+            when = "objective",
+            map = 1413,
+            x = 62.6,
+            y = 49.7,
+            details = {
+                "[LOOT]Shipment of Boots[/] (1)",
             },
         },
         {
@@ -551,6 +562,7 @@ ns.RegisterGuide({
             },
         },
         {
+            sticky = true,
             text = "Kill [ENEMY]Barak Kodobane[/] for his head.",
             quest = 850,
             when = "objectives",
@@ -562,7 +574,6 @@ ns.RegisterGuide({
             },
         },
         {
-            sticky = true,
             text = "At the Forgotten Pools, loot [LOOT]Fungal Spores[/].",
             quest = 848,
             when = "objectives",
@@ -574,7 +585,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Explore the lake for [QUEST]The Forgotten Pools[/].",
+            text = "Explore the lake.",
             quest = 870,
             when = "objectives",
             map = 1413,
@@ -585,8 +596,20 @@ ns.RegisterGuide({
             },
         },
         {
+            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Kolkar Leaders[/]. Accept [QUEST]Verog the Dervish[/]. Turn in [QUEST]Centaur Bracers[/].",
+            quest = 851,
+            when = "accepted",
+            map = 1413,
+            x = 45.3,
+            y = 28.4,
+            details = {
+                "Turn in [QUEST]Kolkar Leaders[/]",
+                "Turn in [QUEST]Centaur Bracers[/]",
+            },
+        },
+        {
             sticky = true,
-            text = "Kill [ENEMY]Savannah Prowlers[/] for [QUEST]Prowlers of the Barrens[/]. Save [LOOT]Savannah Lion Tusks[/] and [LOOT]Plainstrider Kidneys[/] for Chen's keg.",
+            text = "Kill [ENEMY]Savannah Prowlers[/]. Save [LOOT]Savannah Lion Tusks[/] and [LOOT]Plainstrider Kidneys[/] for Chen's keg.",
             quest = 903,
             when = "objectives",
             map = 1413,
@@ -607,18 +630,6 @@ ns.RegisterGuide({
             y = 16.0,
             details = {
                 "[LOOT]Witchwing Talon[/] (8)",
-            },
-        },
-        {
-            text = "Talk to [FRIENDLY]Regthar Deathgate[/]. Turn in [QUEST]Kolkar Leaders[/]. Accept [QUEST]Verog the Dervish[/]. Turn in [QUEST]Centaur Bracers[/].",
-            quest = 851,
-            when = "accepted",
-            map = 1413,
-            x = 45.3,
-            y = 28.4,
-            details = {
-                "Turn in [QUEST]Kolkar Leaders[/]",
-                "Turn in [QUEST]Centaur Bracers[/]",
             },
         },
         {
@@ -680,7 +691,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Collect [LOOT]Raptor Heads[/] from any [ENEMY]Sunscale[/] raptors for [QUEST]Raptor Thieves[/] as you go.",
+            text = "Collect [LOOT]Raptor Heads[/] from any [ENEMY]Sunscale[/] raptors as you go.",
             quest = 869,
             when = "objectives",
             map = 1413,
@@ -711,7 +722,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Turn in [QUEST]Ignition[/] at the shredder, then escort it out for [QUEST]The Escape[/].",
+            text = "Turn in [QUEST]Ignition[/] at the shredder, then escort it out. Accept [QUEST]The Escape[/].",
             quest = 863,
             when = "objectives",
             map = 1413,
@@ -819,7 +830,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At the Stagnant Oasis, test the seeds in the bubbly fissure for [QUEST]The Stagnant Oasis[/].",
+            text = "At the Stagnant Oasis, test the seeds in the bubbly fissure.",
             quest = 877,
             when = "objectives",
             map = 1413,
@@ -827,14 +838,15 @@ ns.RegisterGuide({
             y = 42.8,
         },
         {
-            text = "Kill Kolkar until [ENEMY]Verog the Dervish[/] spawns. Loot his head.",
+            text = "Kill [ENEMY]Verog the Dervish[/]. Kill Kolkar until he spawns.",
             quest = 851,
             when = "objectives",
             map = 1413,
             x = 53.0,
-            y = 41.5,
+            y = 41.7,
             details = {
                 "[LOOT]Verog's Head[/] (1)",
+                "Each time you kill a Kolkar, there is a chance to spawn [ENEMY]Verog the Dervish[/].",
             },
             note = "Camp his spawn if contested. Skip and return later.",
         },
@@ -870,19 +882,38 @@ ns.RegisterGuide({
             note = "These guys are very spread out in central Barrens. Keep an eye out for them as you go. Skip for now if you can't find them.",
         },
         {
-            text = "Place feathers on the blue, yellow, and red nests for [QUEST]The Angry Scytheclaws[/].",
+            text = "Use a [LOOT]Sunscale Feather[/] on the [PICK]Blue[/], [PICK]Yellow[/], and [PICK]Red Raptor Nest[/].",
             quest = 905,
             when = "objectives",
             map = 1413,
-            x = 52.0,
-            y = 46.5,
-            details = {
-                "Visit the 3 nests",
-                "[LOOT]Raptor Head[/] (12)",
+            x = 52.6,
+            y = 46.11,
+            pins = {
+                {
+                    note = "Blue Raptor Nest",
+                    x = 52.6,
+                    y = 46.11,
+                },
+                {
+                    note = "Yellow Raptor Nest",
+                    x = 52.02,
+                    y = 46.47,
+                },
+                {
+                    note = "Red Raptor Nest",
+                    x = 52.46,
+                    y = 46.56,
+                },
             },
+            details = {
+                "Visit Blue Raptor Nest",
+                "Visit Yellow Raptor Nest",
+                "Visit Red Raptor Nest",
+            },
+            note = "One feather per nest. Kill more Sunscale Scytheclaws nearby if you are short.",
         },
         {
-            text = "Find the [PICK]Beaten Corpse[/] south of the Crossroads road for [QUEST]Lost in Battle[/].",
+            text = "Find the [PICK]Beaten Corpse[/] south of the Crossroads road.",
             quest = 4921,
             when = "objectives",
             map = 1413,
@@ -925,7 +956,7 @@ ns.RegisterGuide({
             y = 59.3,
         },
         {
-            text = "Optional: if you find [ENEMY]Lakota'mani[/] nearby, kill him. Loot the hoof and accept [QUEST]Lakota'mani[/].",
+            text = "Optional: if you find [ENEMY]Lakota'mani[/] nearby, kill him. Loot [LOOT]Hoof of Lakota'mani[/] and accept [QUEST]Lakota'mani[/].",
             quest = 883,
             when = "accepted",
             map = 1413,
@@ -934,18 +965,65 @@ ns.RegisterGuide({
             note = "Rare spawn. Skip if you do not see him.",
         },
         {
-            text = "Fly or run back to Crossroads. Turn in [QUEST]The Stagnant Oasis[/], [QUEST]The Angry Scytheclaws[/], [QUEST]Raptor Thieves[/], [QUEST]Stolen Silver[/], and [QUEST]Lost in Battle[/]. Accept [QUEST]Altered Beings[/] and [QUEST]Jorn Skyseer[/].",
-            quests = { 880, 3261 },
+            text = "Talk to [FRIENDLY]Jorn Skyseer[/]. Turn in [QUEST]Lakota'mani[/].",
+            quest = 883,
+            when = "complete",
+            map = 1413,
+            x = 44.9,
+            y = 59.1,
+        },
+        {
+            text = "Return to the Crossroads.",
+            when = "travel",
+            map = 1413,
+            x = 52.2,
+            y = 31.0,
+        },
+        {
+            text = "Talk to Gazrog. Turn in [QUEST]Stolen Silver[/].",
+            quest = 3281,
+            when = "complete",
+            map = 1413,
+            x = 51.9,
+            y = 30.3,
+            details = {
+                "Turn in [QUEST]Stolen Silver[/]",
+            },
+        },
+        {
+            text = "Talk to Sergra Darkthorn. Turn in [QUEST]The Angry Scytheclaws[/]. Accept [QUEST]Jorn Skyseer[/].",
+            quest = 3261,
             when = "accepted",
             map = 1413,
             x = 52.2,
             y = 31.0,
             details = {
-                "Turn in [QUEST]The Stagnant Oasis[/]",
                 "Turn in [QUEST]The Angry Scytheclaws[/]",
-                "Turn in [QUEST]Raptor Thieves[/]",
-                "Turn in [QUEST]Stolen Silver[/]",
+                "Accept [QUEST]Jorn Skyseer[/]",
+            },
+        },
+        {
+            text = "Talk to Mankrik. Turn in [QUEST]Lost in Battle[/]. Accept [QUEST]Her Name Is Olgra[/].",
+            quest = 95774,
+            when = "accepted",
+            map = 1413,
+            x = 52.0,
+            y = 31.6,
+            details = {
                 "Turn in [QUEST]Lost in Battle[/]",
+                "Accept [QUEST]Her Name Is Olgra[/]",
+            },
+        },
+        {
+            text = "Talk to Tonga Runetotem. Turn in [QUEST]The Stagnant Oasis[/]. Accept [QUEST]Altered Beings[/].",
+            quest = 880,
+            when = "accepted",
+            map = 1413,
+            x = 52.2,
+            y = 31.9,
+            details = {
+                "Turn in [QUEST]The Stagnant Oasis[/]",
+                "Accept [QUEST]Altered Beings[/]",
             },
         },
         {
@@ -1185,7 +1263,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill Bristleback quilboar north of Camp Taurajo for [QUEST]Tribes at War[/] and [LOOT]Bristleback Quilboar Tusks[/] for [QUEST]Consumed by Hatred[/]. Save [LOOT]Blood Shards[/].",
+            text = "Kill Bristleback quilboar north of Camp Taurajo. Loot [LOOT]Bristleback Quilboar Tusks[/]. Save [LOOT]Blood Shards[/].",
             quests = { 878, 899 },
             when = "objectives",
             map = 1413,
@@ -1288,7 +1366,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "At the Field of Giants, dig [LOOT]Silithid Eggs[/] for [QUEST]Egg Hunt[/].",
+            text = "At the Field of Giants, dig [LOOT]Silithid Eggs[/].",
             quest = 868,
             when = "objectives",
             map = 1413,
@@ -1321,7 +1399,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In the Blackthorn Ridge / southern Razormane camps, gather weapons for [QUEST]Weapons of Choice[/] and kill [ENEMY]Nak[/], [ENEMY]Kuz[/], and [ENEMY]Lok Orcbane[/] for [QUEST]Betrayal from Within[/].",
+            text = "In the Blackthorn Ridge / southern Razormane camps, gather weapons and kill [ENEMY]Nak[/], [ENEMY]Kuz[/], and [ENEMY]Lok Orcbane[/].",
             quests = { 893, 879 },
             when = "objectives",
             map = 1413,
@@ -1398,14 +1476,6 @@ ns.RegisterGuide({
             map = 1413,
             x = 45.1,
             y = 57.7,
-        },
-        {
-            text = "Talk to [FRIENDLY]Jorn Skyseer[/]. Turn in [QUEST]Lakota'mani[/].",
-            quest = 883,
-            when = "complete",
-            map = 1413,
-            x = 44.9,
-            y = 59.1,
         },
         {
             text = "At Northwatch Hold, kill [ENEMY]Captain Fairmount[/], [ENEMY]Cannoneer Whessan[/], and [ENEMY]Cannoneer Smythe[/], and loot [LOOT]Theramore Medals[/].",

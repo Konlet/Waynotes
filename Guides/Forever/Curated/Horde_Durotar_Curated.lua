@@ -383,7 +383,6 @@ ns.RegisterGuide({
             map = 1411,
             x = 43.8,
             y = 53.8,
-            nearYards = 10,
             quest = 6394,
             when = "objectives",
             details = {
@@ -409,7 +408,6 @@ ns.RegisterGuide({
             map = 1411,
             x = 42.7,
             y = 52.9,
-            nearYards = 10,
             quest = 794,
             when = "objectives",
             details = {
@@ -596,7 +594,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Kill [ENEMY]Ridgeshade Lurkers[/] and Creepers for [QUEST]Legging It[/].",
+            text = "Kill [ENEMY]Ridgeshade Lurkers[/] and Creepers.",
             map = 1411,
             x = 53.0,
             y = 60.0,
@@ -673,7 +671,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [LOOT]Canvas Scraps[/] from Kul Tiras at Tiragarde for [QUEST]Carry Your Weight[/].",
+            text = "Loot [LOOT]Canvas Scraps[/] from Kul Tiras at Tiragarde.",
             map = 1411,
             x = 58.1,
             y = 55.8,
@@ -685,7 +683,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot the [LOOT]Raider's Bow[/], [LOOT]Raider's Battleaxe[/], and [LOOT]Raider's Shield[/] for [QUEST]For Honor[/].",
+            text = "Loot the [LOOT]Raider's Bow[/], [LOOT]Raider's Battleaxe[/], and [LOOT]Raider's Shield[/].",
             map = 1411,
             x = 57.3,
             y = 56.5,
@@ -771,7 +769,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Loot the [PICK]Abandoned Dagger[/] on the ground for [QUEST]Threat from Below[/].",
+            text = "Loot the [PICK]Abandoned Dagger[/] on the ground.",
             map = 1411,
             x = 58.85,
             y = 44.36,
@@ -805,7 +803,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Surf Crawlers[/] and [ENEMY]Makrura[/] along the coast for [QUEST]A Solvent Spirit[/].",
+            text = "Kill [ENEMY]Surf Crawlers[/] and [ENEMY]Makrura[/] along the coast.",
             map = 1411,
             x = 60.2,
             y = 70.8,
@@ -829,7 +827,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [LOOT]Taillasher Eggs[/] near the trees on the islands for [QUEST]Break a Few Eggs[/].",
+            text = "Loot [LOOT]Taillasher Eggs[/] near the trees on the islands.",
             map = 1411,
             x = 63.9,
             y = 85.5,
@@ -841,7 +839,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Durotar Tigers[/] on the islands for [QUEST]Practical Prey[/].",
+            text = "Kill [ENEMY]Durotar Tigers[/] on the islands.",
             map = 1411,
             x = 60.5,
             y = 89.7,
@@ -934,7 +932,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [LOOT]Prickly Pear Fruit[/] for [QUEST]This Fruit Could Bite Back[/].",
+            text = "Loot [LOOT]Prickly Pear Fruit[/].",
             map = 1411,
             x = 46.2,
             y = 49.0,
@@ -1030,7 +1028,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "[WARN]Optional hard elite:[/] enter Thunder Ridge and kill [ENEMY]Fizzle Darkstorm[/] for [QUEST]Dark Storms[/]. Group up if needed.",
+            text = "[WARN]Optional hard elite:[/] enter Thunder Ridge and kill [ENEMY]Fizzle Darkstorm[/]. Group up if needed.",
             map = 1411,
             x = 42.3,
             y = 26.6,
@@ -1154,7 +1152,7 @@ ns.RegisterGuide({
             y = 22.9,
         },
         {
-            text = "Enter Skull Rock. Kill [ENEMY]Burning Blade orcs[/] for [LOOT]Searing Collars[/]. Loot a [LOOT]Lieutenant's Insignia[/] for [QUEST]Hidden Enemies[/].",
+            text = "Enter Skull Rock. Kill [ENEMY]Burning Blade orcs[/] for [LOOT]Searing Collars[/]. Loot a [LOOT]Lieutenant's Insignia[/].",
             map = 1411,
             x = 54.9,
             y = 10.1,

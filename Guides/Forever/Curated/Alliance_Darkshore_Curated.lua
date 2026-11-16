@@ -95,7 +95,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Talk to [FRIENDLY]Terenthis[/]. Accept [QUEST]How Big a Threat?[/]. Click the [PICK]WANTED[/] board for [QUEST]WANTED: Jai'vhanel[/].",
+            text = "Talk to [FRIENDLY]Terenthis[/]. Accept [QUEST]How Big a Threat?[/]. Click the [PICK]WANTED[/] board. Accept [QUEST]WANTED: Jai'vhanel[/].",
             map = 1439,
             x = 39.4,
             y = 43.5,
@@ -125,7 +125,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [PICK]Beached Sea Creature[/] remains for [QUEST]Washed Ashore[/].",
+            text = "Loot [PICK]Beached Sea Creature[/] remains.",
             map = 1439,
             x = 36.6,
             y = 46.3,
@@ -137,7 +137,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Capture a [ENEMY]Rabid Thistle Bear[/] with Tharnariun's Hope for [QUEST]Plagued Lands[/].",
+            text = "Capture a [ENEMY]Rabid Thistle Bear[/] with Tharnariun's Hope.",
             map = 1439,
             x = 36.6,
             y = 46.3,
@@ -148,7 +148,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Find the furbolg camp for [QUEST]How Big a Threat?[/], then return.",
+            text = "Find the furbolg camp, then return.",
             map = 1439,
             x = 39.0,
             y = 53.0,
@@ -243,7 +243,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot the ship lockboxes for [QUEST]Deep Ocean, Vast Sea[/].",
+            text = "Loot the ship lockboxes.",
             map = 1439,
             x = 39.0,
             y = 30.0,
@@ -256,7 +256,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Rabid Thistle Bears[/] while traveling for [QUEST]Cleansing of the Infected[/].",
+            text = "Kill [ENEMY]Rabid Thistle Bears[/] while traveling.",
             map = 1439,
             x = 39.0,
             y = 30.0,
@@ -291,7 +291,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Investigate the Red Crystal for [QUEST]The Red Crystal[/], then return to Glynda. Accept [QUEST]As Water Cascades[/].",
+            text = "Investigate the Red Crystal, then return to Glynda. Accept [QUEST]As Water Cascades[/].",
             map = 1439,
             x = 47.3,
             y = 48.7,
@@ -316,7 +316,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "At the furbolg camp, kill [ENEMY]Blackwood Pathfinders[/] and Windtalkers for [QUEST]How Big a Threat?[/].",
+            text = "At the furbolg camp, kill [ENEMY]Blackwood Pathfinders[/] and Windtalkers.",
             map = 1439,
             x = 39.0,
             y = 53.0,
@@ -329,7 +329,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Jai'vhanel[/] for [QUEST]WANTED: Jai'vhanel[/].",
+            text = "Kill [ENEMY]Jai'vhanel[/].",
             map = 1439,
             x = 39.0,
             y = 53.0,
@@ -378,7 +378,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Destroy Asterion's seal on the ancient flame for [QUEST]Bashal'Aran[/].",
+            text = "Destroy Asterion's seal on the ancient flame.",
             map = 1439,
             x = 40.3,
             y = 59.7,
@@ -418,7 +418,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Sample the river for [QUEST]The Cliffspring River[/].",
+            text = "Sample the river.",
             map = 1439,
             x = 50.8,
             y = 25.6,
@@ -489,7 +489,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Den Mother[/] in the cave for [QUEST]Tharnariun's Hope[/].",
+            text = "Kill [ENEMY]Den Mother[/] in the cave.",
             map = 1439,
             x = 52.4,
             y = 35.9,
@@ -629,7 +629,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Clear beached sea turtles and creatures along the coast, then kill [ENEMY]Murkdeep[/] and murlocs at the murloc camp for [QUEST]WANTED: Murkdeep![/].",
+            text = "Clear beached sea turtles and creatures along the coast, then kill [ENEMY]Murkdeep[/] and murlocs at the murloc camp.",
             map = 1439,
             x = 36.5,
             y = 76.5,
@@ -654,7 +654,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Fill the Empty Cleansing Bowl at the moonwell. At Blackwood camps, loot grain, nuts, and fruit, then summon and kill [ENEMY]Xabraxxis[/] for [QUEST]The Blackwood Corrupted[/].",
+            text = "Fill the Empty Cleansing Bowl at the moonwell. At Blackwood camps, loot grain, nuts, and fruit, then summon and kill [ENEMY]Xabraxxis[/].",
             map = 1439,
             x = 52.4,
             y = 33.4,
@@ -679,7 +679,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Find [FRIENDLY]Volcor[/] in the cave for [QUEST]A Lost Master[/]. Accept [QUEST]Escape Through Force[/] or Stealth and finish the escape.",
+            text = "Find [FRIENDLY]Volcor[/] in the cave. Accept [QUEST]Escape Through Force[/] or Stealth and finish the escape.",
             map = 1439,
             x = 45.01,
             y = 85.3,

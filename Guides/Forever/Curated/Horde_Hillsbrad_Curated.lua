@@ -269,7 +269,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Farmer Kalaba[/] and [ENEMY]Citizen Wilkes[/] for [QUEST]Dangerous![/].",
+            text = "Kill [ENEMY]Farmer Kalaba[/] and [ENEMY]Citizen Wilkes[/].",
             map = 1424,
             x = 32.7,
             y = 35.3,
@@ -317,7 +317,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Keep grinding Hillsbrad humans for [QUEST]Souvenirs of Death[/] skulls until you have 30, or bank unfinished skulls and the Shipment of Iron for the 30-32 return.",
+            text = "Keep grinding Hillsbrad humans for skulls until you have 30, or bank unfinished skulls and the Shipment of Iron for the 30-32 return.",
             map = 1424,
             x = 35.0,
             y = 42.0,
@@ -341,6 +341,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    next = "horde-arathi-32-33",
     minLevel = 30,
     maxLevel = 32,
     steps = {
@@ -434,7 +435,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "In Hillsbrad Town Hall, kill [ENEMY]Clerk Horrace Whitesteed[/] for [QUEST]Dangerous![/].",
+            text = "In Hillsbrad Town Hall, kill [ENEMY]Clerk Horrace Whitesteed[/].",
             map = 1424,
             x = 29.7,
             y = 41.7,
@@ -494,7 +495,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Finish [LOOT]Hillsbrad Human Skulls[/] for [QUEST]Souvenirs of Death[/].",
+            text = "Finish [LOOT]Hillsbrad Human Skulls[/].",
             map = 1424,
             x = 31.2,
             y = 56.0,
@@ -506,7 +507,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "In Azurelode Mine, kill [ENEMY]Miner Hackett[/] for [QUEST]Dangerous![/].",
+            text = "In Azurelode Mine, kill [ENEMY]Miner Hackett[/].",
             map = 1424,
             x = 31.2,
             y = 56.0,
@@ -653,7 +654,8 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Hillsbrad is done for now. Head into Arathi for [QUEST]The Hammer May Fall[/], then Undercity for [QUEST]Elixir of Agony[/] at [FRIENDLY]Master Apothecary Faranell[/] and [QUEST]Battle of Hillsbrad[/] at [FRIENDLY]Varimathras[/].",
+            text = "Hillsbrad is done for now. Open Arathi for [QUEST]The Hammer May Fall[/], then Undercity for [QUEST]Elixir of Agony[/] at [FRIENDLY]Master Apothecary Faranell[/] and [QUEST]Battle of Hillsbrad[/] at [FRIENDLY]Varimathras[/].",
+            guide = "horde-arathi-32-33",
             note = "Hand-off: Arathi Highlands (Hammer May Fall), then Undercity turn-ins.",
         },
     },

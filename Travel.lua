@@ -25,6 +25,7 @@ local placeIndex
 local aliasIndex
 local graphBuilt = false
 local innsNeedCoords = false
+local ensureGraph
 -- Poll-scoped caches: GuideObjectives calls TravelApplyToItem once per shown
 -- step, and without these each sticky re-ran full flight/boat routing.
 local unlockedCache
@@ -34,7 +35,8 @@ local routeCache = {}
 local routeCacheGen = 0
 local nearbyHintCache
 local nearbyHintChecked = false
-local ROUTE_GRID_YARDS = 50
+-- Coarse grid so walking does not invalidate BestPath every few seconds.
+local ROUTE_GRID_YARDS = 200
 
 local function isNumber(value)
     return type(value) == "number"
@@ -108,40 +110,235 @@ local function getHBD()
     end
 end
 
-local function playerPoint()
-    local hbd = getHBD()
-    if not hbd or type(hbd.GetPlayerWorldPosition) ~= "function" then
+local function euclidean(ax, ay, bx, by)
+    if not isNumber(ax) or not isNumber(ay) or not isNumber(bx) or not isNumber(by) then
         return nil
-    end
-    local ok, wx, wy, instance = pcall(hbd.GetPlayerWorldPosition, hbd)
-    if not ok or not isNumber(wx) or not isNumber(wy) then
-        return nil
-    end
-    return wx, wy, instance
-end
-
-local function worldDistance(instance, ax, ay, bx, by)
-    local hbd = getHBD()
-    if not hbd or not isNumber(ax) or not isNumber(bx) then
-        return nil
-    end
-    if not isNumber(instance) then
-        instance = 0
-    end
-    if type(hbd.GetWorldDistance) == "function" then
-        local ok, yards = pcall(hbd.GetWorldDistance, hbd, instance, ax, ay, bx, by)
-        if ok and isNumber(yards) then
-            return yards
-        end
-    end
-    if type(hbd.GetWorldVector) == "function" then
-        local ok, _, yards = pcall(hbd.GetWorldVector, hbd, instance, ax, ay, bx, by)
-        if ok and isNumber(yards) then
-            return yards
-        end
     end
     local dx, dy = ax - bx, ay - by
     return math.sqrt(dx * dx + dy * dy)
+end
+
+-- Forever flight JSON is map-world. UnitPosition is often axis-swapped against
+-- that space. Discover the orientation once, then reuse it — scanning every
+-- pad on each travel/fly-rec pulse hitchs the client.
+local flightAxisSwapped -- nil unknown, true/false once confident (HBD path)
+local unitPosUseAB -- nil unknown; true → UnitPosition (a,b), false → (b,a)
+local playerPointCache = { at = -1 }
+
+-- Single pass: pick (wx,wy) vs (wy,wx) by nearest flight pad.
+-- Returns alignedX, alignedY, swapped, bestDirect, bestSwap.
+local function scoreFlightAxis(wx, wy)
+    if ensureGraph then
+        ensureGraph()
+    end
+    if not isNumber(wx) or not isNumber(wy) or not nodesById then
+        return wx, wy, false, nil, nil
+    end
+    local faction = playerFaction()
+    local bestDirect, bestSwap
+    for _, node in pairs(nodesById) do
+        if factionUsable(node.faction, faction) and isNumber(node.wx) then
+            local direct = euclidean(wx, wy, node.wx, node.wy)
+            local swapped = euclidean(wy, wx, node.wx, node.wy)
+            if direct and (not bestDirect or direct < bestDirect) then
+                bestDirect = direct
+            end
+            if swapped and (not bestSwap or swapped < bestSwap) then
+                bestSwap = swapped
+            end
+        end
+    end
+    local swap = false
+    if bestSwap and bestDirect and bestSwap + 5 < bestDirect then
+        swap = true
+    elseif bestSwap and (not bestDirect or bestDirect > 500) and bestSwap < 200 then
+        swap = true
+    end
+    if swap then
+        return wy, wx, true, bestDirect, bestSwap
+    end
+    return wx, wy, false, bestDirect, bestSwap
+end
+
+local function lockFlightAxis(swapped, fitDirect, fitSwap)
+    if flightAxisSwapped ~= nil then
+        return
+    end
+    if isNumber(fitDirect) and isNumber(fitSwap) then
+        if fitSwap + 5 < fitDirect then
+            flightAxisSwapped = true
+        elseif fitDirect + 5 < fitSwap then
+            flightAxisSwapped = false
+        else
+            flightAxisSwapped = swapped and true or false
+        end
+        return
+    end
+    if isNumber(fitDirect) then
+        flightAxisSwapped = false
+    elseif isNumber(fitSwap) then
+        flightAxisSwapped = true
+    end
+end
+
+local function alignToFlightWorld(wx, wy)
+    if flightAxisSwapped == true then
+        return wy, wx, true
+    end
+    if flightAxisSwapped == false then
+        return wx, wy, false
+    end
+    local ax, ay, swapped, fitDirect, fitSwap = scoreFlightAxis(wx, wy)
+    lockFlightAxis(swapped, fitDirect, fitSwap)
+    return ax, ay, swapped
+end
+
+-- Debug helper: nearest pad distance for a raw world point (no axis rewrite).
+local function nearestPadFit(wx, wy)
+    if ensureGraph then
+        ensureGraph()
+    end
+    if not isNumber(wx) or not isNumber(wy) or not nodesById then
+        return nil
+    end
+    local faction = playerFaction()
+    local best
+    for _, node in pairs(nodesById) do
+        if factionUsable(node.faction, faction) and isNumber(node.wx) then
+            local dist = euclidean(wx, wy, node.wx, node.wy)
+            if dist and (not best or dist < best) then
+                best = dist
+            end
+        end
+    end
+    return best
+end
+
+local function playerPoint()
+    local now = (GetTime and GetTime()) or 0
+    -- Fly-rec / travel pulse every 0.25–0.5s; reuse a fresh sample briefly so
+    -- one recommendation does not rescan pads / UnitPosition repeatedly.
+    if playerPointCache.wx and (now - playerPointCache.at) < 0.2 then
+        return playerPointCache.wx, playerPointCache.wy, playerPointCache.instance
+    end
+
+    local function remember(wx, wy, instance)
+        playerPointCache.wx, playerPointCache.wy, playerPointCache.instance = wx, wy, instance
+        playerPointCache.at = now
+        return wx, wy, instance
+    end
+
+    local hbd = getHBD()
+    if hbd and type(hbd.GetPlayerWorldPosition) == "function" then
+        local ok, wx, wy, instance = pcall(hbd.GetPlayerWorldPosition, hbd)
+        if ok and isNumber(wx) and isNumber(wy) then
+            wx, wy = alignToFlightWorld(wx, wy)
+            return remember(wx, wy, instance)
+        end
+    end
+    -- Forever often leaves HBD player world unset. UnitPosition returns
+    -- (y, x) on retail-style clients; try that first, then (a, b).
+    if type(UnitPosition) == "function" then
+        local ok, a, b, _, instance = pcall(UnitPosition, "player")
+        if ok and isNumber(a) and isNumber(b) then
+            if unitPosUseAB ~= nil then
+                if unitPosUseAB then
+                    return remember(a, b, instance)
+                end
+                return remember(b, a, instance)
+            end
+            -- Discovery: at most two pad scans once per session, then lock
+            -- which UnitPosition ordering matches flight JSON.
+            local x1, y1, swap1, d1, s1 = scoreFlightAxis(b, a)
+            local fit1 = (swap1 and s1) or d1
+            local x2, y2, swap2, d2, s2 = scoreFlightAxis(a, b)
+            local fit2 = (swap2 and s2) or d2
+            local wx, wy, swap, d, s
+            if fit1 and (not fit2 or fit1 <= fit2) then
+                wx, wy, swap, d, s = x1, y1, swap1, d1, s1
+            else
+                wx, wy, swap, d, s = x2, y2, swap2, d2, s2
+            end
+            lockFlightAxis(swap, d, s)
+            -- Final aligned point is always either (a,b) or (b,a).
+            unitPosUseAB = (isNumber(wx) and isNumber(a) and math.abs(wx - a) < 1e-3
+                and isNumber(wy) and isNumber(b) and math.abs(wy - b) < 1e-3)
+            return remember(wx, wy, instance)
+        end
+    end
+    return nil
+end
+
+local function worldDistanceOn(instance, ax, ay, bx, by)
+    if not isNumber(ax) or not isNumber(ay) or not isNumber(bx) or not isNumber(by) then
+        return nil
+    end
+    local hbd = getHBD()
+    if not isNumber(instance) then
+        instance = 0
+    end
+    if hbd and type(hbd.GetWorldDistance) == "function" then
+        local ok, yards = pcall(hbd.GetWorldDistance, hbd, instance, ax, ay, bx, by)
+        if ok and isNumber(yards) and yards == yards then
+            return yards
+        end
+    end
+    if hbd and type(hbd.GetWorldVector) == "function" then
+        local ok, _, yards = pcall(hbd.GetWorldVector, hbd, instance, ax, ay, bx, by)
+        if ok and isNumber(yards) and yards == yards then
+            return yards
+        end
+    end
+    return euclidean(ax, ay, bx, by)
+end
+
+local function worldDistance(instance, ax, ay, bx, by)
+    local yards = worldDistanceOn(instance, ax, ay, bx, by)
+    if yards then
+        return yards
+    end
+    -- Forever HBD continent ids often disagree with flight JSON 0/1.
+    if instance ~= 0 then
+        yards = worldDistanceOn(0, ax, ay, bx, by)
+        if yards then
+            return yards
+        end
+    end
+    if instance ~= 1 then
+        yards = worldDistanceOn(1, ax, ay, bx, by)
+        if yards then
+            return yards
+        end
+    end
+    return euclidean(ax, ay, bx, by)
+end
+
+-- Pad ranking only. HBD GetWorldDistance across every flight node was the
+-- TravelBestPath spike (~100ms+). Euclidean matches Forever JSON space after
+-- playerPoint alignment and is good enough to pick the nearest pad.
+local function nodeDistance(wx, wy, instance, node)
+    if not node or not isNumber(wx) or not isNumber(wy) or not isNumber(node.wx) or not isNumber(node.wy) then
+        return nil
+    end
+    return euclidean(wx, wy, node.wx, node.wy)
+end
+
+-- Precise yards when we already know the two points that matter.
+local function nodeDistancePrecise(wx, wy, instance, node)
+    if not node or not isNumber(wx) or not isNumber(wy) or not isNumber(node.wx) or not isNumber(node.wy) then
+        return nil
+    end
+    local yards = worldDistance(instance or node.instance, wx, wy, node.wx, node.wy)
+    if yards then
+        return yards
+    end
+    if isNumber(node.instance) and node.instance ~= instance then
+        yards = worldDistance(node.instance, wx, wy, node.wx, node.wy)
+        if yards then
+            return yards
+        end
+    end
+    return euclidean(wx, wy, node.wx, node.wy)
 end
 
 local function zoneWorld(map, x, y, zone)
@@ -197,7 +394,7 @@ local function fillMissingInnCoords()
     innsNeedCoords = missing
 end
 
-local function ensureGraph()
+ensureGraph = function()
     if graphBuilt then
         if innsNeedCoords then
             fillMissingInnCoords()
@@ -223,6 +420,9 @@ local function ensureGraph()
                     hub = entry.hub or entry.zone,
                     zone = entry.zone,
                     faction = entry.faction,
+                    map = entry.map,
+                    x = entry.x,
+                    y = entry.y,
                     wx = entry.wx,
                     wy = entry.wy,
                     wz = entry.wz,
@@ -236,6 +436,9 @@ local function ensureGraph()
                     nodeId = entry.nodeId,
                     name = node.hub,
                     zone = node.zone,
+                    map = node.map,
+                    x = node.x,
+                    y = node.y,
                     wx = node.wx,
                     wy = node.wy,
                     instance = node.instance,
@@ -391,6 +594,11 @@ local function bumpFlightUnlockGen()
     nearbyHintChecked = false
 end
 
+function ns.TravelInvalidateRoutes()
+    routeCache = {}
+    routeCacheGen = 0
+end
+
 local function unlockedFlightPaths()
     if unlockedCache and unlockedCacheGen == flightUnlockGen then
         return unlockedCache
@@ -544,6 +752,22 @@ end
 
 function ns.TravelRememberOpenTaxiNodes()
     ensureGraph()
+    if C_TaxiMap and type(C_TaxiMap.GetAllTaxiNodes) == "function" then
+        local ok, nodes = pcall(C_TaxiMap.GetAllTaxiNodes)
+        if ok and type(nodes) == "table" then
+            local current = Enum and Enum.FlightPathState and Enum.FlightPathState.Current
+            local reachable = Enum and Enum.FlightPathState and Enum.FlightPathState.Reachable
+            for index = 1, #nodes do
+                local info = nodes[index]
+                if type(info) == "table" then
+                    local state = info.state
+                    if state == current or state == reachable or state == 0 or state == 1 then
+                        markFlightUnlocked(info.nodeID or info.nodeId, info.name)
+                    end
+                end
+            end
+        end
+    end
     if type(NumTaxiNodes) ~= "function" or type(TaxiNodeGetType) ~= "function" then
         return
     end
@@ -569,8 +793,8 @@ function ns.TravelRememberNearestFlight()
     local faction = playerFaction()
     local bestId, bestDist
     for nodeId, node in pairs(nodesById) do
-        if factionUsable(node.faction, faction) and (not isNumber(node.instance) or node.instance == instance) then
-            local dist = worldDistance(instance, px, py, node.wx, node.wy)
+        if factionUsable(node.faction, faction) then
+            local dist = nodeDistance(px, py, instance, node)
             if dist and (not bestDist or dist < bestDist) then
                 bestDist = dist
                 bestId = nodeId
@@ -724,10 +948,40 @@ function ns.TravelHearthButton()
     return hearthButton
 end
 
+local activeFlightRec
+
+local function flightRecMinYards()
+    local minYards = (ns.db and ns.db.flightRecommendMinYards) or 500
+    if type(minYards) ~= "number" then
+        return 500
+    end
+    return minYards
+end
+
 function ns.TravelBeginHints()
     hearthButtonClaimed = false
     nearbyHintCache = nil
     nearbyHintChecked = false
+    activeFlightRec = nil
+end
+
+function ns.TravelActiveFlightRecommendation()
+    return activeFlightRec
+end
+
+local function rememberFlightRec(route)
+    if type(route) ~= "table" or route.mode ~= "fly" then
+        return
+    end
+    if not route.departId or not route.arriveId or route.departId == route.arriveId then
+        return
+    end
+    if not isNumber(route.savingsYards) or route.savingsYards < flightRecMinYards() then
+        return
+    end
+    if not activeFlightRec or route.savingsYards > (activeFlightRec.savingsYards or 0) then
+        activeFlightRec = route
+    end
 end
 
 local function attachHearthButton(item, bindName)
@@ -772,12 +1026,42 @@ local function plainGuideText(text)
     text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
     text = text:gsub("|r", "")
     text = text:gsub("|T.-|t", "")
+    -- Keep the body of curated [FRIENDLY]Name[/] / [FRIENDLY]Name[/FRIENDLY] tags.
+    text = text:gsub("%[([%a]+)%](.-)%[/%1%]", "%2")
+    text = text:gsub("%[%a+%](.-)%[/%]", "%1")
     text = strtrim(text)
     text = text:gsub("^%[[^%]]+%]%s*", "")
     if text == "" then
         return nil
     end
     return text
+end
+
+-- Absolute pin→world for flight-master matching. PinToPlayerWorld is player-relative
+-- and aims arrows; using it here while the player is elsewhere picks the wrong node.
+local function absoluteZoneWorld(map, x, y)
+    if ns.ZoneToWorld then
+        local wx, wy, instance = ns.ZoneToWorld(map, x, y)
+        if isNumber(wx) and isNumber(wy) then
+            return wx, wy, instance
+        end
+    end
+    if not isNumber(map) or not isNumber(x) or not isNumber(y) then
+        return nil
+    end
+    local zx, zy = x, y
+    if zx > 1 or zy > 1 then
+        zx, zy = zx / 100, zy / 100
+    end
+    local hbd = getHBD()
+    if not hbd or type(hbd.GetWorldCoordinatesFromZone) ~= "function" then
+        return nil
+    end
+    local ok, wx, wy, instance = pcall(hbd.GetWorldCoordinatesFromZone, hbd, zx, zy, map)
+    if not ok or not isNumber(wx) or not isNumber(wy) then
+        return nil
+    end
+    return wx, wy, instance
 end
 
 local function cleanDestinationPhrase(dest)
@@ -808,6 +1092,8 @@ local function extractDestinationName(text)
         { "^Hearth%s+or%s+return%s+to%s+(.+)$", "hearth" },
         { "^Hearth%s+to%s+(.+)$", "hearth" },
         { "^Fly%s+or%s+hearth%s+to%s+(.+)$", "hearth" },
+        { "^Fly%s+or%s+run%s+back%s+to%s+(.+)$", "fly" },
+        { "^Fly%s+or%s+run%s+to%s+(.+)$", "fly" },
         { "^Fly%s+or%s+ride%s+to%s+(.+)$", "fly" },
         { "^Fly%s+to%s+(.+)$", "fly" },
         { "^Take the flight path.-toward%s+(.+)$", "fly" },
@@ -815,6 +1101,11 @@ local function extractDestinationName(text)
         { "^Take the%s+boat%s+to%s+(.+)$", "travel" },
         { "^Take the%s+skycutter%s+to%s+(.+)$", "travel" },
         { "^Take the%s+ferry%s+to%s+(.+)$", "travel" },
+        { "^Return%s+back%s+to%s+(.+)$", "travel" },
+        { "^Return%s+to%s+(.+)$", "travel" },
+        { "^Head%s+back%s+to%s+(.+)$", "travel" },
+        { "^Head%s+to%s+(.+)$", "travel" },
+        { "^Go%s+back%s+to%s+(.+)$", "travel" },
         { "^Travel%s+back%s+to%s+(.+)$", "travel" },
         { "^Travel%s+toward%s+(.+)$", "travel" },
         { "^Travel%s+to%s+(.+)$", "travel" },
@@ -822,6 +1113,7 @@ local function extractDestinationName(text)
         { "^Run%s+to%s+(.+)$", "travel" },
         -- Curated wording: "Travel south to X" / mid-sentence "and travel to X".
         { "[Tt]ravel%s+.-to%s+(.+)$", "travel" },
+        { "[Rr]eturn%s+to%s+(.+)$", "travel" },
         { "[Ff]ly%s+to%s+(.+)$", "fly" },
         { "[Hh]earth%s+to%s+(.+)$", "hearth" },
         { "[Tt]ake the%s+zeppelin%s+to%s+(.+)$", "travel" },
@@ -942,6 +1234,61 @@ local function namesCompatible(a, b)
     return na == nb or na:find(nb, 1, true) or nb:find(na, 1, true)
 end
 
+local function flightNodeByName(name)
+    ensureGraph()
+    if type(name) ~= "string" or name == "" then
+        return nil
+    end
+    local faction = playerFaction()
+    local best, bestScore
+    for _, node in pairs(nodesById) do
+        if factionUsable(node.faction, faction) then
+            local score = 0
+            if namesCompatible(node.name, name) then
+                score = 100
+            elseif namesCompatible(node.hub, name) then
+                score = 80
+            elseif namesCompatible(node.zone, name) then
+                score = 40
+            end
+            if score > 0 and (not bestScore or score > bestScore) then
+                bestScore = score
+                best = node
+            end
+        end
+    end
+    return best
+end
+
+local function flightMasterNodeFromText(text)
+    text = plainGuideText(text)
+    if not text then
+        return nil
+    end
+    local phrases = {}
+    local fromNpc = text:match("[Ff]light path from%s+([^%.]+)")
+    if fromNpc then
+        phrases[#phrases + 1] = cleanDestinationPhrase(fromNpc)
+    end
+    local talk = text:match("[Tt]alk to%s+([^%.]+)")
+    if talk then
+        talk = cleanDestinationPhrase(talk)
+        if talk then
+            talk = talk:gsub("%s+in%s+.*$", "")
+            talk = strtrim(talk)
+            if talk ~= "" then
+                phrases[#phrases + 1] = talk
+            end
+        end
+    end
+    for index = 1, #phrases do
+        local node = flightNodeByName(phrases[index])
+        if node then
+            return node
+        end
+    end
+end
+
 local function flightNodePlace(node)
     if type(node) ~= "table" or not isNumber(node.nodeId) then
         return nil
@@ -968,10 +1315,10 @@ local function nearestFlightNode(wx, wy, instance, unlockedOnly, unlearnedOnly)
     local faction = playerFaction()
     local bestId, bestDist
     for nodeId, node in pairs(nodesById) do
-        if factionUsable(node.faction, faction) and (not isNumber(node.instance) or not isNumber(instance) or node.instance == instance) then
+        if factionUsable(node.faction, faction) then
             local known = unlocked[nodeId] and true or false
             if (not unlockedOnly or known) and (not unlearnedOnly or not known) then
-                local dist = worldDistance(instance or node.instance, wx, wy, node.wx, node.wy)
+                local dist = nodeDistance(wx, wy, instance, node)
                 if dist and (not bestDist or dist < bestDist) then
                     bestDist = dist
                     bestId = nodeId
@@ -1011,33 +1358,11 @@ local function flightPathTargetFromStep(step)
     if type(step) ~= "table" then
         return nil
     end
-    if type(step.fpath) == "string" and step.fpath ~= "" then
-        local place = resolveNamedPlace(step.fpath)
-        if place and place.kind == "flight" then
-            local copy = {}
-            for key, value in pairs(place) do
-                copy[key] = value
-            end
-            copy.pickup = true
-            return copy
-        end
-        local node
-        for _, candidate in pairs(nodesById) do
-            if namesCompatible(candidate.hub, step.fpath) or namesCompatible(candidate.zone, step.fpath) or namesCompatible(candidate.name, step.fpath) then
-                node = candidate
-                break
-            end
-        end
-        if node then
-            return flightNodePlace(node)
-        end
-    end
 
-    local hub = flightPathNameFromText(step.text)
-    if not hub then
-        return nil
-    end
-    if type(hub) == "string" then
+    local function placeFromHub(hub)
+        if type(hub) ~= "string" or hub == "" then
+            return nil
+        end
         local place = resolveNamedPlace(hub)
         if place and (place.kind == "flight" or isNumber(place.nodeId)) then
             local copy = {}
@@ -1047,17 +1372,45 @@ local function flightPathTargetFromStep(step)
             copy.pickup = true
             return copy
         end
-        for _, candidate in pairs(nodesById) do
-            if namesCompatible(candidate.hub, hub) or namesCompatible(candidate.zone, hub) or namesCompatible(candidate.name, hub) then
-                return flightNodePlace(candidate)
-            end
+        local node = flightNodeByName(hub)
+        if node then
+            return flightNodePlace(node)
         end
     end
 
-    -- Unnamed "get the flight path": aim at the nearest master to the authored pin.
+    if type(step.fpath) == "string" and step.fpath ~= "" then
+        local place = placeFromHub(step.fpath)
+        if place then
+            return place
+        end
+    end
+
+    local hub = flightPathNameFromText(step.text)
+    if not hub then
+        return nil
+    end
+    if type(hub) == "string" then
+        local place = placeFromHub(hub)
+        if place then
+            return place
+        end
+    end
+
+    -- Unnamed "Get the flight path": prefer the flight master named in the step,
+    -- then the Travel-to hub, then the nearest master to the authored pin.
+    local npcNode = flightMasterNodeFromText(step.text)
+    if npcNode then
+        return flightNodePlace(npcNode)
+    end
+    local named = extractDestinationName(step.text)
+    if named then
+        local place = placeFromHub(named)
+        if place then
+            return place
+        end
+    end
     if isNumber(step.map) and isNumber(step.x) and isNumber(step.y) then
-        local zone = ns.MapName and ns.MapName(step.map) or nil
-        local wx, wy, instance = zoneWorld(step.map, step.x, step.y, zone)
+        local wx, wy, instance = absoluteZoneWorld(step.map, step.x, step.y)
         local node = nearestFlightNode(wx, wy, instance, false, false)
         if node then
             return flightNodePlace(node)
@@ -1076,6 +1429,70 @@ function ns.TravelFlightPathStepDone(step)
     end
     local unlocked = unlockedFlightPaths()
     return unlocked[target.nodeId] and true or false
+end
+
+local function hearthBindNameFromText(text)
+    text = plainGuideText(text)
+    if not text then
+        return nil
+    end
+    local hub = text:match("[Ss]et your [Hh]earthstone%s+to%s+([^%.]+)")
+        or text:match("[Ss]et your [Hh]earth%s+to%s+([^%.]+)")
+        or text:match("[Ss]et%s+hearthstone%s+to%s+([^%.]+)")
+        or text:match("[Ss]et%s+hearth%s+to%s+([^%.]+)")
+        or text:match("[Bb]ind%s+your%s+[Hh]earthstone%s+to%s+([^%.]+)")
+    return cleanDestinationPhrase(hub)
+end
+
+local function hearthBindTargetFromStep(step)
+    if type(step) ~= "table" then
+        return nil
+    end
+    if type(step.hearth) == "string" and step.hearth ~= "" then
+        return strtrim(step.hearth)
+    end
+    if type(step.bind) == "string" and step.bind ~= "" then
+        return strtrim(step.bind)
+    end
+    return hearthBindNameFromText(step.text)
+end
+
+function ns.TravelIsHearthBindStep(step)
+    return hearthBindTargetFromStep(step) ~= nil
+end
+
+-- True once GetBindLocation matches the hub named in "Set your Hearthstone to X".
+function ns.TravelHearthBindStepDone(step)
+    local target = hearthBindTargetFromStep(step)
+    if not target then
+        return false
+    end
+    if type(GetBindLocation) ~= "function" then
+        return false
+    end
+    local bind = GetBindLocation()
+    if type(bind) ~= "string" or bind == "" then
+        return false
+    end
+    if namesCompatible(bind, target) then
+        return true
+    end
+    local bindResolved = resolveNamedPlace(bind)
+    local targetResolved = resolveNamedPlace(target)
+    if bindResolved and targetResolved and bindResolved == targetResolved then
+        return true
+    end
+    if bindResolved then
+        if namesCompatible(bindResolved.name, target) or namesCompatible(bindResolved.zone, target) then
+            return true
+        end
+    end
+    if targetResolved then
+        if namesCompatible(bind, targetResolved.name) or namesCompatible(bind, targetResolved.zone) then
+            return true
+        end
+    end
+    return false
 end
 
 function ns.TravelNearbyUnlearnedFlight(maxYards)
@@ -1282,17 +1699,31 @@ local function flightPathSeconds(fromId, toId, unlocked, faction)
 end
 
 local function nearestUnlockedFlight(wx, wy, instance, unlocked, faction, sameContinentOnly)
+    -- Forever HBD continent ids rarely equal flight JSON 0/1, so never hard-filter
+    -- on instance equality. Score every unlocked pad and keep the closest.
     local bestId, bestDist
+    local bestSameId, bestSameDist
     for nodeId, node in pairs(nodesById) do
         if unlocked[nodeId] and factionUsable(node.faction, faction) then
-            if not sameContinentOnly or not isNumber(node.instance) or not isNumber(instance) or node.instance == instance then
-                local dist = worldDistance(instance or node.instance, wx, wy, node.wx, node.wy)
-                if dist and (not bestDist or dist < bestDist) then
-                    bestDist = dist
-                    bestId = nodeId
-                end
+            local dist = nodeDistance(wx, wy, instance, node)
+            if dist and (not bestDist or dist < bestDist) then
+                bestDist = dist
+                bestId = nodeId
+            end
+            if sameContinentOnly
+                and isNumber(node.instance)
+                and isNumber(instance)
+                and node.instance == instance
+                and dist
+                and (not bestSameDist or dist < bestSameDist)
+            then
+                bestSameDist = dist
+                bestSameId = nodeId
             end
         end
+    end
+    if bestSameId then
+        return bestSameId, bestSameDist
     end
     return bestId, bestDist
 end
@@ -1304,15 +1735,56 @@ local function copyWaypoint(wx, wy, instance)
     return { wx = wx, wy = wy, instance = instance }
 end
 
+-- Flight-master matching must use Forever absolute hub/pin coords. Arrow
+-- waypoints from PinToPlayerWorld are player-relative and pick the wrong pad
+-- when the player is far from the destination (e.g. Camp Taurajo → Crossroads).
+local function flightArrivePoint(dest)
+    ensureGraph()
+    if type(dest) ~= "table" then
+        return nil
+    end
+    if isNumber(dest.nodeId) and nodesById[dest.nodeId] then
+        local node = nodesById[dest.nodeId]
+        return node.wx, node.wy, node.instance, node.nodeId
+    end
+    local names = { dest.rawName, dest.name, dest.hub, dest.zone }
+    for index = 1, #names do
+        local name = names[index]
+        if type(name) == "string" and name ~= "" then
+            local place = resolveNamedPlace(name)
+            if place and isNumber(place.wx) and (place.kind == "flight" or isNumber(place.nodeId)) then
+                return place.wx, place.wy, place.instance, place.nodeId
+            end
+            local node = flightNodeByName(name)
+            if node and isNumber(node.wx) then
+                return node.wx, node.wy, node.instance, node.nodeId
+            end
+        end
+    end
+    if isNumber(dest.map) and isNumber(dest.x) and isNumber(dest.y) then
+        local wx, wy, instance = absoluteZoneWorld(dest.map, dest.x, dest.y)
+        if isNumber(wx) and isNumber(wy) then
+            return wx, wy, instance
+        end
+    end
+    if isNumber(dest.wx) and isNumber(dest.wy) then
+        return dest.wx, dest.wy, dest.instance
+    end
+end
+
 local function routeWalk(dest, fromWx, fromWy, fromInstance, label)
-    if not isNumber(dest.wx) or not isNumber(dest.wy) then
+    local walkWx, walkWy, walkInstance = dest.wx, dest.wy, dest.instance
+    if not isNumber(walkWx) or not isNumber(walkWy) then
+        walkWx, walkWy, walkInstance = flightArrivePoint(dest)
+    end
+    if not isNumber(walkWx) or not isNumber(walkWy) then
         return nil
     end
     -- Walking cannot cross continents / transport instances.
-    if isNumber(fromInstance) and isNumber(dest.instance) and fromInstance ~= dest.instance then
+    if isNumber(fromInstance) and isNumber(walkInstance) and fromInstance ~= walkInstance then
         return nil
     end
-    local yards = worldDistance(fromInstance or dest.instance, fromWx, fromWy, dest.wx, dest.wy)
+    local yards = worldDistance(fromInstance or walkInstance, fromWx, fromWy, walkWx, walkWy)
     if not yards then
         return nil
     end
@@ -1323,7 +1795,7 @@ local function routeWalk(dest, fromWx, fromWy, fromInstance, label)
         yards = yards,
         summary = label or ("Run to " .. (dest.name or "destination")),
         details = {},
-        waypoint = copyWaypoint(dest.wx, dest.wy, dest.instance or fromInstance),
+        waypoint = copyWaypoint(walkWx, walkWy, walkInstance or fromInstance),
         place = {
             map = dest.map,
             x = dest.x,
@@ -1335,11 +1807,53 @@ local function routeWalk(dest, fromWx, fromWy, fromInstance, label)
 end
 
 local function routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
-    if not isNumber(dest.wx) or not isNumber(dest.wy) then
+    local arriveWx, arriveWy, arriveInstance, knownArriveId = flightArrivePoint(dest)
+    local walkWx, walkWy = dest.wx, dest.wy
+    if not isNumber(walkWx) or not isNumber(walkWy) then
+        walkWx, walkWy = arriveWx, arriveWy
+    end
+    if not isNumber(arriveWx) or not isNumber(arriveWy) then
         return nil
     end
-    local departId, departDist = nearestUnlockedFlight(fromWx, fromWy, fromInstance, unlocked, faction, true)
-    local arriveId, arriveDist = nearestUnlockedFlight(dest.wx, dest.wy, dest.instance or fromInstance, unlocked, faction, true)
+
+    -- Nearby flight master: record it even if the taxi UI never wrote it to
+    -- WaynotesCharDB (common when catch-up skipped the "get FP" step).
+    local nearNode, nearDist = nearestFlightNode(fromWx, fromWy, fromInstance, false, false)
+    local localPadYards = 300
+    if nearNode and nearDist and nearDist <= localPadYards then
+        markFlightUnlocked(nearNode.nodeId, nearNode.hub)
+        unlocked = unlockedFlightPaths()
+    end
+
+    local unlockedForPath = unlocked
+    if knownArriveId and not unlocked[knownArriveId] then
+        -- Guide named a flight hub (Return to the Crossroads). Trust the arrive
+        -- pad for pathing when the player can depart from a known/nearby pad.
+        unlockedForPath = {}
+        for id, value in pairs(unlocked) do
+            unlockedForPath[id] = value
+        end
+        unlockedForPath[knownArriveId] = true
+    end
+
+    local departId, departDist = nearestUnlockedFlight(fromWx, fromWy, fromInstance, unlockedForPath, faction, true)
+    -- Prefer the local pad when the nearest "unlocked" pad is actually far away
+    -- (addon DB missing Camp Taurajo while Crossroads is known).
+    if nearNode and nearDist and nearDist <= localPadYards then
+        if not departId or not departDist or nearDist + 80 < departDist then
+            departId, departDist = nearNode.nodeId, nearDist
+            unlockedForPath[departId] = true
+            markFlightUnlocked(departId, nearNode.hub)
+        end
+    end
+
+    local arriveId, arriveDist
+    if knownArriveId and nodesById[knownArriveId] and unlockedForPath[knownArriveId] then
+        arriveId = knownArriveId
+        arriveDist = nodeDistance(arriveWx, arriveWy, arriveInstance or fromInstance, nodesById[arriveId]) or 0
+    else
+        arriveId, arriveDist = nearestUnlockedFlight(arriveWx, arriveWy, arriveInstance or fromInstance, unlockedForPath, faction, true)
+    end
     if not departId or not arriveId then
         return nil
     end
@@ -1347,20 +1861,37 @@ local function routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
     if departDist and departDist <= NEAR_YARDS and arriveId == departId then
         return nil
     end
-    local flightSeconds, path = flightPathSeconds(departId, arriveId, unlocked, faction)
+    local flightSeconds, path = flightPathSeconds(departId, arriveId, unlockedForPath, faction)
     if not flightSeconds then
         return nil
     end
     local depart = nodesById[departId]
     local arrive = nodesById[arriveId]
+    -- Refine the two winners with HBD; ranking above stayed euclidean.
+    departDist = nodeDistancePrecise(fromWx, fromWy, fromInstance, depart) or departDist
+    arriveDist = nodeDistancePrecise(arriveWx, arriveWy, arriveInstance or fromInstance, arrive) or arriveDist
     local toPad = walkSeconds(departDist or 0) or 0
     local fromPad = walkSeconds(arriveDist or 0) or 0
     local total = toPad + FLY_BOARD_SECONDS + flightSeconds + fromPad
+    local walkYards = worldDistance(fromInstance or arriveInstance or dest.instance, fromWx, fromWy, walkWx, walkWy)
+    if not isNumber(walkYards) and isNumber(dest.map) and isNumber(dest.x) and isNumber(dest.y) and ns.PinZoneDistance then
+        walkYards = ns.PinZoneDistance(dest.map, dest.x, dest.y, dest.zone)
+    end
+    if not isNumber(walkYards) and departId ~= arriveId then
+        -- Pads differ but world measure failed (Forever instance mismatch). Use
+        -- pad separation as a lower bound on the ground route.
+        walkYards = nodeDistance(fromWx, fromWy, fromInstance, arrive) or ((departDist or 0) + (arriveDist or 0) + flightRecMinYards())
+    end
+    local groundYards = (departDist or 0) + (arriveDist or 0)
+    local savingsYards
+    if isNumber(walkYards) then
+        savingsYards = walkYards - groundYards
+    end
     local summary
     if departId == arriveId then
         summary = "Run via " .. (depart.hub or "flight master")
     else
-        summary = "Fly " .. (depart.hub or "?") .. " → " .. (arrive.hub or "?")
+        summary = "Fly " .. (depart.hub or "?") .. " -> " .. (arrive.hub or "?")
     end
     local details = {}
     if departDist and departDist > NEAR_YARDS then
@@ -1382,6 +1913,11 @@ local function routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
     return {
         mode = "fly",
         seconds = total,
+        yards = walkYards,
+        groundYards = groundYards,
+        savingsYards = savingsYards,
+        departDist = departDist,
+        arriveDist = arriveDist,
         summary = summary,
         details = details,
         waypoint = copyWaypoint(aim.wx or dest.wx, aim.wy or dest.wy, aim.instance or dest.instance or fromInstance),
@@ -1393,6 +1929,8 @@ local function routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
         },
         departId = departId,
         arriveId = arriveId,
+        depart = depart,
+        arrive = arrive,
         path = path,
         dest = dest,
     }
@@ -1488,23 +2026,16 @@ local function expectedTransportWait(dock)
     return wait
 end
 
--- Walk or fly on the same continent toward a dock / destination.
-local function approachPlace(dest, fromWx, fromWy, fromInstance, unlocked, faction)
+-- Walk-only approach for boat/zeppelin routing. Calling routeFly per dock was
+-- the ~70ms TravelBestPath spike (20+ pads × full flight search).
+local function approachDockWalk(dest, fromWx, fromWy, fromInstance)
     if not isNumber(dest.wx) or not isNumber(dest.wy) then
         return nil
     end
     if isNumber(fromInstance) and isNumber(dest.instance) and fromInstance ~= dest.instance then
         return nil
     end
-    local walk = routeWalk(dest, fromWx, fromWy, fromInstance)
-    local fly = routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
-    if walk and fly then
-        if fly.seconds + 1 < walk.seconds then
-            return fly
-        end
-        return walk
-    end
-    return fly or walk
+    return routeWalk(dest, fromWx, fromWy, fromInstance)
 end
 
 local function routeTransport(dest, fromWx, fromWy, fromInstance, unlocked, faction)
@@ -1521,7 +2052,7 @@ local function routeTransport(dest, fromWx, fromWy, fromInstance, unlocked, fact
         if factionUsable(depart.faction, faction)
             and (not isNumber(fromInstance) or not isNumber(depart.instance) or fromInstance == depart.instance)
         then
-            local approach = approachPlace(dockAsDest(depart), fromWx, fromWy, fromInstance, unlocked, faction)
+            local approach = approachDockWalk(dockAsDest(depart), fromWx, fromWy, fromInstance)
             if approach then
                 departures[#departures + 1] = { id = departId, dock = depart, approach = approach }
             end
@@ -1536,10 +2067,7 @@ local function routeTransport(dest, fromWx, fromWy, fromInstance, unlocked, fact
         if factionUsable(arrive.faction, faction)
             and (not isNumber(dest.instance) or not isNumber(arrive.instance) or dest.instance == arrive.instance)
         then
-            local egress = approachPlace(dest, arrive.wx, arrive.wy, arrive.instance, unlocked, faction)
-            if not egress then
-                egress = routeWalk(dest, arrive.wx, arrive.wy, arrive.instance)
-            end
+            local egress = approachDockWalk(dest, arrive.wx, arrive.wy, arrive.instance)
             if egress then
                 arrivals[#arrivals + 1] = { id = arriveId, dock = arrive, egress = egress }
             end
@@ -1567,28 +2095,17 @@ local function routeTransport(dest, fromWx, fromWy, fromInstance, unlocked, fact
                     local fromLabel = depart.name or "dock"
                     local toLabel = arrive.name or "dock"
                     local details = {}
-                    if approach.mode == "fly" then
-                        for index = 1, #(approach.details or {}) do
-                            details[#details + 1] = approach.details[index]
-                        end
-                        if #details == 0 then
-                            details[#details + 1] = approach.summary
-                        end
-                    elseif approach.yards and approach.yards > NEAR_YARDS then
+                    if approach.yards and approach.yards > NEAR_YARDS then
                         details[#details + 1] = "Go to the " .. fromLabel .. " " .. verb .. " dock"
                     end
                     details[#details + 1] = "Take the " .. verb .. " to " .. toLabel
-                    if egress.mode == "fly" then
-                        for index = 1, #(egress.details or {}) do
-                            details[#details + 1] = egress.details[index]
-                        end
-                    elseif egress.yards and egress.yards > NEAR_YARDS then
+                    if egress.yards and egress.yards > NEAR_YARDS then
                         details[#details + 1] = "Run to " .. (dest.name or "destination")
                     end
                     local route = {
                         mode = "transport",
                         seconds = total,
-                        summary = "Take the " .. verb .. " " .. fromLabel .. " → " .. toLabel,
+                        summary = "Take the " .. verb .. " " .. fromLabel .. " -> " .. toLabel,
                         details = details,
                         -- Keep the arrow on this continent at the boarding dock.
                         waypoint = copyWaypoint(depart.wx, depart.wy, depart.instance or fromInstance),
@@ -1631,16 +2148,10 @@ local function routeHearth(dest, fromWx, fromWy, fromInstance, unlocked, faction
             return nil
         end
     end
-    local afterWalk = routeWalk(dest, place.wx, place.wy, place.instance or fromInstance)
-    local flyAfter = routeFly(dest, place.wx, place.wy, place.instance or fromInstance, unlocked, faction)
-    local boatAfter = routeTransport(dest, place.wx, place.wy, place.instance or fromInstance, unlocked, faction)
-    local after = afterWalk
-    if flyAfter and (not after or flyAfter.seconds + 1 < after.seconds) then
-        after = flyAfter
-    end
-    if boatAfter and (not after or boatAfter.seconds + 1 < after.seconds) then
-        after = boatAfter
-    end
+    -- Walk-only after hearth. Nested routeFly/routeTransport here used to
+    -- triple TravelBestPath cost (~100ms spikes). Fly-after-hearth is covered
+    -- by the bottom fly-rec chrome once you land.
+    local after = routeWalk(dest, place.wx, place.wy, place.instance or fromInstance)
     if not after then
         return nil
     end
@@ -1648,28 +2159,13 @@ local function routeHearth(dest, fromWx, fromWy, fromInstance, unlocked, faction
     local details = {
         "Use your Hearthstone (" .. (bindName or place.name or "bind") .. ")",
     }
-    for index = 1, #(after.details or {}) do
-        details[#details + 1] = after.details[index]
-    end
-    if after.mode == "walk" and (after.yards or 0) > NEAR_YARDS then
+    if (after.yards or 0) > NEAR_YARDS then
         details[#details + 1] = after.summary
-    elseif after.mode == "transport" and type(after.summary) == "string" then
-        details[#details + 1] = after.summary
-    end
-    local mode = "hearth"
-    if after.mode == "fly" then
-        mode = "hearth+fly"
-    elseif after.mode == "transport" then
-        mode = "hearth+transport"
-    end
-    local summaryExtra = ""
-    if after.mode == "fly" or after.mode == "transport" then
-        summaryExtra = ", then " .. after.summary
     end
     return {
-        mode = mode,
+        mode = "hearth",
         seconds = total,
-        summary = "Hearth to " .. (bindName or place.name or "bind") .. summaryExtra,
+        summary = "Hearth to " .. (bindName or place.name or "bind"),
         details = details,
         waypoint = after.waypoint,
         place = after.place,
@@ -1679,7 +2175,7 @@ local function routeHearth(dest, fromWx, fromWy, fromInstance, unlocked, faction
     }
 end
 
-function ns.TravelBestPath(dest, opts)
+local function travelBestPathInner(dest, opts)
     ensureGraph()
     if type(dest) ~= "table" then
         return nil
@@ -1720,6 +2216,7 @@ function ns.TravelBestPath(dest, opts)
     local unlocked = unlockedFlightPaths()
     local faction = playerFaction()
     local candidates = {}
+    local flyCandidate
 
     local walk = routeWalk(dest, px, py, pinstance)
     if walk then
@@ -1745,11 +2242,17 @@ function ns.TravelBestPath(dest, opts)
     if prefer ~= "hearth" then
         local fly = routeFly(dest, px, py, pinstance, unlocked, faction)
         if fly then
+            flyCandidate = fly
             candidates[#candidates + 1] = fly
         end
-        local boat = routeTransport(dest, px, py, pinstance, unlocked, faction)
-        if boat then
-            candidates[#candidates + 1] = boat
+        -- Boat/zeppelin only when continents disagree or walking is impossible.
+        local needBoat = not walk
+            or (isNumber(dest.instance) and isNumber(pinstance) and dest.instance ~= pinstance)
+        if needBoat then
+            local boat = routeTransport(dest, px, py, pinstance, unlocked, faction)
+            if boat then
+                candidates[#candidates + 1] = boat
+            end
         end
     end
     if prefer ~= "fly" then
@@ -1759,19 +2262,41 @@ function ns.TravelBestPath(dest, opts)
         end
     end
 
+    local recommendFly = not ns.db or ns.db.showFlightRecommend ~= false
+    local minFlyYards = flightRecMinYards()
+    local function flySavesYards(route)
+        return recommendFly
+            and route
+            and route.mode == "fly"
+            and route.departId
+            and route.arriveId
+            and route.departId ~= route.arriveId
+            and isNumber(route.savingsYards)
+            and route.savingsYards >= minFlyYards
+    end
+
     best = candidates[1]
     for index = 2, #candidates do
         local route = candidates[index]
         if route.seconds + 0.01 < (best.seconds or math.huge) then
             -- Prefer alternate modes only when they beat walking by a useful margin.
             if best.mode == "walk" and route.mode ~= "walk" then
-                if (best.seconds - route.seconds) >= MIN_IMPROVE_SECONDS then
+                local timeOk = (best.seconds - route.seconds) >= MIN_IMPROVE_SECONDS
+                if timeOk or flySavesYards(route) then
                     best = route
                 end
             else
                 best = route
             end
+        elseif best.mode == "walk" and flySavesYards(route) then
+            -- Even when flying is not faster by the time margin, recommend it when
+            -- ground travel savings clear the configured yard threshold.
+            best = route
         end
+    end
+    -- Stash fly candidate for the bottom chrome so pulse does not re-run routeFly.
+    if best then
+        best._flyCandidate = flyCandidate
     end
     -- Cache nil misses as false so repeated sticky polls skip the full search.
     routeCache[cacheKey] = best or false
@@ -1784,8 +2309,328 @@ function ns.TravelBestPath(dest, opts)
     return best
 end
 
+function ns.TravelBestPath(dest, opts)
+    if ns.PerfProbe then
+        return ns.PerfProbe("TravelBestPath", travelBestPathInner, dest, opts)
+    end
+    return travelBestPathInner(dest, opts)
+end
+
 function ns.TravelResolveStep(step)
     return destinationFromStep(step)
+end
+
+-- Returns a fly route when an unlocked flight path cuts ground travel by at
+-- least minYards (default: ns.db.flightRecommendMinYards or 500).
+local function travelFlightRecommendationInner(dest, minYards)
+    ensureGraph()
+    if type(dest) ~= "table" then
+        return nil
+    end
+    if not isNumber(dest.wx) or not isNumber(dest.wy) then
+        local arriveWx, arriveWy, arriveInstance = flightArrivePoint(dest)
+        if not isNumber(arriveWx) then
+            return nil
+        end
+        dest = {
+            name = dest.name,
+            zone = dest.zone,
+            hub = dest.hub,
+            rawName = dest.rawName,
+            map = dest.map,
+            x = dest.x,
+            y = dest.y,
+            nodeId = dest.nodeId,
+            wx = dest.wx or arriveWx,
+            wy = dest.wy or arriveWy,
+            instance = dest.instance or arriveInstance,
+        }
+    end
+    if type(minYards) ~= "number" then
+        minYards = flightRecMinYards()
+    end
+    local px, py, pinstance = playerPoint()
+    if not px then
+        return nil
+    end
+    local unlocked = unlockedFlightPaths()
+    local faction = playerFaction()
+    local fly = routeFly(dest, px, py, pinstance, unlocked, faction)
+    if not fly
+        or not fly.departId
+        or not fly.arriveId
+        or fly.departId == fly.arriveId
+        or not isNumber(fly.savingsYards)
+        or fly.savingsYards < minYards
+    then
+        return nil
+    end
+    return fly
+end
+
+function ns.TravelFlightRecommendation(dest, minYards)
+    if ns.PerfProbe then
+        return ns.PerfProbe("TravelFlightRecommendation", travelFlightRecommendationInner, dest, minYards)
+    end
+    return travelFlightRecommendationInner(dest, minYards)
+end
+
+function ns.TravelFillDestinationCoords(dest, step)
+    if type(dest) ~= "table" then
+        return dest
+    end
+    if isNumber(dest.wx) and isNumber(dest.wy) then
+        return dest
+    end
+    if type(step) == "table" and isNumber(step.map) and isNumber(step.x) and isNumber(step.y) then
+        local zone = ns.MapName and ns.MapName(step.map) or dest.zone
+        local wx, wy, instance = zoneWorld(step.map, step.x, step.y, zone)
+        dest.map, dest.x, dest.y = step.map, step.x, step.y
+        dest.zone = zone or dest.zone
+        dest.wx, dest.wy, dest.instance = wx, wy, instance
+    end
+    return dest
+end
+
+-- /waynotes fly — dump why a flight recommendation is or is not showing.
+function ns.TravelDebugFlight()
+    ensureGraph()
+    local function say(line)
+        if DEFAULT_CHAT_FRAME then
+            DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes fly|r " .. tostring(line))
+        end
+    end
+    local function fmt(value)
+        if value == nil then
+            return "nil"
+        end
+        if type(value) == "number" then
+            return string.format("%.1f", value)
+        end
+        return tostring(value)
+    end
+
+    say("--- flight recommend debug ---")
+    local db = ns.db or {}
+    say(string.format(
+        "settings show=%s minYards=%s forever=%s",
+        tostring(db.showFlightRecommend),
+        tostring(db.flightRecommendMinYards or flightRecMinYards()),
+        tostring(ns.IsForever and ns.IsForever() or false)
+    ))
+
+    local rawA, rawB
+    if type(UnitPosition) == "function" then
+        local ok, a, b = pcall(UnitPosition, "player")
+        if ok then
+            rawA, rawB = a, b
+        end
+    end
+    local px, py, pinstance = playerPoint()
+    local playerSource = "none"
+    do
+        local hbd = getHBD()
+        if hbd and hbd.GetPlayerWorldPosition then
+            local ok, wx, wy = pcall(hbd.GetPlayerWorldPosition, hbd)
+            if ok and isNumber(wx) and isNumber(wy) then
+                playerSource = "hbd"
+            end
+        end
+        if playerSource == "none" and px then
+            playerSource = "UnitPosition"
+        end
+    end
+    say(string.format(
+        "player wx=%s wy=%s instance=%s source=%s zone=%s",
+        fmt(px),
+        fmt(py),
+        fmt(pinstance),
+        playerSource,
+        tostring(GetRealZoneText and GetRealZoneText() or "?")
+    ))
+    say(string.format(
+        "UnitPosition raw a=%s b=%s fitAB=%s fitBA=%s",
+        fmt(rawA),
+        fmt(rawB),
+        fmt(nearestPadFit(rawA, rawB)),
+        fmt(nearestPadFit(rawB, rawA))
+    ))
+    if px then
+        say(string.format(
+            "dist to Taurajo(77)=%s Crossroads(25)=%s",
+            fmt(nodesById[77] and nodeDistance(px, py, pinstance, nodesById[77])),
+            fmt(nodesById[25] and nodeDistance(px, py, pinstance, nodesById[25]))
+        ))
+    end
+
+    local step, stepIndex
+    if ns.GuidePrimaryStep then
+        step, stepIndex = ns.GuidePrimaryStep()
+    end
+    if step then
+        local text = plainGuideText(step.text) or "?"
+        if #text > 70 then
+            text = text:sub(1, 70) .. "..."
+        end
+        say(string.format(
+            "step #%s when=%s travel=%s map=%s x=%s y=%s",
+            tostring(stepIndex or step.index),
+            tostring(step.when),
+            tostring(ns.TravelIsTravelStep and ns.TravelIsTravelStep(step)),
+            tostring(step.map),
+            fmt(step.x),
+            fmt(step.y)
+        ))
+        say("text: " .. text)
+        local named, prefer = extractDestinationName(step.text)
+        say(string.format("extract named=%s prefer=%s", tostring(named), tostring(prefer)))
+    else
+        say("step: none (GuidePrimaryStep returned nil)")
+    end
+
+    local dest = ns.GuideTravelDestination and select(1, ns.GuideTravelDestination()) or nil
+    if not dest and step then
+        dest = destinationFromStep(step)
+        if ns.TravelFillDestinationCoords then
+            dest = ns.TravelFillDestinationCoords(dest, step) or dest
+        end
+    end
+    if dest then
+        say(string.format(
+            "dest name=%s raw=%s zone=%s nodeId=%s",
+            tostring(dest.name),
+            tostring(dest.rawName),
+            tostring(dest.zone),
+            tostring(dest.nodeId)
+        ))
+        say(string.format(
+            "dest wx=%s wy=%s instance=%s map=%s x=%s y=%s",
+            fmt(dest.wx),
+            fmt(dest.wy),
+            fmt(dest.instance),
+            tostring(dest.map),
+            fmt(dest.x),
+            fmt(dest.y)
+        ))
+        local ax, ay, ainst, aid = flightArrivePoint(dest)
+        say(string.format(
+            "arrivePoint wx=%s wy=%s instance=%s nodeId=%s hub=%s",
+            fmt(ax),
+            fmt(ay),
+            fmt(ainst),
+            tostring(aid),
+            tostring(aid and nodesById[aid] and nodesById[aid].hub)
+        ))
+    else
+        say("dest: nil")
+    end
+
+    local unlocked = unlockedFlightPaths()
+    local unlockedList = {}
+    for id in pairs(unlocked) do
+        unlockedList[#unlockedList + 1] = id
+    end
+    table.sort(unlockedList)
+    local unlockedText = {}
+    for index = 1, math.min(#unlockedList, 12) do
+        local id = unlockedList[index]
+        local node = nodesById[id]
+        unlockedText[#unlockedText + 1] = id .. "=" .. (node and (node.hub or "?") or "?")
+    end
+    say(string.format(
+        "unlocked count=%d %s%s",
+        #unlockedList,
+        table.concat(unlockedText, ", "),
+        #unlockedList > 12 and ", ..." or ""
+    ))
+    for _, id in ipairs({ 25, 77 }) do
+        local node = nodesById[id]
+        say(string.format(
+            "node %d %s unlocked=%s wx=%s wy=%s instance=%s",
+            id,
+            node and (node.hub or "?") or "missing",
+            tostring(unlocked[id] and true or false),
+            fmt(node and node.wx),
+            fmt(node and node.wy),
+            fmt(node and node.instance)
+        ))
+    end
+
+    if px then
+        local faction = playerFaction()
+        local nearAny, nearAnyDist = nearestFlightNode(px, py, pinstance, false, false)
+        local nearUn, nearUnDist = nearestUnlockedFlight(px, py, pinstance, unlocked, faction, true)
+        say(string.format(
+            "nearestAny id=%s hub=%s dist=%s",
+            tostring(nearAny and nearAny.nodeId),
+            tostring(nearAny and nearAny.hub),
+            fmt(nearAnyDist)
+        ))
+        say(string.format(
+            "nearestUnlocked id=%s hub=%s dist=%s",
+            tostring(nearUn),
+            tostring(nearUn and nodesById[nearUn] and nodesById[nearUn].hub),
+            fmt(nearUnDist)
+        ))
+    end
+
+    local fly
+    local reject
+    if not dest then
+        reject = "no dest"
+    elseif not px then
+        reject = "no player point"
+    else
+        fly = routeFly(dest, px, py, pinstance, unlocked, playerFaction())
+        if not fly then
+            reject = "routeFly nil"
+        elseif fly.departId == fly.arriveId then
+            reject = "same pad " .. tostring(fly.departId)
+        elseif not isNumber(fly.savingsYards) then
+            reject = "no savingsYards"
+        elseif fly.savingsYards < flightRecMinYards() then
+            reject = string.format("savings %.1f < min %d", fly.savingsYards, flightRecMinYards())
+        end
+    end
+
+    if fly then
+        say(string.format(
+            "routeFly mode=%s %s -> %s seconds=%.1f walk=%s ground=%s savings=%s",
+            tostring(fly.mode),
+            tostring(fly.depart and fly.depart.hub or fly.departId),
+            tostring(fly.arrive and fly.arrive.hub or fly.arriveId),
+            fly.seconds or 0,
+            fmt(fly.yards),
+            fmt(fly.groundYards),
+            fmt(fly.savingsYards)
+        ))
+        say("summary: " .. tostring(fly.summary))
+    else
+        say("routeFly: nil (" .. (reject or "?") .. ")")
+    end
+
+    local rec = dest and ns.TravelFlightRecommendation(dest) or nil
+    say("TravelFlightRecommendation: " .. (rec and (rec.summary .. " savings=" .. fmt(rec.savingsYards)) or "nil"))
+
+    local best = dest and ns.TravelBestPath(dest) or nil
+    say("TravelBestPath: " .. (best and (tostring(best.mode) .. " " .. tostring(best.summary)) or "nil"))
+
+    local active = ns.TravelActiveFlightRecommendation and ns.TravelActiveFlightRecommendation()
+    say("activeFlightRec: " .. (active and (active.summary .. " savings=" .. fmt(active.savingsYards)) or "nil"))
+
+    local state = ns.ReplaceState and ns.ReplaceState.flyRec
+    if state then
+        say(string.format(
+            "strip chrome=%s shown=%s dismissed=%s route=%s",
+            tostring(state.chrome),
+            tostring(state.strip and state.strip:IsShown()),
+            tostring(state.dismissed),
+            tostring(state.route and state.route.summary)
+        ))
+    else
+        say("strip state: missing")
+    end
+    say("--- end ---")
 end
 
 local function travelDestinationName(step)
@@ -1910,13 +2755,8 @@ local function applyHearthAvailable(item, dest, route)
     if not suggestion then
         return false
     end
-    local bindName = suggestion.bindName
-    local tip = "Hearthstone available"
-    if type(bindName) == "string" and bindName ~= "" then
-        tip = tip .. " (" .. bindName .. ")"
-    end
-    pushDetail(item, tip)
-    attachHearthButton(item, bindName)
+    -- Tip text is handled by the bottom travel chrome; only attach the use button.
+    attachHearthButton(item, suggestion.bindName)
     return true
 end
 
@@ -1961,57 +2801,27 @@ function ns.TravelApplyToItem(item, step)
             dest.wx, dest.wy, dest.instance = wx, wy, instance
         end
 
-        local route = ns.TravelBestPath(dest)
-        if not route then
-            if isNumber(dest.wx) and isNumber(dest.wy) and not item.waypoint then
-                item.waypoint = copyWaypoint(dest.wx, dest.wy, dest.instance)
-                item.place = {
-                    map = dest.map,
-                    x = dest.x,
-                    y = dest.y,
-                    zone = dest.zone or dest.name,
-                }
-            end
-        else
-            item.travel = route
-            if route.waypoint then
-                item.waypoint = route.waypoint
-            end
-            -- Keep the authored pin as the location. The waypoint stays on
-            -- the next hop (flight master, dock) until the player arrives.
-            if isNumber(dest.x) and isNumber(dest.y) then
-                item.place = {
-                    map = dest.map,
-                    x = dest.x,
-                    y = dest.y,
-                    zone = dest.zone or dest.name,
-                }
-            elseif route.place and (route.place.x or route.place.zone) then
-                item.place = route.place
-            end
+        -- Never run TravelBestPath during tracker rebuilds (was ~126ms spikes).
+        -- Primary routing + fly-rec are computed on TravelPulsePrimaryRoute.
+        if isNumber(dest.wx) and isNumber(dest.wy) and not item.waypoint then
+            item.waypoint = copyWaypoint(dest.wx, dest.wy, dest.instance)
+        end
+        if isNumber(dest.x) and isNumber(dest.y) then
+            item.place = {
+                map = dest.map,
+                x = dest.x,
+                y = dest.y,
+                zone = dest.zone or dest.name,
+            }
+        elseif not item.place and (dest.zone or dest.name) then
+            item.place = {
+                map = dest.map,
+                zone = dest.zone or dest.name,
+            }
         end
 
-        -- Claim a detail slot before other travel tips so the hearth hint
-        -- stays visible when the step already has several notes.
-        applyHearthAvailable(item, dest, route)
-
-        if route and route.mode ~= "walk" and type(route.summary) == "string" and route.summary ~= "" then
-            if route.useHearth then
-                -- "Hearthstone available" replaces the hearth summary; keep
-                -- follow-up fly/boat lines from the route details.
-                for index = 1, #(route.details or {}) do
-                    local line = route.details[index]
-                    if type(line) == "string" and not line:find("Use your Hearthstone", 1, true) then
-                        pushDetail(item, line)
-                    end
-                end
-            else
-                pushDetail(item, route.summary)
-                for index = 1, #(route.details or {}) do
-                    pushDetail(item, route.details[index])
-                end
-            end
-        end
+        -- Hearth use button only; tip text lives in bottom chrome.
+        applyHearthAvailable(item, dest, nil)
 
         if dest.pickup and isNumber(dest.nodeId) then
             local unlocked = unlockedFlightPaths()
@@ -2027,13 +2837,54 @@ function ns.TravelApplyToItem(item, step)
     return item
 end
 
--- Events: learn unlocked flight paths whenever the taxi map is available.
+-- Compute primary BestPath + fly-rec off the rebuild path. Call from OnUpdate.
+function ns.TravelPulsePrimaryRoute()
+    local dest, step, stepIndex
+    if ns.GuideTravelDestination then
+        dest, step, stepIndex = ns.GuideTravelDestination()
+    end
+    if type(dest) ~= "table" then
+        activeFlightRec = nil
+        if ns.OnTravelRouteReady then
+            ns.OnTravelRouteReady(nil, nil, nil, nil)
+        end
+        return nil
+    end
+    if step and isNumber(step.map) and isNumber(step.x) and isNumber(step.y) and not isNumber(dest.wx) then
+        dest = ns.TravelFillDestinationCoords(dest, step) or dest
+    end
+    local route = ns.TravelBestPath(dest)
+    activeFlightRec = nil
+    if route and route.mode == "fly" then
+        rememberFlightRec(route)
+    elseif route and route._flyCandidate then
+        rememberFlightRec(route._flyCandidate)
+    elseif not dest.pickup then
+        -- Fallback only when BestPath had no fly candidate (rare).
+        local travelStep = not step
+            or not ns.TravelIsTravelStep
+            or ns.TravelIsTravelStep(step)
+        if travelStep then
+            rememberFlightRec(ns.TravelFlightRecommendation(dest))
+        end
+    end
+    if ns.OnTravelRouteReady then
+        ns.OnTravelRouteReady(route, dest, step, stepIndex)
+    end
+    return route
+end
+
+-- Events: learn unlocked flight paths whenever the taxi map is available;
+-- advance hearth-bind steps when the bind location changes.
 do
     local frame = CreateFrame("Frame")
     frame:RegisterEvent("TAXIMAP_OPENED")
     frame:RegisterEvent("UI_INFO_MESSAGE")
     frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    frame:RegisterEvent("GOSSIP_CLOSED")
+    frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     pcall(frame.RegisterEvent, frame, "BAG_UPDATE_COOLDOWN")
+    pcall(frame.RegisterEvent, frame, "HEARTHSTONE_BOUND")
     local function refresh()
         if hearthButton then
             updateHearthCooldown(hearthButton)
@@ -2047,8 +2898,20 @@ do
     end
 
     frame:SetScript("OnEvent", function(_, event, ...)
+        if event == "ZONE_CHANGED_NEW_AREA" then
+            -- Recompute BestPath once on real zone changes, not subzone chatter.
+            ns.TravelInvalidateRoutes()
+            if ns.RequestPrimaryRoute then
+                ns.RequestPrimaryRoute()
+            end
+            return
+        end
         if event == "TAXIMAP_OPENED" then
             ns.TravelRememberOpenTaxiNodes()
+            refresh()
+            return
+        end
+        if event == "HEARTHSTONE_BOUND" or event == "GOSSIP_CLOSED" then
             refresh()
             return
         end

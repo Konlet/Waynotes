@@ -42,7 +42,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Kill [ENEMY]Encroaching Soldiers[/] and an [ENEMY]Outraged Pillager[/] for [QUEST]Wrongly Blamed, Justly Corrected[/].",
+            text = "Kill [ENEMY]Encroaching Soldiers[/] and an [ENEMY]Outraged Pillager[/].",
             map = 1413,
             x = 49.1,
             y = 77.0,
@@ -236,7 +236,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "In Roguefeather Den, kill Screeching harpies for [QUEST]Stop the Screeching[/].",
+            text = "In Roguefeather Den, kill Screeching harpies.",
             map = 1441,
             x = 27.2,
             y = 51.4,
@@ -284,7 +284,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Steelsnap[/] for [LOOT]Steelsnap's Rib[/] for [QUEST]Steelsnap[/].",
+            text = "Kill [ENEMY]Steelsnap[/] for [LOOT]Steelsnap's Rib[/].",
             map = 1441,
             x = 17.3,
             y = 22.2,
@@ -640,7 +640,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "At the silithid hive, kill Invaders, Searchers, and Hive Drones for [QUEST]The Swarm Grows[/].",
+            text = "At the silithid hive, kill Invaders, Searchers, and Hive Drones.",
             map = 1441,
             x = 70.2,
             y = 82.6,
@@ -667,7 +667,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill basilisks for [QUEST]A Bump in the Road[/].",
+            text = "Kill basilisks.",
             map = 1441,
             x = 82.8,
             y = 55.2,
