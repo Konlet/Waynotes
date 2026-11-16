@@ -33,20 +33,20 @@ ns.RegisterGuide({
             y = 49.0,
         },
         {
-            text = "Just inside, talk to [FRIENDLY]Maur Grimtotem[/] for [QUEST]Searching for the Lost Satchel[/]. Turn it in and accept [QUEST]Returning the Lost Satchel[/].",
+            text = "Just inside, talk to [FRIENDLY]Maur Grimtotem[/]. Turn in [QUEST]Searching for the Lost Satchel[/]. Accept [QUEST]Returning the Lost Satchel[/].",
             note = "Skip if you do not have the quest.",
         },
         {
-            text = "Clear the first trogg tunnel. Kill 8 [ENEMY]Ragefire Troggs[/] and 8 [ENEMY]Ragefire Shaman[/] for [QUEST]Testing an Enemy's Strength[/] while you move. At the end, crowd-control one of [ENEMY]Oggleflint[/]'s guards if you can, kill the adds, then kill [ENEMY]Oggleflint[/]. Keep him faced away from the group so Cleave does not hit everyone.",
+            text = "Clear the first trogg tunnel. Kill 8 [ENEMY]Ragefire Troggs[/] and 8 [ENEMY]Ragefire Shaman[/] while you move. At the end, crowd-control one of [ENEMY]Oggleflint[/]'s guards if you can, kill the adds, then kill [ENEMY]Oggleflint[/]. Keep him faced away from the group so Cleave does not hit everyone.",
         },
         {
-            text = "Cross to the lava platform and kill [ENEMY]Taragaman the Hungerer[/]. Loot [LOOT]Taragaman the Hungerer's Heart[/] for [QUEST]Slaying the Beast[/]. The tank should stay off the platform edge so Uppercut does not knock them into the lava. Healers and damage stay back from Fire Nova.",
+            text = "Cross to the lava platform and kill [ENEMY]Taragaman the Hungerer[/]. Loot [LOOT]Taragaman the Hungerer's Heart[/]. The tank should stay off the platform edge so Uppercut does not knock them into the lava. Healers and damage stay back from Fire Nova.",
         },
         {
-            text = "Continue to [ENEMY]Jergosh the Invoker[/]. Crowd-control one guard, kill the adds, then kill Jergosh. This is one of the two bosses for [QUEST]Hidden Enemies[/]. Loot [LOOT]Spells of Shadow[/] and [LOOT]Incantations from the Nether[/] from Searing Blade cultists for [QUEST]The Power to Destroy[/] as you clear this wing.",
+            text = "Continue to [ENEMY]Jergosh the Invoker[/]. Crowd-control one guard, kill the adds, then kill Jergosh. This is one of the two bosses. Loot [LOOT]Spells of Shadow[/] and [LOOT]Incantations from the Nether[/] from Searing Blade cultists as you clear this wing.",
         },
         {
-            text = "In the last room, pull and kill the [ENEMY]Searing Blade Cultist[/] on the right by itself. Crowd-control the second cultist, then kill [ENEMY]Bazzalan[/]. That finishes the boss kills for [QUEST]Hidden Enemies[/].",
+            text = "In the last room, pull and kill the [ENEMY]Searing Blade Cultist[/] on the right by itself. Crowd-control the second cultist, then kill [ENEMY]Bazzalan[/]. That finishes the boss kills.",
         },
         {
             text = "Leave Ragefire Chasm. Talk to [FRIENDLY]Neeru Fireblade[/] in the Cleft of Shadow. Turn in [QUEST]Slaying the Beast[/], then follow any [QUEST]Hidden Enemies[/] steps through Neeru if you are on that chain.",
@@ -99,7 +99,7 @@ ns.RegisterGuide({
             y = 35.7,
         },
         {
-            text = "Follow the tunnels deeper. Kill [ENEMY]Mad Magglish[/] and loot [LOOT]99-Year-Old Port[/] for [QUEST]Trouble at the Docks[/] from [FRIENDLY]Crane Operator Bigglefuzz[/] in Ratchet. He paces the side tunnels before the instance portal.",
+            text = "Follow the tunnels deeper. Kill [ENEMY]Mad Magglish[/] and loot [LOOT]99-Year-Old Port[/] from [FRIENDLY]Crane Operator Bigglefuzz[/] in Ratchet. He paces the side tunnels before the instance portal.",
             map = 1413,
             x = 45.7,
             y = 33.6,
@@ -120,7 +120,7 @@ ns.RegisterGuide({
             y = 36.3,
         },
         {
-            text = "Enter the Wailing Caverns instance with your group. Loot [LOOT]Deviate Hides[/] from deviate beasts the whole run. Loot [PICK]Serpentbloom[/] off the ground for [QUEST]Serpentbloom[/]. Kill [ENEMY]Ectoplasms[/] for 6 [LOOT]Wailing Essence[/] for [QUEST]Smart Drinks[/].",
+            text = "Enter the Wailing Caverns instance with your group. Loot [LOOT]Deviate Hides[/] from deviate beasts the whole run. Loot [PICK]Serpentbloom[/] off the ground. Kill [ENEMY]Ectoplasms[/] for 6 [LOOT]Wailing Essence[/].",
             map = 1413,
             x = 45.9,
             y = 36.3,
@@ -130,27 +130,27 @@ ns.RegisterGuide({
             note = "Skip if the group is skipping him.",
         },
         {
-            text = "Kill [ENEMY]Lady Anacondra[/] in the first fang chamber. Interrupt Sleep. Loot the [LOOT]Gem of Anacondra[/] for [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Ravagers[/] for [QUEST]Deviate Eradication[/] are in this wing.",
+            text = "Kill [ENEMY]Lady Anacondra[/] in the first fang chamber. Interrupt Sleep. Loot the [LOOT]Gem of Anacondra[/]. [ENEMY]Deviate Ravagers[/] are in this wing.",
         },
         {
-            text = "Kill the three [ENEMY]Deviate Pythons[/] with [ENEMY]Lord Cobrahn[/] before you focus him. Interrupt Sleep. Loot the [LOOT]Gem of Cobrahn[/] for [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Vipers[/] are in this wing.",
+            text = "Kill the three [ENEMY]Deviate Pythons[/] with [ENEMY]Lord Cobrahn[/] before you focus him. Interrupt Sleep. Loot the [LOOT]Gem of Cobrahn[/]. [ENEMY]Deviate Vipers[/] are in this wing.",
         },
         {
             text = "Optional: in the Winding Chasm, before Lord Pythas, kill the [ENEMY]Deviate Faerie Dragon[/] if it is up.",
             note = "Rare. Skip if it is not spawned.",
         },
         {
-            text = "Pull [ENEMY]Lord Pythas[/]. Crowd-control the Druid of the Fang, kill the other add, then kill Pythas. Interrupt Sleep. Loot the [LOOT]Gem of Pythas[/] for [QUEST]Leaders of the Fang[/].",
+            text = "Pull [ENEMY]Lord Pythas[/]. Crowd-control the Druid of the Fang, kill the other add, then kill Pythas. Interrupt Sleep. Loot the [LOOT]Gem of Pythas[/].",
         },
         {
             text = "Optional: kill [ENEMY]Skum[/]. Spread melee apart so Chained Bolt does not jump through the group.",
             note = "Skip if the group is skipping him.",
         },
         {
-            text = "Kill [ENEMY]Lord Serpentis[/]. Interrupt Sleep. Loot the [LOOT]Gem of Serpentis[/] to finish the four gems for [QUEST]Leaders of the Fang[/]. [ENEMY]Deviate Dreadfangs[/] are in the Winding Chasm.",
+            text = "Kill [ENEMY]Lord Serpentis[/]. Interrupt Sleep. Loot the [LOOT]Gem of Serpentis[/] to finish the four gems. [ENEMY]Deviate Dreadfangs[/] are in the Winding Chasm.",
         },
         {
-            text = "Kill [ENEMY]Verdan the Everliving[/] in the Crag of the Everliving. Grasping Vines roots and knocks down anyone within 10 yards, so the healer should keep the group topped. [ENEMY]Deviate Shamblers[/] for [QUEST]Deviate Eradication[/] are in this wing. Finish any hide, bloom, or essence counts before the escort.",
+            text = "Kill [ENEMY]Verdan the Everliving[/] in the Crag of the Everliving. Grasping Vines roots and knocks down anyone within 10 yards, so the healer should keep the group topped. [ENEMY]Deviate Shamblers[/] are in this wing. Finish any hide, bloom, or essence counts before the escort.",
         },
         {
             text = "Go back to the [FRIENDLY]Disciple of Naralex[/] at the start of the instance. Tell him to let the event begin and escort him to Naralex. Clear the waves at the ritual stone, then kill [ENEMY]Mutanus the Devourer[/]. Ranged damage is safer: Thunderclap hits the tank and nearby melee. Terrify and Naralex's Nightmare stun or sleep people, so keep health high. Loot the [LOOT]Glowing Shard[/] and accept [QUEST]The Glowing Shard[/].",
@@ -355,10 +355,10 @@ ns.RegisterGuide({
         },
         {
             faction = "Alliance",
-            text = "As you clear, kill 15 [ENEMY]Enraged Apparitions[/] and 10 [ENEMY]Tormented Souls[/] for [QUEST]The Restless Dead[/]. Open [PICK]Heirloom Coffers[/] for 8 [LOOT]Dwarven Heirlooms[/] for [QUEST]Important Heirlooms[/].",
+            text = "As you clear, kill 15 [ENEMY]Enraged Apparitions[/] and 10 [ENEMY]Tormented Souls[/]. Open [PICK]Heirloom Coffers[/] for 8 [LOOT]Dwarven Heirlooms[/].",
         },
         {
-            text = "Find [ENEMY]Faldrim Anvilmar[/] patrolling Anvilmar's Rest. Clear the trash around his path, then kill him for [QUEST]An Ancient Grudge[/]. Anvilmar's Curse slows the tank's attacks, so threat builds slower than usual. Give the tank a moment before you damage.",
+            text = "Find [ENEMY]Faldrim Anvilmar[/] patrolling Anvilmar's Rest. Clear the trash around his path, then kill him. Anvilmar's Curse slows the tank's attacks, so threat builds slower than usual. Give the tank a moment before you damage.",
         },
         {
             text = "Kill [ENEMY]Magmatus[/]. Pull him off the [ENEMY]Dark Iron Summoner[/] and kill the summoner first. Magmatus casts Combust on a random player and pulses Fire Nova. Spread so the nova does not hit the whole group.",
@@ -432,7 +432,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Horde",
-            text = "Outside Undercity on the Tirisfal road, talk to [FRIENDLY]Deathguard Kristof[/] for [QUEST]The Wrath of Rath'mael[/].",
+            text = "Outside Undercity on the Tirisfal road, talk to [FRIENDLY]Deathguard Kristof[/]. Accept [QUEST]The Wrath of Rath'mael[/].",
             map = 1420,
             x = 65.3,
             y = 60.2,
@@ -440,7 +440,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Horde",
-            text = "In Silverpine at the Sepulcher, talk to [FRIENDLY]Tabitha Heartweaver[/] for [QUEST]A Frightened Request[/], then return to the courtyard entrance.",
+            text = "In Silverpine at the Sepulcher, talk to [FRIENDLY]Tabitha Heartweaver[/]. Accept [QUEST]A Frightened Request[/], then return to the courtyard entrance.",
             map = 1421,
             x = 44.5,
             y = 43.0,
@@ -458,7 +458,7 @@ ns.RegisterGuide({
         },
         {
             faction = "Horde",
-            text = "Kill undead as you clear and loot 25 [LOOT]Intact Limbs[/] for [QUEST]Light's Justice[/]. Any corpse-type mob in here can drop them.",
+            text = "Kill undead as you clear and loot 25 [LOOT]Intact Limbs[/]. Any corpse-type mob in here can drop them.",
         },
         {
             text = "Kill [ENEMY]Witherfang[/]. He patrols just past the entrance, a short way down the first street. Kill his adds before you focus him. Dispel Leech Poison off the tank when it lands.",

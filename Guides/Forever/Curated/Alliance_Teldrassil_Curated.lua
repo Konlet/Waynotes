@@ -327,7 +327,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Githyiss the Vile[/] for [QUEST]Fang of Githyiss[/] if offered.",
+            text = "Kill [ENEMY]Githyiss the Vile[/] if offered.",
             map = 1438,
             x = 56.7,
             y = 32.0,
@@ -568,7 +568,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill nightsabers, owls, and spiders for [QUEST]Zenn's Bidding[/].",
+            text = "Kill nightsabers, owls, and spiders.",
             map = 1438,
             x = 59.0,
             y = 68.0,
@@ -629,7 +629,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Fill the phial at the Starbreeze moonwell for [QUEST]Crown of the Earth[/].",
+            text = "Fill the phial at the Starbreeze moonwell.",
             map = 1438,
             x = 63.4,
             y = 58.1,
@@ -667,7 +667,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "In Fel Rock, kill [ENEMY]Lord Melenas[/] for [QUEST]Twisted Hatred[/].",
+            text = "In Fel Rock, kill [ENEMY]Lord Melenas[/].",
             map = 1438,
             x = 68.0,
             y = 53.0,
@@ -703,7 +703,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Gnarlpine Ambushers[/] for [QUEST]The Road to Darnassus[/].",
+            text = "Kill [ENEMY]Gnarlpine Ambushers[/].",
             map = 1438,
             x = 42.4,
             y = 67.1,
@@ -726,7 +726,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Loot the [PICK]Strange Fruited Plant[/] for [QUEST]The Glowing Fruit[/] if you see it.",
+            text = "Loot the [PICK]Strange Fruited Plant[/] if you see it.",
             map = 1438,
             x = 42.6,
             y = 76.1,
@@ -782,7 +782,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill harpies for [LOOT]Bloodfeather Belts[/]. Escort [FRIENDLY]Mist[/] if offered. Talk to Arynia for [QUEST]Darkness in the Glade[/], kill the three corrupted spirits, then finish [QUEST]The Oracle Tree[/] and accept [QUEST]Teldrassil[/].",
+            text = "Kill harpies for [LOOT]Bloodfeather Belts[/]. Escort [FRIENDLY]Mist[/] if offered. Talk to Arynia. Accept [QUEST]Darkness in the Glade[/], kill the three corrupted spirits, then finish [QUEST]The Oracle Tree[/] and accept [QUEST]Teldrassil[/].",
             map = 1438,
             x = 34.0,
             y = 35.0,
@@ -797,7 +797,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Loot the [PICK]Strange Fronded Plant[/] for [QUEST]The Shimmering Frond[/] if you see it.",
+            text = "Loot the [PICK]Strange Fronded Plant[/] if you see it.",
             map = 1438,
             x = 34.6,
             y = 28.8,

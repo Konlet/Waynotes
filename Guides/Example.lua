@@ -12,15 +12,16 @@ local _, ns = ...
 --        Use for zone transitions and long runs with no quest gate.
 --        Optional arriveYards overrides the default arrival radius.
 -- nearYards overrides the NEAR radius on kill/loot/pick objective steps
---        (and multi-pin visit distance). Default is 100 yards, or 10 when
---        the step only needs one kill, loot, or pick.
+--        (and multi-pin visit distance). Defaults come from Options >
+--        Near distance (enemy / loot / pick / single-target / travel).
 -- objective = N advances an objectives step once quest objective N is
 --        done (1-based leaderboard index). Use this to split multi-enemy
 --        quests onto different pins when spawn camps are not nearby.
 -- Leave when out with no quest and the step waits for the next button.
 --
--- Optional guide fields for recommendations:
+-- Optional guide fields for recommendations (and menu collapse):
 --   faction, minLevel, maxLevel, races = { "Orc" }, classes = { "Warrior" }
+-- Faction guides for the other side stay listed but collapsed by default.
 --
 -- map, x, y are an optional pin. map is a UiMap ID. Elwynn Forest is 1429.
 -- Write Era coordinates. On Forever, QuestieDB converts the zones it knows
@@ -40,6 +41,8 @@ local _, ns = ...
 --   [WARN]Do not die[/]         warnings
 -- Closing [/TAG] also works, e.g. [ENEMY]Foo[/ENEMY].
 -- Legacy |cRB_FRIENDLY_Name|r tags still expand the same way.
+-- Hover FRIENDLY/ENEMY/LOOT/BUY/PICK names to see QuestieDB tooltips
+-- (item icon via the client; NPC/object name, level, and location).
 
 ns.RegisterGuide({
     id = "example-northshire",

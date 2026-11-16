@@ -120,7 +120,7 @@ ns.RegisterGuide({
             y = 44.8,
         },
         {
-            text = "Talk to [FRIENDLY]Wiley the Black[/] upstairs for [QUEST]The Defias Brotherhood[/].",
+            text = "Talk to [FRIENDLY]Wiley the Black[/] upstairs. Accept [QUEST]The Defias Brotherhood[/].",
             map = 1433,
             x = 21.41,
             y = 45.3,
@@ -157,7 +157,7 @@ ns.RegisterGuide({
             note = "Gatehouse Goods is optional Forever Stormwind flavor.",
         },
         {
-            text = "Kill [ENEMY]Bellygrub[/] for [QUEST]An Unwelcome Guest[/].",
+            text = "Kill [ENEMY]Bellygrub[/].",
             map = 1433,
             x = 10.6,
             y = 49.3,
@@ -169,7 +169,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [PICK]Glinting Mud[/] along Lake Everstill for [QUEST]Hilary's Necklace[/].",
+            text = "Loot [PICK]Glinting Mud[/] along Lake Everstill.",
             map = 1433,
             x = 25.9,
             y = 54.2,
@@ -203,7 +203,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Redridge Mongrels[/] and Poachers for [QUEST]Assessing the Threat[/].",
+            text = "Kill [ENEMY]Redridge Mongrels[/] and Poachers.",
             map = 1433,
             x = 24.91,
             y = 80,
@@ -396,7 +396,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill [ENEMY]Redridge Brutes[/] and Mystics for [QUEST]A Baying of Gnolls[/].",
+            text = "Kill [ENEMY]Redridge Brutes[/] and Mystics.",
             map = 1433,
             x = 33.91,
             y = 32,

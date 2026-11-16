@@ -41,4 +41,5 @@ Guides/Forever/Curated/Professions_Crafting_Curated.lua
 Guides/Forever/Curated/Professions_Secondary_Curated.lua
 ReplaceGuide.lua
 Replace.lua
+Minimap.lua
 Options.lua

@@ -19,8 +19,19 @@ local function uiFont()
     return "Fonts\\FRIZQT__.TTF"
 end
 
+local function outlineFlags(flags)
+    if flags == "OUTLINE" or flags == "THICKOUTLINE" then
+        return flags
+    end
+    if ns.db and ns.db.textOutline then
+        return "OUTLINE"
+    end
+    return flags or ""
+end
+
 local function applyFont(fs, size, flags)
     local font = uiFont()
+    flags = outlineFlags(flags)
     if not fs:SetFont(font, size, flags) then
         fs:SetFont(font, size)
     end
@@ -60,6 +71,7 @@ local function plainText(text)
     end
     -- Keep the body of [FRIENDLY]Name[/] / [FRIENDLY]Name[/FRIENDLY] authoring tags.
     text = text:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+    text = text:gsub("|H.-|h(.-)|h", "%1")
     text = text:gsub("|cRB_[A-Z]+_", "")
     text = text:gsub("|cRXP_[A-Z]+_", "")
     text = text:gsub("|c%x%x%x%x%x%x%x%x", "")

@@ -344,10 +344,14 @@ ns.RegisterGuide({
             quest = 6393,
             when = "objectives",
             map = 1442,
-            x = 48.6,
-            y = 40.2,
+            pins = {
+                { x = 44.0, y = 41.4 },
+                { x = 27.4, y = 49.4 },
+                { x = 36.6, y = 51.3 }
+            },
             details = {
                 "[LOOT]Incendrite[/] (10)",
+                "Dropped by [ENEMY]Rogue Flame Spirit[/], [ENEMY]Burning Ravager[/], and [ENEMY]Burning Destroyer[/]",
             },
         },
         {
@@ -379,7 +383,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In the Charred Vale, kill [ENEMY]Bloodfury Harpies[/], [ENEMY]Ambushers[/], [ENEMY]Slayers[/], and [ENEMY]Roguefeathers[/] for [QUEST]Harpies Threaten[/].",
+            text = "In the Charred Vale, kill [ENEMY]Bloodfury Harpies[/], [ENEMY]Ambushers[/], [ENEMY]Slayers[/], and [ENEMY]Roguefeathers[/].",
             quest = 6282,
             when = "objectives",
             map = 1442,

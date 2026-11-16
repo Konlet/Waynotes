@@ -456,7 +456,7 @@ ns.RegisterGuide({
             y = 45.51,
             details = {
                 "Touch Tornadoes for 40% movement speed (damage removes it)",
-                "Keep 8 [LOOT]Strider Meat[/] and 3 [LOOT]Small Egg[/] for [QUEST]Restocking the Larders[/]",
+                "Keep 8 [LOOT]Strider Meat[/] and 3 [LOOT]Small Egg[/]",
             },
         },
     },
@@ -2590,7 +2590,7 @@ ns.RegisterGuide({
             y = 45.51,
             details = {
                 "Touch Tornadoes for 40% movement speed (damage removes it)",
-                "Keep 8 [LOOT]Strider Meat[/] and 3 [LOOT]Small Egg[/] for [QUEST]Restocking the Larders[/]",
+                "Keep 8 [LOOT]Strider Meat[/] and 3 [LOOT]Small Egg[/]",
             },
         },
     },

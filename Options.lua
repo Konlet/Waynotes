@@ -738,10 +738,6 @@ local function build(parent)
     dungeonGuide:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 28
 
-    local allGuides = createCheck(parent, "Show unrelated guides", "Lists class, race, and faction guides that do not match this character in the right-click guide menu. Leave off to only show guides relevant to you.", "showIrrelevantGuides")
-    allGuides:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
-    y = y - 28
-
     local guideStatus = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     guideStatus:SetJustifyH("LEFT")
     guideStatus:SetJustifyV("TOP")
@@ -817,9 +813,49 @@ local function build(parent)
     flightTimer:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 
-    local trainReminders = createCheck(parent, "Train spell reminders", "At even levels, shows a closable note at the bottom of the guide. Click it to navigate to your nearest class trainer.", "showTrainReminders")
-    trainReminders:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local flightRecommend = createCheck(parent, "Flight path recommendations", "When a travel destination is far enough that flying saves ground distance, shows a closable tip at the bottom of the guide. Click it to navigate to the departure flight master.", "showFlightRecommend")
+    flightRecommend:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 36
+
+    local flyYardRange = { min = 50, max = 5000, step = 50, percent = false, decimals = 0, suffix = " yd" }
+    local flyMin = createSlider(parent, "Flight recommend savings", "Minimum ground distance a flight path must save before the guide recommends flying. Default 500 yards.", "flightRecommendMinYards", function()
+        return ns.db and ns.db.showFlightRecommend
+    end, flyYardRange)
+    place(flyMin, parent, y)
+    y = y - 52
+
+    local trainReminders = createCheck(parent, "Train spell reminders", "At even levels, shows a notice button at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or the x to dismiss.", "showTrainReminders")
+    trainReminders:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local corpseTracker = createCheck(parent, "Corpse tracker", "While you are dead, shows distance and a direction arrow to your corpse at the bottom of the guide.", "showCorpseTracker")
+    corpseTracker:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 36
+
+    local nearHeader = createHeader(parent, "Near distance")
+    place(nearHeader, parent, y)
+    y = y - 28
+
+    local yardRange = { min = 1, max = 500, step = 1, percent = false, decimals = 0, suffix = " yd" }
+    local nearEnemy = createSlider(parent, "Enemy objectives", "Yards at which kill / grind steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsEnemy", nil, yardRange)
+    place(nearEnemy, parent, y)
+    y = y - 52
+
+    local nearLoot = createSlider(parent, "Loot objectives", "Yards at which loot-tag steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsLoot", nil, yardRange)
+    place(nearLoot, parent, y)
+    y = y - 52
+
+    local nearPick = createSlider(parent, "Pick objectives", "Yards at which pick / click-object steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsPick", nil, yardRange)
+    place(nearPick, parent, y)
+    y = y - 52
+
+    local nearSingle = createSlider(parent, "Single-target objectives", "Yards used when a step only needs one kill, loot, or pick. Guide steps with nearYards still override this.", "nearYardsSingle", nil, yardRange)
+    place(nearSingle, parent, y)
+    y = y - 52
+
+    local nearTravel = createSlider(parent, "Travel arrive", "Yards used to arrive at travel / multi-pin route points when the step does not set arriveYards.", "nearYardsTravel", nil, yardRange)
+    place(nearTravel, parent, y)
+    y = y - 58
 
     local themes = createThemes(parent)
     place(themes, parent, y)
@@ -1083,9 +1119,10 @@ SlashCmdList.WAYNOTES = function(message)
         end
         return
     end
-    if command == "perf" then
+    if command == "perf" or command:sub(1, 5) == "perf " then
         if ns.StartPerf then
-            ns.StartPerf(10)
+            local seconds, spikeMs = text:match("^perf%s+([%d%.]+)%s*([%d%.]*)")
+            ns.StartPerf(seconds or 10, (spikeMs ~= "" and spikeMs) or nil)
         end
         return
     end
@@ -1134,7 +1171,13 @@ SlashCmdList.WAYNOTES = function(message)
         return
     end
     if command == "help" then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r /waynotes guides, /waynotes recommend, /waynotes guide <id>, /waynotes step <n>, /waynotes next, /waynotes back, /waynotes aim, /waynotes aimlog")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r /waynotes guides, /waynotes recommend, /waynotes guide <id>, /waynotes step <n>, /waynotes next, /waynotes back, /waynotes fly, /waynotes aim, /waynotes aimlog, /waynotes perf [seconds] [spikeMs]")
+        return
+    end
+    if command == "fly" or command == "flydebug" then
+        if ns.TravelDebugFlight then
+            ns.TravelDebugFlight()
+        end
         return
     end
     if command == "aim" then

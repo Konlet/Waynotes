@@ -62,7 +62,7 @@ ns.NavFlightMasters = {
     { nodeId = 74, name = "Lanie Reed", zone = "Searing Gorge", hub = "Thorium Point", faction = "Alliance", wx = -6552.59, wy = -1168.27, wz = 309.31, instance = 0, forever = true, npc = 2941 },
     { nodeId = 75, name = "Grisha", zone = "Searing Gorge", hub = "Thorium Point", faction = "Horde", wx = -6554.93, wy = -1100.05, wz = 309.57, instance = 0, forever = true, npc = 3305 },
     { nodeId = 76, name = "Gorkas", zone = "The Hinterlands", hub = "Revantusk Village", faction = "Horde", wx = -635.26, wy = -4720.5, wz = 5.38, instance = 0, forever = true, npc = 4314 },
-    { nodeId = 77, name = "Omusa Thunderhorn", zone = "The Barrens", hub = "Camp Taurajo", faction = "Horde", wx = -2380.67, wy = -1882.67, wz = 95.85, instance = 1, forever = true, npc = 10378 },
+    { nodeId = 77, name = "Omusa Thunderhorn", zone = "The Barrens", hub = "Camp Taurajo", faction = "Horde", map = 1413, x = 44.4, y = 59.2, wx = -2380.67, wy = -1882.67, wz = 95.85, instance = 1, forever = true, npc = 10378 },
     { nodeId = 79, name = "Gryfe", zone = "Un'Goro Crater", hub = "Marshal's Refuge", faction = "Both", wx = -6113.82, wy = -1142.7, wz = -187.63, instance = 1, forever = true, npc = 10583 },
     { nodeId = 80, name = "Bragok", zone = "The Barrens", hub = "Ratchet", faction = "Both", wx = -894.59, wy = -3773.01, wz = 11.48, instance = 1, forever = true, npc = 16227 },
     { nodeId = 559, name = "Aili Greenwillow", zone = "Mount Hyjal", hub = "Summit of Eternity", faction = "Both", wx = 5283.19, wy = -3306.7, wz = 1658.93, instance = 1, forever = true, npc = 43408 },

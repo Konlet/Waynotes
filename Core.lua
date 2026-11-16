@@ -53,12 +53,22 @@ ns.defaults = {
     menuGlowRadius = 8,
     showGuidePercent = true,
     showFlightTimer = true,
+    showFlightRecommend = true,
+    flightRecommendMinYards = 500,
     showTrainReminders = true,
+    showCorpseTracker = true,
+    nearYardsEnemy = 100,
+    nearYardsLoot = 100,
+    nearYardsPick = 100,
+    nearYardsSingle = 5,
+    nearYardsTravel = 10,
     standaloneGuide = true,
     hardcoreGuide = false,
     promptOffStepJump = true,
     promptDungeonGuide = true,
-    showIrrelevantGuides = false,
+    hideTracker = false,
+    showMinimapButton = true,
+    minimapPos = 220,
     theme = "rested",
 }
 
@@ -442,12 +452,15 @@ local boolKeys = {
     menuBorderGlow = true,
     showGuidePercent = true,
     showFlightTimer = true,
+    showFlightRecommend = true,
     showTrainReminders = true,
+    showCorpseTracker = true,
     standaloneGuide = true,
     hardcoreGuide = true,
     promptOffStepJump = true,
     promptDungeonGuide = true,
-    showIrrelevantGuides = true,
+    hideTracker = true,
+    showMinimapButton = true,
 }
 
 local function sanitizeOptionValue(key, value, default)
@@ -530,6 +543,47 @@ local function sanitizeOptionValue(key, value, default)
         end
         if value > 16 then
             return 16
+        end
+        return value
+    end
+    if key == "nearYardsEnemy"
+        or key == "nearYardsLoot"
+        or key == "nearYardsPick"
+        or key == "nearYardsSingle"
+        or key == "nearYardsTravel"
+    then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 1 then
+            return 1
+        end
+        if value > 500 then
+            return 500
+        end
+        return value
+    end
+    if key == "flightRecommendMinYards" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 50 then
+            return 50
+        end
+        if value > 5000 then
+            return 5000
+        end
+        return value
+    end
+    if key == "minimapPos" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = value % 360
+        if value < 0 then
+            value = value + 360
         end
         return value
     end
@@ -753,12 +807,37 @@ ns.visualKeys = {
     "trackerShadow",
     "menuBorderGlow",
     "menuGlowRadius",
+    "nearYardsEnemy",
+    "nearYardsLoot",
+    "nearYardsPick",
+    "nearYardsSingle",
+    "nearYardsTravel",
+    "flightRecommendMinYards",
     "standaloneGuide",
     "hardcoreGuide",
 }
 
 function ns.Visuals()
     return ns.db or ns.defaults
+end
+
+-- Default NEAR / arrive radius by objective kind. Guide step.nearYards and
+-- step.arriveYards still override when authored.
+function ns.DefaultNearYards(kind)
+    local db = ns.db or ns.defaults
+    if kind == "single" then
+        return db.nearYardsSingle or ns.defaults.nearYardsSingle
+    end
+    if kind == "loot" then
+        return db.nearYardsLoot or ns.defaults.nearYardsLoot
+    end
+    if kind == "pick" then
+        return db.nearYardsPick or ns.defaults.nearYardsPick
+    end
+    if kind == "travel" then
+        return db.nearYardsTravel or ns.defaults.nearYardsTravel
+    end
+    return db.nearYardsEnemy or ns.defaults.nearYardsEnemy
 end
 
 function ns.UsingStandalone()
@@ -1136,21 +1215,61 @@ local function applyStrata(frame, strata)
     end
 end
 
+local function overFrame(frame)
+    return frame and frame.IsVisible and frame:IsVisible() and frame:IsMouseOver()
+end
+
 function ns.MouseOverGuide()
+    if overFrame(_G.WaynotesTracker) then
+        return true
+    end
+
+    -- While the Waynotes tracker replaces RXP, ignore concealed RXP chrome.
+    if ns.ReplacingGuide() or (ns.db and ns.db.standaloneGuide) then
+        return false
+    end
+
     local rxp = guide()
     if not rxp then
         return false
     end
 
-    local function over(frame)
-        return frame and frame.IsVisible and frame:IsVisible() and frame:IsMouseOver()
-    end
+    return overFrame(rxp)
+        or overFrame(rxp.CurrentStepFrame)
+        or overFrame(rxp.GuideName)
+        or overFrame(rxp.BottomFrame)
+        or overFrame(rxp.Footer)
+end
 
-    return over(rxp)
-        or over(rxp.CurrentStepFrame)
-        or over(rxp.GuideName)
-        or over(rxp.BottomFrame)
-        or over(rxp.Footer)
+local fadeCurrent = 1
+
+-- Frame that fade / combat visibility should drive. Prefer the visible
+-- Waynotes tracker; only fall back to RXPFrame when that guide window is shown.
+local function guideFadeFrame()
+    local tracker = _G.WaynotesTracker
+    if tracker and tracker.IsShown and tracker:IsShown() then
+        return tracker
+    end
+    if ns.ReplacingGuide() or (ns.db and ns.db.standaloneGuide) then
+        return nil
+    end
+    local rxp = guide()
+    if rxp and rxp.IsShown and rxp:IsShown() then
+        return rxp
+    end
+    return nil
+end
+
+local function fadeTargetAlpha()
+    local visuals = ns.Visuals()
+    local target = 1
+    if visuals.fadeUnlessHover and not ns.MouseOverGuide() then
+        target = visuals.idleAlpha
+    end
+    if visuals.fadeInCombat and UnitAffectingCombat("player") then
+        target = math.min(target, visuals.combatAlpha)
+    end
+    return target
 end
 
 function ns.RefreshFonts()
@@ -1265,6 +1384,16 @@ function ns.Apply()
     if ns.SyncReplacement then
         ns.SyncReplacement()
     end
+
+    applyStrata(_G.WaynotesTracker, visuals.strata)
+    local fadeFrame = guideFadeFrame()
+    if fadeFrame then
+        fadeCurrent = fadeTargetAlpha()
+        fadeFrame:SetAlpha(fadeCurrent)
+        if fadeFrame == _G.WaynotesTracker and ns.SetTrackerChromeAlpha then
+            ns.SetTrackerChromeAlpha(fadeCurrent)
+        end
+    end
 end
 
 function ns.Reset()
@@ -1281,7 +1410,6 @@ function ns.Reset()
     end
 end
 
-local fadeCurrent = 1
 local scanElapsed = 0
 local fadeElapsed = 0
 local started = false
@@ -1296,27 +1424,22 @@ local function safe(fn)
 end
 
 local function updateFade(dt)
-    if ns.ReplacingGuide() then
+    local frame = guideFadeFrame()
+    if not frame then
         return
     end
 
-    local visuals = ns.Visuals()
-    local target = 1
-    if visuals.fadeUnlessHover and not ns.MouseOverGuide() then
-        target = visuals.idleAlpha
-    end
-    if visuals.fadeInCombat and UnitAffectingCombat("player") then
-        target = math.min(target, visuals.combatAlpha)
-    end
-
+    local target = fadeTargetAlpha()
     fadeCurrent = fadeCurrent + (target - fadeCurrent) * math.min(1, dt * 10)
     if math.abs(fadeCurrent - target) < 0.01 then
         fadeCurrent = target
     end
 
-    local rxp = guide()
-    if rxp and math.abs((rxp:GetAlpha() or 1) - fadeCurrent) > 0.005 then
-        rxp:SetAlpha(fadeCurrent)
+    if math.abs((frame:GetAlpha() or 1) - fadeCurrent) > 0.005 then
+        frame:SetAlpha(fadeCurrent)
+    end
+    if frame == _G.WaynotesTracker and ns.SetTrackerChromeAlpha then
+        ns.SetTrackerChromeAlpha(fadeCurrent)
     end
 end
 
@@ -1388,6 +1511,9 @@ events:SetScript("OnEvent", function(_, event, name)
 
     if event == "PLAYER_LOGIN" then
         boot()
+        if ns.WarmQuestieNameIndexes then
+            ns.WarmQuestieNameIndexes()
+        end
         return
     end
 
