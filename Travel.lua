@@ -12,10 +12,11 @@ local HEARTH_SECONDS = 15
 local MIN_IMPROVE_SECONDS = 25
 local NEAR_YARDS = 80
 local TRAVEL_ARRIVE_YARDS = 10
-local HEARTH_CLOSER_YARDS = 120
+-- Bind must be closer than this before we even consider a soft hearth tip.
+-- Cast time alone is ~HEARTH_SECONDS * RUN_YARDS_PER_SEC yards of walking.
+local HEARTH_CLOSER_YARDS = (HEARTH_SECONDS * RUN_YARDS_PER_SEC) + 50
 local HEARTHSTONE_ITEM = 6948
 local hearthButton
-local hearthButtonClaimed = false
 
 local nodesById
 local edgesByFrom
@@ -949,6 +950,7 @@ function ns.TravelHearthButton()
 end
 
 local activeFlightRec
+local activeHearthRec
 
 local function flightRecMinYards()
     local minYards = (ns.db and ns.db.flightRecommendMinYards) or 500
@@ -959,14 +961,18 @@ local function flightRecMinYards()
 end
 
 function ns.TravelBeginHints()
-    hearthButtonClaimed = false
     nearbyHintCache = nil
     nearbyHintChecked = false
     activeFlightRec = nil
+    activeHearthRec = nil
 end
 
 function ns.TravelActiveFlightRecommendation()
     return activeFlightRec
+end
+
+function ns.TravelActiveHearthRecommendation()
+    return activeHearthRec
 end
 
 local function rememberFlightRec(route)
@@ -982,37 +988,6 @@ local function rememberFlightRec(route)
     if not activeFlightRec or route.savingsYards > (activeFlightRec.savingsYards or 0) then
         activeFlightRec = route
     end
-end
-
-local function attachHearthButton(item, bindName)
-    if type(item) ~= "table" then
-        return
-    end
-    item.hearth = {
-        bindName = bindName,
-        itemId = HEARTHSTONE_ITEM,
-    }
-    if hearthButtonClaimed then
-        return
-    end
-    local button = ns.TravelHearthButton()
-    if not button then
-        return
-    end
-    button.bindName = bindName
-    updateHearthCooldown(button)
-    hearthButtonClaimed = true
-    local actions = item.actions
-    if type(actions) ~= "table" then
-        actions = {}
-        item.actions = actions
-    end
-    for index = 1, #actions do
-        if actions[index] == button then
-            return
-        end
-    end
-    actions[#actions + 1] = button
 end
 
 local NEARBY_FP_YARDS = 150
@@ -1200,6 +1175,7 @@ local function hearthCloserSuggestion(dest)
             place = place,
             playerDist = math.huge,
             bindDist = 0,
+            savingsYards = math.huge,
         }
     end
     local compareInstance = destInstance or bindInstance or pinstance
@@ -1215,7 +1191,8 @@ local function hearthCloserSuggestion(dest)
     if fromBind and fromBind <= NEAR_YARDS then
         return nil
     end
-    if (playerDist - bindDist) < HEARTH_CLOSER_YARDS then
+    local savings = playerDist - bindDist
+    if savings < HEARTH_CLOSER_YARDS then
         return nil
     end
     return {
@@ -1223,6 +1200,63 @@ local function hearthCloserSuggestion(dest)
         place = place,
         playerDist = playerDist,
         bindDist = bindDist,
+        savingsYards = savings,
+    }
+end
+
+-- Bottom-chrome hearth tip: only when hearth beats walking on time, and
+-- (for soft tips alongside fly) the bind is meaningfully closer on foot.
+local function hearthRecommendation(dest, route)
+    if type(dest) ~= "table" or not isNumber(dest.wx) or not isNumber(dest.wy) then
+        return nil
+    end
+    if route and route.mode == "hearth" then
+        local suggestion = hearthCloserSuggestion(dest)
+        local savings = suggestion and suggestion.savingsYards or nil
+        if savings == math.huge then
+            savings = nil
+        end
+        return {
+            bindName = route.bindName or (suggestion and suggestion.bindName),
+            summary = route.summary or ("Hearth to " .. (route.bindName or "bind")),
+            savingsYards = savings,
+            useHearth = true,
+        }
+    end
+    -- BestPath already rejected hearth vs walk; no tip.
+    if not route or route.mode == "walk" then
+        return nil
+    end
+    -- Soft tip when BestPath preferred fly/boat: hearth still beats walk
+    -- and the bind is far enough closer to cover cast time.
+    local suggestion = hearthCloserSuggestion(dest)
+    if not suggestion then
+        return nil
+    end
+    local px, py, pinstance = playerPoint()
+    if not px then
+        return nil
+    end
+    if suggestion.savingsYards == math.huge then
+        return {
+            bindName = suggestion.bindName,
+            summary = "Hearth to " .. (suggestion.bindName or "bind"),
+            useHearth = true,
+        }
+    end
+    local walk = routeWalk(dest, px, py, pinstance)
+    local hearth = routeHearth(dest, px, py, pinstance, unlockedFlightPaths(), playerFaction(), false)
+    if not hearth then
+        return nil
+    end
+    if walk and (walk.seconds - hearth.seconds) < MIN_IMPROVE_SECONDS then
+        return nil
+    end
+    return {
+        bindName = suggestion.bindName or hearth.bindName,
+        summary = hearth.summary or ("Hearth to " .. (suggestion.bindName or "bind")),
+        savingsYards = suggestion.savingsYards,
+        useHearth = true,
     }
 end
 
@@ -2745,21 +2779,6 @@ local function pushDetail(item, line)
     details[#details + 1] = line
 end
 
-local function applyHearthAvailable(item, dest, route)
-    local suggestion = hearthCloserSuggestion(dest)
-    if not suggestion and route and route.useHearth then
-        suggestion = {
-            bindName = route.bindName,
-        }
-    end
-    if not suggestion then
-        return false
-    end
-    -- Tip text is handled by the bottom travel chrome; only attach the use button.
-    attachHearthButton(item, suggestion.bindName)
-    return true
-end
-
 local function applyNearbyFlightTip(item, step)
     local nearby = ns.TravelNearbyUnlearnedFlight(NEARBY_FP_YARDS)
     if not nearby then
@@ -2820,9 +2839,6 @@ function ns.TravelApplyToItem(item, step)
             }
         end
 
-        -- Hearth use button only; tip text lives in bottom chrome.
-        applyHearthAvailable(item, dest, nil)
-
         if dest.pickup and isNumber(dest.nodeId) then
             local unlocked = unlockedFlightPaths()
             if unlocked[dest.nodeId] then
@@ -2845,6 +2861,7 @@ function ns.TravelPulsePrimaryRoute()
     end
     if type(dest) ~= "table" then
         activeFlightRec = nil
+        activeHearthRec = nil
         if ns.OnTravelRouteReady then
             ns.OnTravelRouteReady(nil, nil, nil, nil)
         end
@@ -2855,6 +2872,7 @@ function ns.TravelPulsePrimaryRoute()
     end
     local route = ns.TravelBestPath(dest)
     activeFlightRec = nil
+    activeHearthRec = nil
     if route and route.mode == "fly" then
         rememberFlightRec(route)
     elseif route and route._flyCandidate then
@@ -2867,6 +2885,10 @@ function ns.TravelPulsePrimaryRoute()
         if travelStep then
             rememberFlightRec(ns.TravelFlightRecommendation(dest))
         end
+    end
+    -- Hearth tip for bottom chrome only when it saves over walking.
+    if not dest.pickup then
+        activeHearthRec = hearthRecommendation(dest, route)
     end
     if ns.OnTravelRouteReady then
         ns.OnTravelRouteReady(route, dest, step, stepIndex)

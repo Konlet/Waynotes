@@ -824,7 +824,7 @@ local function build(parent)
     place(flyMin, parent, y)
     y = y - 52
 
-    local trainReminders = createCheck(parent, "Train spell reminders", "At even levels, shows a notice button at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or the x to dismiss.", "showTrainReminders")
+    local trainReminders = createCheck(parent, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or the x to dismiss. Uses What's Training when installed.", "showTrainReminders")
     trainReminders:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 

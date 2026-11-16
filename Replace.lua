@@ -14,6 +14,7 @@ local UI = {
     WHITE = "Interface\\BUTTONS\\WHITE8X8",
     FLIGHT_STRIP = 26,
     FLY_REC_STRIP = 28,
+    HEARTH_REC_STRIP = 28,
     NAV_STRIP = 28,
     TRAIN_NOTICE = 22,
     CORPSE_STRIP = 28,
@@ -61,6 +62,7 @@ State.hardcoreWas = false
 State.elapsed = 0
 State.flight = { chrome = 0 }
 State.flyRec = { chrome = 0 }
+State.hearthRec = { chrome = 0 }
 State.nav = { chrome = 0 }
 State.train = { chrome = 0 }
 State.corpse = { chrome = 0 }
@@ -1193,6 +1195,7 @@ divider:Hide()
 
 local updateFlightStrip
 local updateFlyRecStrip
+local updateHearthRecStrip
 local updateNavStrip
 local updateTrainStrip
 local placeBottomChrome
@@ -1277,12 +1280,16 @@ do
         local bottom = 10
             + (State.flight.chrome or 0)
             + (State.flyRec.chrome or 0)
+            + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
             + (State.train.chrome or 0)
             + (State.corpse.chrome or 0)
         placeScroller(bottom)
         if State.flyRec.layout then
             State.flyRec.layout()
+        end
+        if State.hearthRec.layout then
+            State.hearthRec.layout()
         end
         if State.nav.layout then
             State.nav.layout()
@@ -1878,6 +1885,265 @@ end
 
 do
     local strip = CreateFrame("Frame", nil, tracker)
+    strip:SetHeight(UI.HEARTH_REC_STRIP)
+    strip:SetPoint("BOTTOMLEFT", 1, 1)
+    strip:SetPoint("BOTTOMRIGHT", -1, 1)
+    strip:Hide()
+    strip:EnableMouse(true)
+
+    local hearthRule = strip:CreateTexture(nil, "ARTWORK")
+    hearthRule:SetPoint("TOPLEFT", 8, 0)
+    hearthRule:SetPoint("TOPRIGHT", -8, 0)
+    hearthRule:SetHeight(1)
+    useSolid(hearthRule)
+    paintTexture(hearthRule, 1, 0.82, 0, 0.45)
+
+    local title = strip:CreateFontString(nil, "OVERLAY")
+    title:SetPoint("TOPLEFT", 8, -3)
+    title:SetPoint("RIGHT", strip, "RIGHT", -52, 0)
+    title:SetHeight(12)
+    title:SetJustifyH("LEFT")
+    title:SetJustifyV("MIDDLE")
+    if title.SetWordWrap then
+        title:SetWordWrap(false)
+    end
+    RG.applyFont(title, 11, "")
+    title:SetTextColor(0.9, 0.9, 0.86)
+
+    local detail = strip:CreateFontString(nil, "OVERLAY")
+    detail:SetPoint("TOPLEFT", 8, -14)
+    detail:SetPoint("RIGHT", strip, "RIGHT", -52, 0)
+    detail:SetHeight(11)
+    detail:SetJustifyH("LEFT")
+    detail:SetJustifyV("MIDDLE")
+    if detail.SetWordWrap then
+        detail:SetWordWrap(false)
+    end
+    RG.applyFont(detail, 10, "")
+    detail:SetTextColor(0.82, 0.82, 0.82)
+
+    local close = CreateFrame("Button", nil, strip)
+    close:SetSize(16, 16)
+    close:SetPoint("TOPRIGHT", -8, -5)
+    close:SetFrameLevel(strip:GetFrameLevel() + 5)
+    close:RegisterForClicks("LeftButtonUp")
+    close.text = close:CreateFontString(nil, "OVERLAY")
+    close.text:SetPoint("CENTER", 0, 0)
+    RG.applyFont(close.text, 12, "OUTLINE")
+    close.text:SetText("x")
+
+    State.hearthRec.strip = strip
+    State.hearthRec.rule = hearthRule
+    State.hearthRec.title = title
+    State.hearthRec.detail = detail
+    State.hearthRec.close = close
+    State.hearthRec.route = nil
+    State.hearthRec.dismissed = nil
+
+    State.hearthRec.layout = function()
+        local lift = (State.flight.chrome or 0) + (State.flyRec.chrome or 0)
+        strip:ClearAllPoints()
+        strip:SetPoint("BOTTOMLEFT", 1, 1 + lift)
+        strip:SetPoint("BOTTOMRIGHT", -1, 1 + lift)
+    end
+
+    local function setHearthRecChrome(want)
+        want = want or 0
+        if State.hearthRec.chrome == want then
+            return
+        end
+        State.hearthRec.chrome = want
+        if placeBottomChrome then
+            placeBottomChrome()
+        end
+        State.remeasure = true
+        State.lastSignature = nil
+        if tracker:IsShown() and ns.RefreshTracker then
+            ns.RefreshTracker(true)
+        end
+    end
+
+    local function showHearthRec(on)
+        if on then
+            strip:Show()
+            setHearthRecChrome(UI.HEARTH_REC_STRIP)
+        else
+            strip:Hide()
+            setHearthRecChrome(0)
+        end
+    end
+
+    local painted = false
+    local lastTitle, lastDetail
+    local hearthOnStrip = false
+
+    local function paintHearthRec(force)
+        if not ns.db then
+            return
+        end
+        if painted and not force then
+            return
+        end
+        painted = true
+        local edgeR, edgeG, edgeB = ns.Color("accent")
+        local textR, textG, textB = ns.Color("secondary")
+        local detailR, detailG, detailB = ns.Color("detail")
+        paintTexture(hearthRule, edgeR, edgeG, edgeB, 0.45)
+        RG.applyFont(title, 11, "")
+        RG.applyFont(detail, 10, "")
+        RG.applyFont(close.text, 12, "OUTLINE")
+        title:SetTextColor(textR, textG, textB)
+        detail:SetTextColor(detailR, detailG, detailB)
+        close.text:SetTextColor(edgeR, edgeG, edgeB)
+    end
+
+    State.hearthRec.paint = function()
+        painted = false
+        paintHearthRec(true)
+    end
+
+    local function routeKey(route)
+        if type(route) ~= "table" then
+            return nil
+        end
+        return "hearth:" .. tostring(route.bindName or "")
+    end
+
+    local function detachHearthButton()
+        if not hearthOnStrip or InCombatLockdown() then
+            return
+        end
+        local button = ns.TravelHearthButton and ns.TravelHearthButton()
+        if button then
+            button:Hide()
+            button:SetParent(UIParent)
+            button:ClearAllPoints()
+        end
+        hearthOnStrip = false
+    end
+
+    local function attachHearthButton(bindName)
+        local button = ns.TravelHearthButton and ns.TravelHearthButton()
+        if not button then
+            return
+        end
+        button.bindName = bindName
+        if InCombatLockdown() then
+            return
+        end
+        button:SetParent(strip)
+        button:ClearAllPoints()
+        button:SetSize(22, 22)
+        button:SetPoint("RIGHT", close, "LEFT", -4, -2)
+        button:SetFrameLevel(strip:GetFrameLevel() + 6)
+        button:Show()
+        hearthOnStrip = true
+    end
+
+    close:SetScript("OnClick", function()
+        State.hearthRec.dismissed = routeKey(State.hearthRec.route)
+        State.hearthRec.route = nil
+        lastTitle, lastDetail = nil, nil
+        detachHearthButton()
+        updateHearthRecStrip()
+    end)
+    close:SetScript("OnMouseUp", function(_, button)
+        if button == "RightButton" and ns.OpenGuideMenu then
+            ns.OpenGuideMenu()
+        end
+    end)
+    close:SetScript("OnEnter", function(self)
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Dismiss recommendation", r, g, b)
+        ns.FinishTooltip()
+    end)
+    close:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+
+    strip:SetScript("OnMouseUp", function(_, button)
+        if button == "RightButton" and ns.OpenGuideMenu then
+            ns.OpenGuideMenu()
+        end
+    end)
+    strip:SetScript("OnEnter", function(self)
+        if close:IsMouseOver() then
+            return
+        end
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Hearth instead", r, g, b)
+        GameTooltip:AddLine("Use the Hearthstone button when it saves walking distance.", 1, 1, 1, true)
+        ns.FinishTooltip()
+    end)
+    strip:SetScript("OnLeave", function()
+        if close:IsMouseOver() then
+            return
+        end
+        GameTooltip:Hide()
+    end)
+
+    function updateHearthRecStrip()
+        local onTaxi = UnitOnTaxi and UnitOnTaxi("player")
+        local flying = (State.flight.chrome or 0) > 0 or onTaxi
+        local route
+        if not flying and tracker:IsShown() then
+            route = ns.TravelActiveHearthRecommendation and ns.TravelActiveHearthRecommendation()
+        end
+        local key = routeKey(route)
+        if key and State.hearthRec.dismissed and State.hearthRec.dismissed == key then
+            route = nil
+        elseif key and State.hearthRec.dismissed and State.hearthRec.dismissed ~= key then
+            State.hearthRec.dismissed = nil
+        end
+
+        if not route then
+            if State.hearthRec.chrome > 0 then
+                showHearthRec(false)
+            end
+            State.hearthRec.route = nil
+            lastTitle, lastDetail = nil, nil
+            detachHearthButton()
+            return
+        end
+
+        State.hearthRec.route = route
+        if State.hearthRec.chrome == 0 then
+            showHearthRec(true)
+            paintHearthRec(true)
+        elseif not strip:IsShown() then
+            strip:Show()
+        end
+
+        attachHearthButton(route.bindName)
+
+        local titleText = route.summary or "Hearth instead"
+        if titleText ~= lastTitle then
+            lastTitle = titleText
+            title:SetText(titleText)
+        end
+        local savings = route.savingsYards
+        local detailText
+        if type(savings) == "number" and savings < math.huge then
+            local yards = math.floor(savings + 0.5)
+            if ns.NavFormatYards then
+                detailText = "Saves " .. ns.NavFormatYards(yards) .. " on foot"
+            else
+                detailText = "Saves " .. yards .. " yd on foot"
+            end
+        else
+            detailText = "Faster than walking from here"
+        end
+        if detailText ~= lastDetail then
+            lastDetail = detailText
+            detail:SetText(detailText)
+        end
+    end
+end
+
+do
+    local strip = CreateFrame("Frame", nil, tracker)
     strip:SetHeight(UI.NAV_STRIP)
     strip:SetPoint("BOTTOMLEFT", 1, 1)
     strip:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -1967,7 +2233,9 @@ do
     State.nav.clear = clear
 
     State.nav.layout = function()
-        local lift = (State.flight.chrome or 0) + (State.flyRec.chrome or 0)
+        local lift = (State.flight.chrome or 0)
+            + (State.flyRec.chrome or 0)
+            + (State.hearthRec.chrome or 0)
         strip:ClearAllPoints()
         strip:SetPoint("BOTTOMLEFT", 1, 1 + lift)
         strip:SetPoint("BOTTOMRIGHT", -1, 1 + lift)
@@ -2206,6 +2474,9 @@ do
             if updateFlyRecStrip then
                 updateFlyRecStrip()
             end
+            if updateHearthRecStrip then
+                updateHearthRecStrip()
+            end
             if updateTrainStrip then
                 updateTrainStrip()
             end
@@ -2261,17 +2532,13 @@ do
 
     local function currentTrainLevel()
         local level = UnitLevel and UnitLevel("player") or 0
-        if type(level) ~= "number" or level < 2 then
+        if type(level) ~= "number" or level < 1 then
             return nil
         end
-        local trainLevel = math.floor(level / 2) * 2
-        if trainLevel < 2 then
-            return nil
+        if level > 60 then
+            level = 60
         end
-        if trainLevel > 60 then
-            trainLevel = 60
-        end
-        return trainLevel
+        return level
     end
 
     local function isDismissed(level)
@@ -2289,9 +2556,161 @@ do
         State.train.level = nil
     end
 
+    local function spellKnown(spellId)
+        if type(spellId) ~= "number" then
+            return false
+        end
+        if IsPlayerSpell and IsPlayerSpell(spellId) then
+            return true
+        end
+        if IsSpellKnown and IsSpellKnown(spellId) then
+            return true
+        end
+        if C_SpellBook and C_SpellBook.IsSpellKnown then
+            local ok, known = pcall(C_SpellBook.IsSpellKnown, spellId)
+            if ok and known then
+                return true
+            end
+        end
+        return false
+    end
+
+    -- Live class-trainer window: count services marked "available".
+    local function openTrainerAvailableCount()
+        if IsTradeskillTrainer and IsTradeskillTrainer() then
+            return nil
+        end
+        if type(GetNumTrainerServices) ~= "function" then
+            return nil
+        end
+        local count = GetNumTrainerServices()
+        if type(count) ~= "number" or count < 1 then
+            return nil
+        end
+        local available = 0
+        for index = 1, count do
+            local _, _, category = GetTrainerServiceInfo(index)
+            if category == "available" then
+                available = available + 1
+            end
+        end
+        return available
+    end
+
+    local missingCache = { at = -1, value = false }
+
+    local function missingFromWhatsTraining()
+        if type(WT_API) ~= "table" then
+            return nil
+        end
+        local availableKey = WT_API.Status and WT_API.Status.AVAILABLE
+        if type(availableKey) ~= "string" then
+            return nil
+        end
+        -- Prefer live statuses once WT finishes its login cache.
+        if WT_API.IsReady and WT_API.IsReady() and type(WT_API.GetSpells) == "function" then
+            local spells = WT_API.GetSpells()
+            if type(spells) ~= "table" then
+                return false
+            end
+            for index = 1, #spells do
+                local spell = spells[index]
+                if type(spell) == "table"
+                    and spell.status == availableKey
+                    and not spell.quest
+                    and not spell.isItem
+                then
+                    local source = WT_API.GetSource and WT_API.GetSource(spell.id)
+                    if not source or source.kind == "trainer" then
+                        if not (WT_API.IsIgnored and WT_API.IsIgnored(spell.id)) then
+                            return true
+                        end
+                    end
+                end
+            end
+            return false
+        end
+        -- Before Ready: walk the static catalog with IsSpellKnown.
+        if type(WT_API.GetCatalog) ~= "function" or type(UnitClass) ~= "function" then
+            return nil
+        end
+        local _, classToken = UnitClass("player")
+        if type(classToken) ~= "string" then
+            return nil
+        end
+        local ok, catalog = pcall(WT_API.GetCatalog, classToken)
+        if not ok or type(catalog) ~= "table" then
+            return nil
+        end
+        local level = UnitLevel and UnitLevel("player") or 0
+        for index = 1, #catalog do
+            local entry = catalog[index]
+            if type(entry) == "table"
+                and entry.kind == "trainer"
+                and type(entry.id) == "number"
+                and type(entry.level) == "number"
+                and entry.level <= level
+                and not spellKnown(entry.id)
+            then
+                local blocked = false
+                if entry.requiredTalentId and not spellKnown(entry.requiredTalentId) then
+                    blocked = true
+                end
+                if not blocked and type(entry.requiredIds) == "table" then
+                    for reqIndex = 1, #entry.requiredIds do
+                        if not spellKnown(entry.requiredIds[reqIndex]) then
+                            blocked = true
+                            break
+                        end
+                    end
+                end
+                if not blocked and not (WT_API.IsIgnored and WT_API.IsIgnored(entry.id)) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    local function hasMissingAvailableSpells()
+        local now = GetTime and GetTime() or 0
+        if missingCache.value ~= nil and (now - missingCache.at) < 1 then
+            return missingCache.value
+        end
+        local openCount = openTrainerAvailableCount()
+        if type(openCount) == "number" then
+            missingCache.at = now
+            missingCache.value = openCount > 0
+            if type(WaynotesCharDB) == "table" then
+                WaynotesCharDB.trainHasAvailable = missingCache.value
+            end
+            return missingCache.value
+        end
+        local fromWt = missingFromWhatsTraining()
+        if fromWt ~= nil then
+            missingCache.at = now
+            missingCache.value = fromWt and true or false
+            return missingCache.value
+        end
+        -- Last known scan from a class trainer visit.
+        if type(WaynotesCharDB) == "table" and WaynotesCharDB.trainHasAvailable ~= nil then
+            missingCache.at = now
+            missingCache.value = WaynotesCharDB.trainHasAvailable and true or false
+            return missingCache.value
+        end
+        missingCache.at = now
+        missingCache.value = false
+        return false
+    end
+
+    local function invalidateMissingCache()
+        missingCache.at = -1
+    end
+
     State.train.layout = function()
         local lift = (State.flight.chrome or 0)
             + (State.flyRec.chrome or 0)
+            + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
             + (State.corpse.chrome or 0)
         strip:ClearAllPoints()
@@ -2443,7 +2862,8 @@ do
     function updateTrainStrip()
         local enabled = ns.db and ns.db.showTrainReminders
         local level = currentTrainLevel()
-        local showUI = tracker:IsShown() and enabled and level and not isDismissed(level)
+        local missing = enabled and hasMissingAvailableSpells()
+        local showUI = tracker:IsShown() and enabled and level and missing and not isDismissed(level)
         if not showUI then
             if strip:IsShown() then
                 showTrain(false)
@@ -2464,21 +2884,58 @@ do
     local watcher = CreateFrame("Frame")
     watcher:RegisterEvent("PLAYER_LEVEL_UP")
     watcher:RegisterEvent("TRAINER_SHOW")
+    watcher:RegisterEvent("TRAINER_UPDATE")
+    watcher:RegisterEvent("TRAINER_CLOSED")
     watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+    watcher:RegisterEvent("SPELLS_CHANGED")
+    pcall(watcher.RegisterEvent, watcher, "LEARNED_SPELL_IN_TAB")
+    pcall(watcher.RegisterEvent, watcher, "LEARNED_SPELL_IN_SKILL_LINE")
     watcher:SetScript("OnEvent", function(_, event)
-        if event == "TRAINER_SHOW" then
-            if IsTradeskillTrainer and IsTradeskillTrainer() then
-                return
+        invalidateMissingCache()
+        if event == "TRAINER_SHOW" or event == "TRAINER_UPDATE" then
+            if not (IsTradeskillTrainer and IsTradeskillTrainer()) then
+                local available = openTrainerAvailableCount()
+                if type(available) == "number" then
+                    if type(WaynotesCharDB) ~= "table" then
+                        WaynotesCharDB = {}
+                    end
+                    WaynotesCharDB.trainHasAvailable = available > 0
+                    missingCache.at = GetTime and GetTime() or 0
+                    missingCache.value = available > 0
+                    -- Caught up: nothing left to train at this level.
+                    if available <= 0 then
+                        local level = State.train.level or currentTrainLevel()
+                        if level then
+                            dismissLevel(level)
+                        end
+                    end
+                end
             end
-            local level = State.train.level or currentTrainLevel()
-            if level then
-                dismissLevel(level)
+        elseif event == "PLAYER_LEVEL_UP" then
+            -- New level may unlock spells the static scan has not seen yet.
+            if type(WaynotesCharDB) == "table" then
+                WaynotesCharDB.trainHasAvailable = nil
             end
         end
         if tracker:IsShown() then
             updateTrainStrip()
         end
     end)
+
+    -- Prefer What's Training live status when that addon is present.
+    if type(WT_API) == "table" and type(WT_API.RegisterCallback) == "function" then
+        local owner = {}
+        local function onWtEvent()
+            invalidateMissingCache()
+            if tracker:IsShown() then
+                updateTrainStrip()
+            end
+        end
+        pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.READY or "Ready", onWtEvent)
+        pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.SPELLS_CHANGED or "SpellsChanged", onWtEvent)
+        pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.LEVEL_CHANGED or "LevelChanged", onWtEvent)
+        pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.IGNORED_CHANGED or "IgnoredChanged", onWtEvent)
+    end
 end
 
 do
@@ -2546,6 +3003,7 @@ do
     State.corpse.layout = function()
         local lift = (State.flight.chrome or 0)
             + (State.flyRec.chrome or 0)
+            + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
             + (State.train.chrome or 0)
         strip:ClearAllPoints()
@@ -2877,6 +3335,9 @@ local function styleTracker()
     end
     if State.flyRec.paint then
         State.flyRec.paint()
+    end
+    if State.hearthRec.paint then
+        State.hearthRec.paint()
     end
     if State.nav.paint then
         State.nav.paint()
@@ -5718,6 +6179,7 @@ local function scrollRange()
     local chrome = UI.TRACKER_CHROME
         + (State.flight.chrome or 0)
         + (State.flyRec.chrome or 0)
+        + (State.hearthRec.chrome or 0)
         + (State.nav.chrome or 0)
         + (State.train.chrome or 0)
         + (State.corpse.chrome or 0)
@@ -5767,6 +6229,7 @@ local function applyTrackerBox(contentHeight, resetScroll)
     local chrome = UI.TRACKER_CHROME
         + (State.flight.chrome or 0)
         + (State.flyRec.chrome or 0)
+        + (State.hearthRec.chrome or 0)
         + (State.nav.chrome or 0)
         + (State.train.chrome or 0)
         + (State.corpse.chrome or 0)
@@ -6712,6 +7175,9 @@ ns.OnTravelRouteReady = function(route, dest, step, stepIndex)
     if updateFlyRecStrip then
         updateFlyRecStrip()
     end
+    if updateHearthRecStrip then
+        updateHearthRecStrip()
+    end
 end
 
 State.refreshTracker = function(force)
@@ -6810,9 +7276,12 @@ State.refreshTracker = function(force)
     if State.syncStepMapPins and (force or contentChanged) then
         State.syncStepMapPins(items)
     end
-    -- Paint cached fly-rec only; BestPath runs on step load / zone change.
+    -- Paint cached fly/hearth-rec only; BestPath runs on step load / zone change.
     if updateFlyRecStrip then
         updateFlyRecStrip()
+    end
+    if updateHearthRecStrip then
+        updateHearthRecStrip()
     end
     State.notePrimaryRouteStep()
     rememberPulsePosition()
@@ -7397,6 +7866,9 @@ State.trackerOnUpdate = function(self, delta)
     if State.stripElapsed >= UI.STRIP_UPDATE_SECONDS then
         State.stripElapsed = 0
         State.timed("flyRec", updateFlyRecStrip)
+        if updateHearthRecStrip then
+            State.timed("hearthRec", updateHearthRecStrip)
+        end
         State.timed("nav", updateNavStrip)
         if State.corpse.update then
             State.timed("corpse", State.corpse.update)
@@ -7478,6 +7950,11 @@ tracker:SetScript("OnHide", function()
     end
     State.flyRec.chrome = 0
     State.flyRec.route = nil
+    if State.hearthRec.strip then
+        State.hearthRec.strip:Hide()
+    end
+    State.hearthRec.chrome = 0
+    State.hearthRec.route = nil
     if State.nav.strip then
         State.nav.strip:Hide()
     end

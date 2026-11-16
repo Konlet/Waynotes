@@ -7,7 +7,7 @@
 ## IconTexture: Interface\AddOns\RestedXP-Better\logo
 ## Dependencies: RXPGuides
 ## RequiredDeps: RXPGuides
-## OptionalDeps: QuestieDB
+## OptionalDeps: QuestieDB, WhatsTraining
 ## SavedVariables: WaynotesDB
 ## SavedVariablesPerCharacter: WaynotesCharDB
 
