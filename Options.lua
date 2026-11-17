@@ -340,12 +340,17 @@ local function createThemes(parent)
     local previewCommitted = false
 
     local function captureState()
-        return {
+        local state = {
             theme = ns.db.theme,
             activeProfile = ns.db.activeProfile,
             trackerBackground = ns.db.trackerBackground,
             colors = ns.CopyTheme(ns.db.colors),
+            style = {},
         }
+        for _, key in ipairs(ns.themeStyleKeys) do
+            state.style[key] = ns.db[key]
+        end
+        return state
     end
 
     local function restoreState(state)
@@ -356,6 +361,13 @@ local function createThemes(parent)
         ns.db.activeProfile = state.activeProfile
         ns.db.trackerBackground = state.trackerBackground
         ns.db.colors = state.colors
+        if state.style then
+            for _, key in ipairs(ns.themeStyleKeys) do
+                if state.style[key] ~= nil then
+                    ns.db[key] = state.style[key]
+                end
+            end
+        end
         ns.Apply()
         if ns.RefreshOptions then
             ns.RefreshOptions()
@@ -374,9 +386,7 @@ local function createThemes(parent)
         ns.db.theme = id
         ns.db.activeProfile = nil
         ns.db.colors = ns.CopyTheme(theme)
-        if type(theme.backgroundAlpha) == "number" then
-            ns.db.trackerBackground = theme.backgroundAlpha
-        end
+        ns.ApplyThemeStyle(theme)
         ns.Apply()
         if ns.RefreshOptions then
             ns.RefreshOptions()
@@ -450,7 +460,7 @@ local function createThemes(parent)
         dropButton:HookScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText("Theme", 1, 1, 1)
-            GameTooltip:AddLine("Hover a theme to preview it on the tracker. Click to apply. Individual colors can be changed afterward.", 0.9, 0.9, 0.9, true)
+            GameTooltip:AddLine("Hover a theme to preview colors and style (corners, glow, border, shadow). Click to apply. Individual colors and style options can be changed afterward.", 0.9, 0.9, 0.9, true)
             ns.FinishTooltip()
         end)
         dropButton:HookScript("OnLeave", GameTooltip_Hide)
@@ -673,6 +683,18 @@ local function build(parent)
     desc:SetText("Tracker style and colors. Replace RestedXP runs your custom guides and hides the RestedXP window.")
     y = y - 36
 
+    local autoProgress = createCheck(parent, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
+    autoProgress:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
+    local themes = createThemes(parent)
+    place(themes, parent, y)
+    y = y - 52
+
+    local colors = createColors(parent)
+    place(colors, parent, y)
+    y = y - 204
+
     local profiles = createProfiles(parent)
     place(profiles, parent, y)
     y = y - 104
@@ -809,6 +831,10 @@ local function build(parent)
     guidePercent:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
 
+    local stepList = createCheck(parent, "Show step list", "Shows a slim scrollable list of every step under the guide. The current step stays highlighted at the top. Hover a row for details.", "showStepList")
+    stepList:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    y = y - 30
+
     local flightTimer = createCheck(parent, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. Uses Forever flight-time data by default, then updates your local times after each flight.", "showFlightTimer")
     flightTimer:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
     y = y - 30
@@ -856,14 +882,6 @@ local function build(parent)
     local nearTravel = createSlider(parent, "Travel arrive", "Yards used to arrive at travel / multi-pin route points when the step does not set arriveYards.", "nearYardsTravel", nil, yardRange)
     place(nearTravel, parent, y)
     y = y - 58
-
-    local themes = createThemes(parent)
-    place(themes, parent, y)
-    y = y - 52
-
-    local colors = createColors(parent)
-    place(colors, parent, y)
-    y = y - 204
 
     local trackerScale = createSlider(parent, "Tracker scale", "Zooms the whole tracker, including the text. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
         return trackerOn()
@@ -1170,8 +1188,14 @@ SlashCmdList.WAYNOTES = function(message)
         end
         return
     end
+    if command == "sync" or command:sub(1, 5) == "sync " then
+        if ns.PartySyncSlash then
+            ns.PartySyncSlash(command == "sync" and "" or strtrim(text:sub(6)))
+        end
+        return
+    end
     if command == "help" then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r /waynotes guides, /waynotes recommend, /waynotes guide <id>, /waynotes step <n>, /waynotes next, /waynotes back, /waynotes fly, /waynotes aim, /waynotes aimlog, /waynotes perf [seconds] [spikeMs]")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffce7bffWaynotes|r /waynotes guides, /waynotes recommend, /waynotes guide <id>, /waynotes step <n>, /waynotes next, /waynotes back, /waynotes sync [name|off], /waynotes fly, /waynotes aim, /waynotes aimlog, /waynotes perf [seconds] [spikeMs]")
         return
     end
     if command == "fly" or command == "flydebug" then

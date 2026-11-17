@@ -1214,6 +1214,7 @@ RG.maintainReview = maintainReview
 RG.earlierStep = earlierStep
 RG.goToStep = goToStep
 RG.goBackward = goBackward
+RG.jumpToStep = jumpToStep
 RG.skipListedStep = skipListedStep
 RG.guideTitle = guideTitle
 RG.isProgress = isProgress

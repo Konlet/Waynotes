@@ -288,6 +288,44 @@ def build_class_trainers() -> int:
     return len(rows)
 
 
+def build_profession_trainers() -> int:
+    rows = [e for e in load_json("wow-forever-profession-trainers.json") if has_zone_position(e)]
+    lines = [
+        "local _, ns = ...",
+        "",
+        "-- Generated from Data/wow-forever-profession-trainers.json",
+        "-- Profession / tradeskill trainers. Forever zone percents.",
+        "",
+        "ns.NavProfessionTrainers = {",
+    ]
+    for e in sorted(
+        rows,
+        key=lambda x: (
+            x.get("profession") or "",
+            x["position"]["zone"],
+            x["name"],
+            x["position"]["x"],
+            x["position"]["y"],
+        ),
+    ):
+        extra = [
+            f"profession = {lua_str(e.get('profession') or '')}",
+        ]
+        rank = e.get("highestRank")
+        if isinstance(rank, str) and rank:
+            extra.append(f"rank = {lua_str(rank)}")
+        spec = e.get("specialization")
+        if isinstance(spec, str) and spec:
+            extra.append(f"specialization = {lua_str(spec)}")
+        if isinstance(e.get("npcId"), int):
+            extra.append(f"npc = {e['npcId']}")
+        lines.append(emit_zone_entry(e, extra=extra))
+    lines.append("}")
+    lines.append("")
+    write_lines(DATA / "ProfessionTrainers.lua", lines)
+    return len(rows)
+
+
 def _dock_world(stop: dict) -> tuple[float, float, float, int] | None:
     """Prefer boardingPosition for aiming; fall back to dock position."""
     for key in ("boardingPosition", "position"):
@@ -420,11 +458,12 @@ def main() -> None:
     auctions = build_simple_zone_table("wow-forever-auction-houses.json", "AuctionHouses.lua", "NavAuctionHouses")
     mail = build_simple_zone_table("wow-forever-mailboxes.json", "Mailboxes.lua", "NavMailboxes", npc_field=None)
     trainers = build_class_trainers()
+    professions = build_profession_trainers()
     routes, docks, transport_legs = build_boats_zeppelins()
     print(
         f"Wrote {inns} inns, {flights} flight masters, {connections} connections, "
         f"{banks} banks, {repairs} repairs, {auctions} auctioneers, {mail} mailboxes, "
-        f"{trainers} class trainers, "
+        f"{trainers} class trainers, {professions} profession trainers, "
         f"{routes} boat/zeppelin routes ({docks} docks, {transport_legs} legs)"
     )
     missing = sorted(

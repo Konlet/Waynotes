@@ -961,10 +961,11 @@ local function flightRecMinYards()
 end
 
 function ns.TravelBeginHints()
+    -- Nearby FP tip is rebuilt per GuideObjectives pass. Fly/hearth strip state
+    -- is owned by TravelPulsePrimaryRoute (step/zone only). Clearing it here
+    -- made every tracker refresh wipe the strip until the next route pulse.
     nearbyHintCache = nil
     nearbyHintChecked = false
-    activeFlightRec = nil
-    activeHearthRec = nil
 end
 
 function ns.TravelActiveFlightRecommendation()
@@ -1076,19 +1077,21 @@ local function extractDestinationName(text)
         { "^Take the%s+boat%s+to%s+(.+)$", "travel" },
         { "^Take the%s+skycutter%s+to%s+(.+)$", "travel" },
         { "^Take the%s+ferry%s+to%s+(.+)$", "travel" },
-        { "^Return%s+back%s+to%s+(.+)$", "travel" },
-        { "^Return%s+to%s+(.+)$", "travel" },
+        -- "Return to Hub" usually means fly back; prefer=fly also soft-trusts a
+        -- named pad that is missing from the character flight DB.
+        { "^Return%s+back%s+to%s+(.+)$", "fly" },
+        { "^Return%s+to%s+(.+)$", "fly" },
         { "^Head%s+back%s+to%s+(.+)$", "travel" },
         { "^Head%s+to%s+(.+)$", "travel" },
-        { "^Go%s+back%s+to%s+(.+)$", "travel" },
-        { "^Travel%s+back%s+to%s+(.+)$", "travel" },
+        { "^Go%s+back%s+to%s+(.+)$", "fly" },
+        { "^Travel%s+back%s+to%s+(.+)$", "fly" },
         { "^Travel%s+toward%s+(.+)$", "travel" },
         { "^Travel%s+to%s+(.+)$", "travel" },
         { "^Run%s+back%s+to%s+(.+)$", "travel" },
         { "^Run%s+to%s+(.+)$", "travel" },
         -- Curated wording: "Travel south to X" / mid-sentence "and travel to X".
         { "[Tt]ravel%s+.-to%s+(.+)$", "travel" },
-        { "[Rr]eturn%s+to%s+(.+)$", "travel" },
+        { "[Rr]eturn%s+to%s+(.+)$", "fly" },
         { "[Ff]ly%s+to%s+(.+)$", "fly" },
         { "[Hh]earth%s+to%s+(.+)$", "hearth" },
         { "[Tt]ake the%s+zeppelin%s+to%s+(.+)$", "travel" },
@@ -1684,9 +1687,17 @@ local function destinationFromStep(step)
     end
 end
 
+-- Classic taxi pathfinding uses the full faction network. Discovery only gates
+-- which endpoints you can pick; intermediate hubs along the route do not need
+-- to be unlocked. Callers must pass an unlocked (or soft-trusted) toId.
 local function flightPathSeconds(fromId, toId, unlocked, faction)
     if fromId == toId then
         return 0, { fromId }
+    end
+    -- Endpoints must be known (or soft-trusted by the caller). Reject early so a
+    -- missing DB entry cannot invent flights to pads the player has never learned.
+    if type(unlocked) == "table" and not unlocked[toId] then
+        return nil
     end
     local best = {}
     local prev = {}
@@ -1702,7 +1713,7 @@ local function flightPathSeconds(fromId, toId, unlocked, faction)
         if edges then
             for index = 1, #edges do
                 local edge = edges[index]
-                if unlocked[edge.to] and factionUsable(edge.faction, faction) then
+                if factionUsable(edge.faction, faction) then
                     local nextCost = currentCost + edge.seconds
                     if not best[edge.to] or nextCost < best[edge.to] then
                         best[edge.to] = nextCost
@@ -1859,10 +1870,15 @@ local function routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
         unlocked = unlockedFlightPaths()
     end
 
+    -- Soft-trust a named arrive pad only when the guide implies the player
+    -- should already know it (Fly/Return). Plain "Travel to Zoram'gar" on a
+    -- first visit must fall back to the nearest actually unlocked pad (Sun Rock).
+    local trustNamedArrive = knownArriveId
+        and nodesById[knownArriveId]
+        and (unlocked[knownArriveId] or dest.prefer == "fly")
+
     local unlockedForPath = unlocked
-    if knownArriveId and not unlocked[knownArriveId] then
-        -- Guide named a flight hub (Return to the Crossroads). Trust the arrive
-        -- pad for pathing when the player can depart from a known/nearby pad.
+    if trustNamedArrive and knownArriveId and not unlocked[knownArriveId] then
         unlockedForPath = {}
         for id, value in pairs(unlocked) do
             unlockedForPath[id] = value
@@ -1882,11 +1898,12 @@ local function routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
     end
 
     local arriveId, arriveDist
-    if knownArriveId and nodesById[knownArriveId] and unlockedForPath[knownArriveId] then
+    if trustNamedArrive then
         arriveId = knownArriveId
         arriveDist = nodeDistance(arriveWx, arriveWy, arriveInstance or fromInstance, nodesById[arriveId]) or 0
     else
-        arriveId, arriveDist = nearestUnlockedFlight(arriveWx, arriveWy, arriveInstance or fromInstance, unlockedForPath, faction, true)
+        -- Nearest learned pad to the destination (Sun Rock for west Ashenvale).
+        arriveId, arriveDist = nearestUnlockedFlight(arriveWx, arriveWy, arriveInstance or fromInstance, unlocked, faction, true)
     end
     if not departId or not arriveId then
         return nil
@@ -2531,11 +2548,12 @@ function ns.TravelDebugFlight()
     end
     if dest then
         say(string.format(
-            "dest name=%s raw=%s zone=%s nodeId=%s",
+            "dest name=%s raw=%s zone=%s nodeId=%s prefer=%s",
             tostring(dest.name),
             tostring(dest.rawName),
             tostring(dest.zone),
-            tostring(dest.nodeId)
+            tostring(dest.nodeId),
+            tostring(dest.prefer)
         ))
         say(string.format(
             "dest wx=%s wy=%s instance=%s map=%s x=%s y=%s",
@@ -2547,13 +2565,17 @@ function ns.TravelDebugFlight()
             fmt(dest.y)
         ))
         local ax, ay, ainst, aid = flightArrivePoint(dest)
+        local namedKnown = aid and unlockedFlightPaths()[aid] and true or false
+        local trustNamed = aid and nodesById[aid] and (namedKnown or dest.prefer == "fly")
         say(string.format(
-            "arrivePoint wx=%s wy=%s instance=%s nodeId=%s hub=%s",
+            "arrivePoint wx=%s wy=%s instance=%s nodeId=%s hub=%s known=%s trust=%s",
             fmt(ax),
             fmt(ay),
             fmt(ainst),
             tostring(aid),
-            tostring(aid and nodesById[aid] and nodesById[aid].hub)
+            tostring(aid and nodesById[aid] and nodesById[aid].hub),
+            tostring(namedKnown),
+            tostring(trustNamed and true or false)
         ))
     else
         say("dest: nil")

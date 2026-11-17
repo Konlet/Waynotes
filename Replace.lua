@@ -114,10 +114,8 @@ if header.SetWordWrap then
     header:SetWordWrap(false)
 end
 
-local guidePercent
-local jumpButton
-local navButton
-local settingsButton
+-- Header chrome shares one table so this file stays under the 200-local limit.
+local chrome = {}
 local function guidePercentLabel()
     if ns.db and ns.db.standaloneGuide and ns.GuidePercentLabel then
         return ns.GuidePercentLabel()
@@ -145,31 +143,31 @@ local function guidePercentLabel()
 end
 
 local function placeGuidePercent()
-    if not guidePercent then
+    if not chrome.percent then
         return
     end
     local label = guidePercentLabel()
     if not label then
-        guidePercent:Hide()
+        chrome.percent:Hide()
         header:ClearAllPoints()
         header:SetPoint("TOPLEFT", 10, -7)
         header:SetPoint("TOPRIGHT", UI.HEADER_RIGHT, -7)
         return
     end
     local r, g, b = ns.Color("accent")
-    RG.paint(guidePercent, 12, r, g, b)
-    guidePercent:SetText(label)
-    guidePercent:Show()
-    guidePercent:ClearAllPoints()
-    local rightOf = navButton or jumpButton
+    RG.paint(chrome.percent, 12, r, g, b)
+    chrome.percent:SetText(label)
+    chrome.percent:Show()
+    chrome.percent:ClearAllPoints()
+    local rightOf = chrome.nav or chrome.sync or chrome.jump
     if rightOf then
-        guidePercent:SetPoint("TOPRIGHT", rightOf, "TOPLEFT", -6, 1)
+        chrome.percent:SetPoint("TOPRIGHT", rightOf, "TOPLEFT", -6, 1)
     else
-        guidePercent:SetPoint("TOPRIGHT", UI.HEADER_RIGHT, -7)
+        chrome.percent:SetPoint("TOPRIGHT", UI.HEADER_RIGHT, -7)
     end
     header:ClearAllPoints()
     header:SetPoint("TOPLEFT", 10, -7)
-    header:SetPoint("TOPRIGHT", guidePercent, "TOPLEFT", -6, 0)
+    header:SetPoint("TOPRIGHT", chrome.percent, "TOPLEFT", -6, 0)
 end
 
 -- Keep pad/size knobs on one table so this chunk stays under Lua's 200-local limit.
@@ -724,6 +722,7 @@ local function showBorder(plate, anchor, radius)
 end
 
 local function styleBadge(badge, r, g, b)
+    local light = ns.IsLightBackground and ns.IsLightBackground()
     if ns.db and ns.db.roundBadges then
         if not badge.circle then
             badge.ring = badge:CreateTexture(nil, "BORDER")
@@ -737,7 +736,7 @@ local function styleBadge(badge, r, g, b)
         end
         badge:SetBackdropColor(0, 0, 0, 0)
         badge:SetBackdropBorderColor(0, 0, 0, 0)
-        badge.ring:SetVertexColor(0, 0, 0, 0.7)
+        badge.ring:SetVertexColor(0, 0, 0, light and 0.35 or 0.7)
         badge.ring:Show()
         badge.circle:SetVertexColor(r, g, b, 1)
         badge.circle:Show()
@@ -747,7 +746,7 @@ local function styleBadge(badge, r, g, b)
             badge.ring:Hide()
         end
         badge:SetBackdropColor(r, g, b, 1)
-        badge:SetBackdropBorderColor(0, 0, 0, 0.45)
+        badge:SetBackdropBorderColor(0, 0, 0, light and 0.22 or 0.45)
     end
 end
 
@@ -930,7 +929,21 @@ styleStepButtons = function()
         return
     end
     stylingButtons = true
+    if chrome.placeActions then
+        chrome.placeActions()
+    end
     local r, g, b = ns.Color("accent")
+    local light = ns.IsLightBackground and ns.IsLightBackground()
+    local idleFillR, idleFillG, idleFillB = 0, 0, 0
+    local idleFillA, idleFillDimA = 0.55, 0.3
+    local idleEdgeA, idleEdgeDimA = 0.75, 0.28
+    local hoverFillA = 0.22
+    if light then
+        idleFillR, idleFillG, idleFillB = r, g, b
+        idleFillA, idleFillDimA = 0.12, 0.06
+        idleEdgeA, idleEdgeDimA = 0.55, 0.28
+        hoverFillA = 0.24
+    end
     for _, button in ipairs(stepButtons) do
         local enabled = stepButtonEnabled(button)
         if button.icon.SetDesaturated then
@@ -945,41 +958,59 @@ styleStepButtons = function()
             button:Disable()
         end
         if button.hovered and enabled then
-            styleChromeButton(button, r, g, b, 0.22, r, g, b, 1)
+            styleChromeButton(button, r, g, b, hoverFillA, r, g, b, 1)
         else
-            styleChromeButton(button, 0, 0, 0, enabled and 0.55 or 0.3, r, g, b, enabled and 0.75 or 0.28)
+            styleChromeButton(
+                button,
+                idleFillR,
+                idleFillG,
+                idleFillB,
+                enabled and idleFillA or idleFillDimA,
+                r,
+                g,
+                b,
+                enabled and idleEdgeA or idleEdgeDimA
+            )
         end
     end
-    if jumpButton then
-        jumpButton.text:SetTextColor(r, g, b)
-        if jumpButton.hovered then
-            styleChromeButton(jumpButton, r, g, b, 0.22, r, g, b, 1)
+    if chrome.jump then
+        chrome.jump.text:SetTextColor(r, g, b)
+        if chrome.jump.hovered then
+            styleChromeButton(chrome.jump, r, g, b, hoverFillA, r, g, b, 1)
         else
-            styleChromeButton(jumpButton, 0, 0, 0, 0.55, r, g, b, 0.75)
+            styleChromeButton(chrome.jump, idleFillR, idleFillG, idleFillB, idleFillA, r, g, b, idleEdgeA)
         end
     end
-    if navButton then
-        navButton.text:SetTextColor(r, g, b)
-        if navButton.hovered then
-            styleChromeButton(navButton, r, g, b, 0.22, r, g, b, 1)
+    if chrome.sync and chrome.sync:IsShown() then
+        chrome.sync.text:SetTextColor(r, g, b)
+        if chrome.sync.hovered then
+            styleChromeButton(chrome.sync, r, g, b, hoverFillA, r, g, b, 1)
         else
-            styleChromeButton(navButton, 0, 0, 0, 0.55, r, g, b, 0.75)
+            styleChromeButton(chrome.sync, idleFillR, idleFillG, idleFillB, idleFillA, r, g, b, idleEdgeA)
         end
     end
-    if settingsButton then
+    if chrome.nav then
+        chrome.nav.text:SetTextColor(r, g, b)
+        if chrome.nav.hovered then
+            styleChromeButton(chrome.nav, r, g, b, hoverFillA, r, g, b, 1)
+        else
+            styleChromeButton(chrome.nav, idleFillR, idleFillG, idleFillB, idleFillA, r, g, b, idleEdgeA)
+        end
+    end
+    if chrome.settings then
         local standalone = ns.db and ns.db.standaloneGuide
         if standalone then
-            settingsButton:Show()
-            if settingsButton.icon then
-                settingsButton.icon:SetVertexColor(r, g, b, 1)
+            chrome.settings:Show()
+            if chrome.settings.icon then
+                chrome.settings.icon:SetVertexColor(r, g, b, 1)
             end
-            if settingsButton.hovered then
-                styleChromeButton(settingsButton, r, g, b, 0.22, r, g, b, 1)
+            if chrome.settings.hovered then
+                styleChromeButton(chrome.settings, r, g, b, hoverFillA, r, g, b, 1)
             else
-                styleChromeButton(settingsButton, 0, 0, 0, 0.55, r, g, b, 0.75)
+                styleChromeButton(chrome.settings, idleFillR, idleFillG, idleFillB, idleFillA, r, g, b, idleEdgeA)
             end
         else
-            settingsButton:Hide()
+            chrome.settings:Hide()
         end
     end
     stylingButtons = false
@@ -988,27 +1019,27 @@ end
 createStepButton(-1, -42)
 createStepButton(1, -24)
 
-settingsButton = CreateFrame("Button", nil, tracker, "BackdropTemplate")
-settingsButton:SetSize(16, 16)
-settingsButton:SetPoint("TOPRIGHT", -4, -6)
-settingsButton:SetFrameLevel(tracker:GetFrameLevel() + 25)
-settingsButton:SetBackdrop({
+chrome.settings = CreateFrame("Button", nil, tracker, "BackdropTemplate")
+chrome.settings:SetSize(16, 16)
+chrome.settings:SetPoint("TOPRIGHT", -4, -6)
+chrome.settings:SetFrameLevel(tracker:GetFrameLevel() + 25)
+chrome.settings:SetBackdrop({
     bgFile = "Interface\\BUTTONS\\WHITE8X8",
     edgeFile = "Interface\\BUTTONS\\WHITE8X8",
     edgeSize = 1,
     insets = { left = 1, right = 1, top = 1, bottom = 1 },
 })
-local settingsGlow = settingsButton:CreateTexture(nil, "HIGHLIGHT")
+local settingsGlow = chrome.settings:CreateTexture(nil, "HIGHLIGHT")
 settingsGlow:SetAllPoints()
 useSolid(settingsGlow)
 paintTexture(settingsGlow, 1, 1, 1, 0.14)
-settingsButton.glow = settingsGlow
-settingsButton:RegisterForClicks("LeftButtonUp")
-settingsButton.icon = settingsButton:CreateTexture(nil, "OVERLAY")
-settingsButton.icon:SetSize(12, 12)
-settingsButton.icon:SetPoint("CENTER", 0, 0)
-settingsButton.icon:SetTexture("Interface\\Buttons\\UI-OptionsButton")
-settingsButton:SetScript("OnClick", function()
+chrome.settings.glow = settingsGlow
+chrome.settings:RegisterForClicks("LeftButtonUp")
+chrome.settings.icon = chrome.settings:CreateTexture(nil, "OVERLAY")
+chrome.settings.icon:SetSize(12, 12)
+chrome.settings.icon:SetPoint("CENTER", 0, 0)
+chrome.settings.icon:SetTexture("Interface\\Buttons\\UI-OptionsButton")
+chrome.settings:SetScript("OnClick", function()
     if ns.HideGuideMenu then
         ns.HideGuideMenu()
     end
@@ -1019,7 +1050,7 @@ settingsButton:SetScript("OnClick", function()
         ns.OpenOptions()
     end
 end)
-settingsButton:SetScript("OnEnter", function(self)
+chrome.settings:SetScript("OnEnter", function(self)
     self.hovered = true
     styleStepButtons()
     local r, g, b = ns.Color("accent")
@@ -1028,47 +1059,47 @@ settingsButton:SetScript("OnEnter", function(self)
     GameTooltip:AddLine("Open Waynotes settings.", 1, 1, 1, true)
     ns.FinishTooltip()
 end)
-settingsButton:SetScript("OnLeave", function(self)
+chrome.settings:SetScript("OnLeave", function(self)
     self.hovered = false
     styleStepButtons()
     GameTooltip:Hide()
 end)
-settingsButton:SetScript("OnMouseDown", function(self)
+chrome.settings:SetScript("OnMouseDown", function(self)
     self.icon:SetPoint("CENTER", 1, -1)
 end)
-settingsButton:SetScript("OnMouseUp", function(self, button)
+chrome.settings:SetScript("OnMouseUp", function(self, button)
     self.icon:SetPoint("CENTER", 0, 0)
     if button == "RightButton" and ns.OpenGuideMenu then
         ns.OpenGuideMenu()
     end
 end)
 
-jumpButton = CreateFrame("Button", nil, tracker, "BackdropTemplate")
-jumpButton:SetSize(40, 16)
-jumpButton:SetPoint("TOPRIGHT", -64, -6)
-jumpButton:SetFrameLevel(tracker:GetFrameLevel() + 25)
-jumpButton:SetBackdrop({
+chrome.jump = CreateFrame("Button", nil, tracker, "BackdropTemplate")
+chrome.jump:SetSize(40, 16)
+chrome.jump:SetPoint("TOPRIGHT", -64, -6)
+chrome.jump:SetFrameLevel(tracker:GetFrameLevel() + 25)
+chrome.jump:SetBackdrop({
     bgFile = "Interface\\BUTTONS\\WHITE8X8",
     edgeFile = "Interface\\BUTTONS\\WHITE8X8",
     edgeSize = 1,
     insets = { left = 1, right = 1, top = 1, bottom = 1 },
 })
-local jumpGlow = jumpButton:CreateTexture(nil, "HIGHLIGHT")
+local jumpGlow = chrome.jump:CreateTexture(nil, "HIGHLIGHT")
 jumpGlow:SetAllPoints()
 useSolid(jumpGlow)
 paintTexture(jumpGlow, 1, 1, 1, 0.14)
-jumpButton.glow = jumpGlow
-jumpButton:RegisterForClicks("LeftButtonUp")
-jumpButton.text = jumpButton:CreateFontString(nil, "OVERLAY")
-jumpButton.text:SetPoint("CENTER", 0, 0)
-RG.applyFont(jumpButton.text, 10, "OUTLINE")
-jumpButton.text:SetText("Jump")
-jumpButton:SetScript("OnClick", function()
+chrome.jump.glow = jumpGlow
+chrome.jump:RegisterForClicks("LeftButtonUp")
+chrome.jump.text = chrome.jump:CreateFontString(nil, "OVERLAY")
+chrome.jump.text:SetPoint("CENTER", 0, 0)
+RG.applyFont(chrome.jump.text, 10, "OUTLINE")
+chrome.jump.text:SetText("Jump")
+chrome.jump:SetScript("OnClick", function()
     if StaticPopup_Show then
         StaticPopup_Show("WaynotesJump")
     end
 end)
-jumpButton:SetScript("OnEnter", function(self)
+chrome.jump:SetScript("OnEnter", function(self)
     self.hovered = true
     styleStepButtons()
     local r, g, b = ns.Color("accent")
@@ -1077,79 +1108,187 @@ jumpButton:SetScript("OnEnter", function(self)
     GameTooltip:AddLine("Enter a step number.", 1, 1, 1, true)
     ns.FinishTooltip()
 end)
-jumpButton:SetScript("OnLeave", function(self)
+chrome.jump:SetScript("OnLeave", function(self)
     self.hovered = false
     styleStepButtons()
     GameTooltip:Hide()
 end)
-jumpButton:SetScript("OnMouseDown", function(self)
+chrome.jump:SetScript("OnMouseDown", function(self)
     self.text:SetPoint("CENTER", 1, -1)
 end)
-jumpButton:SetScript("OnMouseUp", function(self, button)
+chrome.jump:SetScript("OnMouseUp", function(self, button)
     self.text:SetPoint("CENTER", 0, 0)
     if button == "RightButton" and ns.OpenGuideMenu then
         ns.OpenGuideMenu()
     end
 end)
 
-navButton = CreateFrame("Button", nil, tracker, "BackdropTemplate")
-navButton:SetSize(28, 16)
-navButton:SetPoint("TOPRIGHT", -110, -6)
-navButton:SetFrameLevel(tracker:GetFrameLevel() + 25)
-navButton:SetBackdrop({
+chrome.sync = CreateFrame("Button", nil, tracker, "BackdropTemplate")
+chrome.sync:SetSize(36, 16)
+chrome.sync:SetPoint("TOPRIGHT", -110, -6)
+chrome.sync:SetFrameLevel(tracker:GetFrameLevel() + 25)
+chrome.sync:SetBackdrop({
     bgFile = "Interface\\BUTTONS\\WHITE8X8",
     edgeFile = "Interface\\BUTTONS\\WHITE8X8",
     edgeSize = 1,
     insets = { left = 1, right = 1, top = 1, bottom = 1 },
 })
-local navGlow = navButton:CreateTexture(nil, "HIGHLIGHT")
-navGlow:SetAllPoints()
-useSolid(navGlow)
-paintTexture(navGlow, 1, 1, 1, 0.14)
-navButton.glow = navGlow
-navButton:RegisterForClicks("LeftButtonUp")
-navButton.text = navButton:CreateFontString(nil, "OVERLAY")
-navButton.text:SetPoint("CENTER", 0, 0)
-RG.applyFont(navButton.text, 10, "OUTLINE")
-navButton.text:SetText("Go")
-navButton:SetScript("OnClick", function(self)
-    if ns.ToggleNavMenu then
-        ns.ToggleNavMenu(self)
+local syncGlow = chrome.sync:CreateTexture(nil, "HIGHLIGHT")
+syncGlow:SetAllPoints()
+useSolid(syncGlow)
+paintTexture(syncGlow, 1, 1, 1, 0.14)
+chrome.sync.glow = syncGlow
+chrome.sync:RegisterForClicks("LeftButtonUp")
+chrome.sync.text = chrome.sync:CreateFontString(nil, "OVERLAY")
+chrome.sync.text:SetPoint("CENTER", 0, 0)
+RG.applyFont(chrome.sync.text, 10, "OUTLINE")
+chrome.sync.text:SetText("Sync")
+chrome.sync:Hide()
+chrome.sync:SetScript("OnClick", function(self)
+    if ns.PartySyncOpenPicker then
+        ns.PartySyncOpenPicker(self)
     end
 end)
-navButton:SetScript("OnEnter", function(self)
+chrome.sync:SetScript("OnEnter", function(self)
     self.hovered = true
     styleStepButtons()
     local r, g, b = ns.Color("accent")
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText("Navigate", r, g, b)
-    GameTooltip:AddLine("Find the nearest inn, bank, repair, trainer, and more.", 1, 1, 1, true)
+    GameTooltip:SetText("Sync with party", r, g, b)
+    local target = ns.PartySyncFollowTarget and ns.PartySyncFollowTarget()
+    if target then
+        GameTooltip:AddLine("Following " .. target .. ". Click to change or stop.", 1, 1, 1, true)
+    else
+        GameTooltip:AddLine("Follow another Waynotes user's guide step.", 1, 1, 1, true)
+    end
     ns.FinishTooltip()
 end)
-navButton:SetScript("OnLeave", function(self)
+chrome.sync:SetScript("OnLeave", function(self)
     self.hovered = false
     styleStepButtons()
     GameTooltip:Hide()
 end)
-navButton:SetScript("OnMouseDown", function(self)
+chrome.sync:SetScript("OnMouseDown", function(self)
     self.text:SetPoint("CENTER", 1, -1)
 end)
-navButton:SetScript("OnMouseUp", function(self, button)
+chrome.sync:SetScript("OnMouseUp", function(self, button)
     self.text:SetPoint("CENTER", 0, 0)
     if button == "RightButton" and ns.OpenGuideMenu then
         ns.OpenGuideMenu()
     end
 end)
 
-guidePercent = tracker:CreateFontString(nil, "OVERLAY")
-guidePercent:SetHeight(16)
-guidePercent:SetJustifyH("RIGHT")
-guidePercent:SetJustifyV("MIDDLE")
-if guidePercent.SetWordWrap then
-    guidePercent:SetWordWrap(false)
+chrome.placeActions = function()
+    local standalone = ns.UsingStandalone and ns.UsingStandalone()
+    local showSync = standalone
+        and chrome.sync
+        and (
+            (ns.PartySyncHasPeers and ns.PartySyncHasPeers())
+            or (ns.PartySyncFollowing and ns.PartySyncFollowing())
+        )
+    if chrome.jump then
+        chrome.jump:ClearAllPoints()
+        chrome.jump:SetPoint("TOPRIGHT", -64, -6)
+    end
+    if showSync then
+        chrome.sync:Show()
+        chrome.sync:ClearAllPoints()
+        chrome.sync:SetPoint("TOPRIGHT", -110, -6)
+        if ns.PartySyncFollowing and ns.PartySyncFollowing() then
+            chrome.sync.text:SetText("Synced")
+            chrome.sync:SetWidth(44)
+            if chrome.nav then
+                chrome.nav:ClearAllPoints()
+                chrome.nav:SetPoint("TOPRIGHT", -160, -6)
+            end
+            UI.HEADER_RIGHT = -194
+        else
+            chrome.sync.text:SetText("Sync")
+            chrome.sync:SetWidth(36)
+            if chrome.nav then
+                chrome.nav:ClearAllPoints()
+                chrome.nav:SetPoint("TOPRIGHT", -152, -6)
+            end
+            UI.HEADER_RIGHT = -186
+        end
+    else
+        if chrome.sync then
+            chrome.sync:Hide()
+        end
+        if chrome.nav then
+            chrome.nav:ClearAllPoints()
+            chrome.nav:SetPoint("TOPRIGHT", -110, -6)
+        end
+        UI.HEADER_RIGHT = -144
+    end
+    placeGuidePercent()
 end
-RG.applyFont(guidePercent, 12, "OUTLINE")
-guidePercent:Hide()
+
+ns.RefreshPartySyncChrome = function()
+    if chrome.placeActions then
+        chrome.placeActions()
+    end
+    styleStepButtons()
+end
+
+chrome.nav = CreateFrame("Button", nil, tracker, "BackdropTemplate")
+chrome.nav:SetSize(28, 16)
+chrome.nav:SetPoint("TOPRIGHT", -110, -6)
+chrome.nav:SetFrameLevel(tracker:GetFrameLevel() + 25)
+chrome.nav:SetBackdrop({
+    bgFile = "Interface\\BUTTONS\\WHITE8X8",
+    edgeFile = "Interface\\BUTTONS\\WHITE8X8",
+    edgeSize = 1,
+    insets = { left = 1, right = 1, top = 1, bottom = 1 },
+})
+local navGlow = chrome.nav:CreateTexture(nil, "HIGHLIGHT")
+navGlow:SetAllPoints()
+useSolid(navGlow)
+paintTexture(navGlow, 1, 1, 1, 0.14)
+chrome.nav.glow = navGlow
+chrome.nav:RegisterForClicks("LeftButtonUp")
+chrome.nav.text = chrome.nav:CreateFontString(nil, "OVERLAY")
+chrome.nav.text:SetPoint("CENTER", 0, 0)
+RG.applyFont(chrome.nav.text, 10, "OUTLINE")
+chrome.nav.text:SetText("Go")
+chrome.nav:SetScript("OnClick", function(self)
+    if ns.ToggleNavMenu then
+        ns.ToggleNavMenu(self)
+    end
+end)
+chrome.nav:SetScript("OnEnter", function(self)
+    self.hovered = true
+    styleStepButtons()
+    local r, g, b = ns.Color("accent")
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Navigate", r, g, b)
+    GameTooltip:AddLine("Find the nearest inn, bank, repair, class or profession trainer, and more.", 1, 1, 1, true)
+    ns.FinishTooltip()
+end)
+chrome.nav:SetScript("OnLeave", function(self)
+    self.hovered = false
+    styleStepButtons()
+    GameTooltip:Hide()
+end)
+chrome.nav:SetScript("OnMouseDown", function(self)
+    self.text:SetPoint("CENTER", 1, -1)
+end)
+chrome.nav:SetScript("OnMouseUp", function(self, button)
+    self.text:SetPoint("CENTER", 0, 0)
+    if button == "RightButton" and ns.OpenGuideMenu then
+        ns.OpenGuideMenu()
+    end
+end)
+
+chrome.percent = tracker:CreateFontString(nil, "OVERLAY")
+chrome.percent:SetHeight(16)
+chrome.percent:SetJustifyH("RIGHT")
+chrome.percent:SetJustifyV("MIDDLE")
+if chrome.percent.SetWordWrap then
+    chrome.percent:SetWordWrap(false)
+end
+RG.applyFont(chrome.percent, 12, "OUTLINE")
+chrome.percent:Hide()
 
 local rule = tracker:CreateTexture(nil, "ARTWORK")
 rule:SetPoint("TOPLEFT", 0, -26)
@@ -2309,6 +2448,9 @@ do
         if dest.kind == "trainer" and dest.class then
             return dest.class .. " Trainer"
         end
+        if dest.kind == "profession" and dest.profession then
+            return dest.profession .. " Trainer"
+        end
         if ns.NavKindLabel and dest.kind and ns.NavKindLabel[dest.kind] then
             return ns.NavKindLabel[dest.kind]
         end
@@ -2672,9 +2814,13 @@ do
         return false
     end
 
+    -- Cache longer than TRAIN_UPDATE_SECONDS so the 1s timer usually hits.
+    -- A 1s TTL with a 1s poll almost always missed and re-walked What's Training.
+    local MISSING_CACHE_SECONDS = 5
+
     local function hasMissingAvailableSpells()
         local now = GetTime and GetTime() or 0
-        if missingCache.value ~= nil and (now - missingCache.at) < 1 then
+        if missingCache.value ~= nil and (now - missingCache.at) < MISSING_CACHE_SECONDS then
             return missingCache.value
         end
         local openCount = openTrainerAvailableCount()
@@ -2705,6 +2851,25 @@ do
 
     local function invalidateMissingCache()
         missingCache.at = -1
+    end
+
+    -- SPELLS_CHANGED also fires for weapon-skill ups. Debounce so a skill
+    -- grind does not re-walk What's Training on every tick.
+    local trainEventAt = 0
+    local function queueTrainStrip()
+        if not tracker:IsShown() then
+            return
+        end
+        local now = GetTime and GetTime() or 0
+        if (now - trainEventAt) < 0.35 then
+            return
+        end
+        trainEventAt = now
+        C_Timer.After(0.35, function()
+            if tracker:IsShown() and updateTrainStrip then
+                updateTrainStrip()
+            end
+        end)
     end
 
     State.train.layout = function()
@@ -2917,8 +3082,12 @@ do
                 WaynotesCharDB.trainHasAvailable = nil
             end
         end
-        if tracker:IsShown() then
-            updateTrainStrip()
+        if event == "TRAINER_SHOW" or event == "TRAINER_UPDATE" or event == "PLAYER_LEVEL_UP" then
+            if tracker:IsShown() then
+                updateTrainStrip()
+            end
+        else
+            queueTrainStrip()
         end
     end)
 
@@ -2927,9 +3096,7 @@ do
         local owner = {}
         local function onWtEvent()
             invalidateMissingCache()
-            if tracker:IsShown() then
-                updateTrainStrip()
-            end
+            queueTrainStrip()
         end
         pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.READY or "Ready", onWtEvent)
         pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.SPELLS_CHANGED or "SpellsChanged", onWtEvent)
@@ -3326,10 +3493,11 @@ local function styleTracker()
     end
 
     RG.paint(header, 13, edgeR, edgeG, edgeB)
-    if guidePercent then
-        RG.paint(guidePercent, 12, edgeR, edgeG, edgeB)
+    if chrome.percent then
+        RG.paint(chrome.percent, 12, edgeR, edgeG, edgeB)
     end
-    paintTexture(rule, edgeR, edgeG, edgeB, 0.55)
+    local lightPanel = ns.IsLightBackground and ns.IsLightBackground()
+    paintTexture(rule, edgeR, edgeG, edgeB, lightPanel and 0.28 or 0.55)
     if State.flight.paint then
         State.flight.paint()
     end
@@ -3508,18 +3676,21 @@ local function ensurePopupChrome(frame)
     return chrome
 end
 
-function ns.StylePopupFrame(frame)
+-- opts.matchTracker: use trackerBackground as-is (step list). Menus stay
+-- near-opaque so they remain readable over bright world UI.
+function ns.StylePopupFrame(frame, opts)
     if not frame or not ns.db then
         return
     end
+    opts = opts or {}
+    local matchTracker = opts.matchTracker or frame.__waynotesMatchTracker and true or false
+    frame.__waynotesMatchTracker = matchTracker and true or nil
     local chrome = ensurePopupChrome(frame)
-    -- Menus sit over bright world UI; keep them near-opaque even when the
-    -- tracker itself uses a translucent panel.
     local background = ns.db.trackerBackground
     if type(background) ~= "number" then
         background = 0.4
     end
-    if background < 0.94 then
+    if not matchTracker and background < 0.94 then
         background = 0.94
     end
     local panelR, panelG, panelB = ns.Color("background")
@@ -3601,7 +3772,9 @@ function ns.StyleRegisteredPopups()
     for index = 1, #styledPopups do
         local frame = styledPopups[index]
         if frame and frame.IsShown and frame:IsShown() then
-            ns.StylePopupFrame(frame)
+            ns.StylePopupFrame(frame, {
+                matchTracker = frame.__waynotesMatchTracker and true or false,
+            })
         end
     end
 end
@@ -6357,6 +6530,7 @@ local function syncProgressBars(row, item, textLeft, rightInset, bottomPad)
         return 0
     end
     local accentR, accentG, accentB = ns.Color("accent")
+    local light = ns.IsLightBackground and ns.IsLightBackground()
     for index, ratio in ipairs(ratios) do
         local holder = ensureProgressBar(row, index)
         holder:Show()
@@ -6366,8 +6540,13 @@ local function syncProgressBars(row, item, textLeft, rightInset, bottomPad)
         local y = bottomPad + 1 + (#ratios - index) * (UI.PROGRESS_BAR_HEIGHT + UI.PROGRESS_BAR_GAP)
         holder:SetPoint("BOTTOMLEFT", textLeft, y)
         holder:SetPoint("BOTTOMRIGHT", -rightInset, y)
-        holder:SetBackdropColor(0, 0, 0, 0.6)
-        holder:SetBackdropBorderColor(accentR, accentG, accentB, 0.4)
+        if light then
+            holder:SetBackdropColor(accentR, accentG, accentB, 0.14)
+            holder:SetBackdropBorderColor(accentR, accentG, accentB, 0.35)
+        else
+            holder:SetBackdropColor(0, 0, 0, 0.6)
+            holder:SetBackdropBorderColor(accentR, accentG, accentB, 0.4)
+        end
         holder.bar:SetStatusBarColor(accentR, accentG, accentB, 1)
         holder.bar:SetValue(ratio)
     end
@@ -7185,6 +7364,9 @@ State.refreshTracker = function(force)
         if State.clearStepMapPins then
             State.clearStepMapPins()
         end
+        if ns.RefreshStepList then
+            ns.RefreshStepList(true)
+        end
         return
     end
 
@@ -7244,6 +7426,9 @@ State.refreshTracker = function(force)
         if State.syncStepMapPins then
             State.syncStepMapPins(items)
         end
+        if ns.RefreshStepList then
+            ns.RefreshStepList(force)
+        end
         State.notePrimaryRouteStep()
         rememberPulsePosition()
         return
@@ -7282,6 +7467,9 @@ State.refreshTracker = function(force)
     end
     if updateHearthRecStrip then
         updateHearthRecStrip()
+    end
+    if ns.RefreshStepList then
+        ns.RefreshStepList(force or contentChanged)
     end
     State.notePrimaryRouteStep()
     rememberPulsePosition()
@@ -7682,9 +7870,15 @@ function ns.SyncReplacement()
         tracker:SetScale(ns.db.trackerScale or 1.2)
         tracker:Show()
         ns.RefreshTracker(true)
+        if ns.RefreshStepList then
+            ns.RefreshStepList(true)
+        end
     else
         tracker:Hide()
         State.lastSignature = nil
+        if ns.RefreshStepList then
+            ns.RefreshStepList(true)
+        end
         if rxp and not ns.db.hideTracker then
             revealGuide(rxp)
         elseif rxp and ns.db.hideTracker and (ns.db.standaloneGuide or ns.db.replaceGuide) then

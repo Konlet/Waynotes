@@ -52,6 +52,7 @@ ns.defaults = {
     menuBorderGlow = true,
     menuGlowRadius = 8,
     showGuidePercent = true,
+    showStepList = false,
     showFlightTimer = true,
     showFlightRecommend = true,
     flightRecommendMinYards = 500,
@@ -64,6 +65,7 @@ ns.defaults = {
     nearYardsTravel = 10,
     standaloneGuide = true,
     hardcoreGuide = false,
+    autoProgress = true,
     promptOffStepJump = true,
     promptDungeonGuide = true,
     hideTracker = false,
@@ -76,12 +78,64 @@ local function rgb(r, g, b)
     return { r, g, b }
 end
 
+-- Style keys a theme may set. Colors stay under CopyTheme; backgroundAlpha maps
+-- to trackerBackground when applying.
+ns.themeStyleKeys = {
+    "darkHeader",
+    "headerShade",
+    "roundedEdges",
+    "cornerRadius",
+    "roundBadges",
+    "trackerBorder",
+    "trackerShadow",
+    "menuBorderGlow",
+    "menuGlowRadius",
+}
+
 ns.themeList = {
+    {
+        id = "clean",
+        name = "Clean",
+        backgroundAlpha = 0.45,
+        darkHeader = true,
+        headerShade = 0.5,
+        roundedEdges = true,
+        cornerRadius = 8,
+        roundBadges = false,
+        trackerBorder = false,
+        trackerShadow = false,
+        menuBorderGlow = false,
+        menuGlowRadius = 4,
+        accent = rgb(0.85, 0.85, 0.82),
+        glow = rgb(0.85, 0.85, 0.82),
+        background = rgb(0.04, 0.04, 0.04),
+        text = rgb(1.00, 1.00, 1.00),
+        secondary = rgb(0.88, 0.88, 0.86),
+        detail = rgb(0.72, 0.72, 0.70),
+        badges = {
+            rgb(0.85, 0.85, 0.82),
+            rgb(0.55, 0.70, 0.90),
+            rgb(0.55, 0.78, 0.50),
+            rgb(0.90, 0.62, 0.35),
+            rgb(0.70, 0.58, 0.85),
+            rgb(0.78, 0.72, 0.45),
+        },
+    },
     {
         id = "rested",
         name = "Rested",
         backgroundAlpha = 0.4,
+        darkHeader = true,
+        headerShade = 0.55,
+        roundedEdges = true,
+        cornerRadius = 8,
+        roundBadges = false,
+        trackerBorder = false,
+        trackerShadow = false,
+        menuBorderGlow = true,
+        menuGlowRadius = 8,
         accent = rgb(1.00, 0.82, 0.00),
+        glow = rgb(1.00, 0.82, 0.00),
         background = rgb(0.00, 0.00, 0.00),
         text = rgb(1.00, 1.00, 1.00),
         secondary = rgb(0.90, 0.90, 0.86),
@@ -99,7 +153,17 @@ ns.themeList = {
         id = "quest",
         name = "Quest",
         backgroundAlpha = 0.45,
+        darkHeader = true,
+        headerShade = 0.6,
+        roundedEdges = true,
+        cornerRadius = 6,
+        roundBadges = false,
+        trackerBorder = true,
+        trackerShadow = false,
+        menuBorderGlow = true,
+        menuGlowRadius = 5,
         accent = rgb(1.00, 0.82, 0.00),
+        glow = rgb(1.00, 0.78, 0.20),
         background = rgb(0.05, 0.05, 0.05),
         text = rgb(1.00, 0.82, 0.00),
         secondary = rgb(1.00, 1.00, 1.00),
@@ -117,7 +181,17 @@ ns.themeList = {
         id = "alliance",
         name = "Alliance",
         backgroundAlpha = 0.55,
+        darkHeader = true,
+        headerShade = 0.5,
+        roundedEdges = true,
+        cornerRadius = 10,
+        roundBadges = false,
+        trackerBorder = true,
+        trackerShadow = true,
+        menuBorderGlow = true,
+        menuGlowRadius = 10,
         accent = rgb(0.35, 0.62, 0.95),
+        glow = rgb(0.40, 0.70, 1.00),
         background = rgb(0.04, 0.07, 0.14),
         text = rgb(0.88, 0.94, 1.00),
         secondary = rgb(0.72, 0.82, 0.95),
@@ -135,7 +209,17 @@ ns.themeList = {
         id = "horde",
         name = "Horde",
         backgroundAlpha = 0.55,
+        darkHeader = true,
+        headerShade = 0.5,
+        roundedEdges = true,
+        cornerRadius = 10,
+        roundBadges = false,
+        trackerBorder = true,
+        trackerShadow = true,
+        menuBorderGlow = true,
+        menuGlowRadius = 10,
         accent = rgb(0.86, 0.18, 0.14),
+        glow = rgb(0.90, 0.20, 0.12),
         background = rgb(0.12, 0.03, 0.03),
         text = rgb(1.00, 0.88, 0.80),
         secondary = rgb(0.95, 0.72, 0.62),
@@ -153,7 +237,17 @@ ns.themeList = {
         id = "night",
         name = "Night",
         backgroundAlpha = 0.55,
+        darkHeader = true,
+        headerShade = 0.45,
+        roundedEdges = true,
+        cornerRadius = 14,
+        roundBadges = true,
+        trackerBorder = false,
+        trackerShadow = true,
+        menuBorderGlow = true,
+        menuGlowRadius = 14,
         accent = rgb(0.72, 0.45, 0.95),
+        glow = rgb(0.78, 0.50, 1.00),
         background = rgb(0.06, 0.04, 0.10),
         text = rgb(0.95, 0.90, 1.00),
         secondary = rgb(0.82, 0.74, 0.95),
@@ -171,7 +265,17 @@ ns.themeList = {
         id = "fel",
         name = "Fel",
         backgroundAlpha = 0.5,
+        darkHeader = true,
+        headerShade = 0.55,
+        roundedEdges = true,
+        cornerRadius = 8,
+        roundBadges = true,
+        trackerBorder = true,
+        trackerShadow = false,
+        menuBorderGlow = true,
+        menuGlowRadius = 12,
         accent = rgb(0.40, 0.92, 0.28),
+        glow = rgb(0.35, 1.00, 0.25),
         background = rgb(0.02, 0.08, 0.03),
         text = rgb(0.86, 1.00, 0.78),
         secondary = rgb(0.70, 0.90, 0.62),
@@ -189,7 +293,17 @@ ns.themeList = {
         id = "arcane",
         name = "Arcane",
         backgroundAlpha = 0.5,
+        darkHeader = true,
+        headerShade = 0.5,
+        roundedEdges = true,
+        cornerRadius = 12,
+        roundBadges = true,
+        trackerBorder = false,
+        trackerShadow = false,
+        menuBorderGlow = true,
+        menuGlowRadius = 16,
         accent = rgb(0.45, 0.78, 1.00),
+        glow = rgb(0.55, 0.85, 1.00),
         background = rgb(0.03, 0.06, 0.12),
         text = rgb(0.86, 0.94, 1.00),
         secondary = rgb(0.68, 0.82, 0.98),
@@ -206,19 +320,225 @@ ns.themeList = {
     {
         id = "parchment",
         name = "Parchment",
-        backgroundAlpha = 0.92,
-        accent = rgb(0.45, 0.28, 0.10),
-        background = rgb(0.86, 0.76, 0.55),
-        text = rgb(0.22, 0.12, 0.05),
-        secondary = rgb(0.32, 0.20, 0.10),
-        detail = rgb(0.40, 0.28, 0.16),
+        backgroundAlpha = 0.97,
+        darkHeader = true,
+        headerShade = 0.16,
+        roundedEdges = true,
+        cornerRadius = 6,
+        roundBadges = false,
+        trackerBorder = false,
+        trackerShadow = false,
+        menuBorderGlow = false,
+        menuGlowRadius = 4,
+        accent = rgb(0.40, 0.26, 0.12),
+        glow = rgb(0.55, 0.40, 0.22),
+        background = rgb(0.94, 0.88, 0.72),
+        text = rgb(0.14, 0.09, 0.04),
+        secondary = rgb(0.36, 0.24, 0.12),
+        detail = rgb(0.50, 0.38, 0.24),
         badges = {
-            rgb(0.55, 0.32, 0.10),
-            rgb(0.25, 0.40, 0.62),
-            rgb(0.30, 0.48, 0.22),
-            rgb(0.62, 0.28, 0.16),
-            rgb(0.42, 0.28, 0.50),
-            rgb(0.48, 0.40, 0.18),
+            rgb(0.48, 0.28, 0.12),
+            rgb(0.30, 0.40, 0.52),
+            rgb(0.34, 0.46, 0.26),
+            rgb(0.54, 0.26, 0.16),
+            rgb(0.42, 0.30, 0.46),
+            rgb(0.50, 0.40, 0.20),
+        },
+    },
+    {
+        id = "steel",
+        name = "Steel",
+        backgroundAlpha = 0.65,
+        darkHeader = true,
+        headerShade = 0.7,
+        roundedEdges = false,
+        cornerRadius = 4,
+        roundBadges = false,
+        trackerBorder = true,
+        trackerShadow = false,
+        menuBorderGlow = false,
+        menuGlowRadius = 3,
+        accent = rgb(0.72, 0.78, 0.86),
+        glow = rgb(0.70, 0.76, 0.84),
+        background = rgb(0.08, 0.09, 0.11),
+        text = rgb(0.92, 0.94, 0.96),
+        secondary = rgb(0.72, 0.76, 0.82),
+        detail = rgb(0.58, 0.62, 0.68),
+        badges = {
+            rgb(0.55, 0.62, 0.72),
+            rgb(0.85, 0.72, 0.35),
+            rgb(0.40, 0.48, 0.58),
+            rgb(0.70, 0.78, 0.88),
+            rgb(0.48, 0.52, 0.58),
+            rgb(0.62, 0.68, 0.78),
+        },
+    },
+    {
+        id = "ember",
+        name = "Ember",
+        backgroundAlpha = 0.5,
+        darkHeader = true,
+        headerShade = 0.6,
+        roundedEdges = true,
+        cornerRadius = 10,
+        roundBadges = false,
+        trackerBorder = false,
+        trackerShadow = true,
+        menuBorderGlow = true,
+        menuGlowRadius = 14,
+        accent = rgb(1.00, 0.48, 0.18),
+        glow = rgb(1.00, 0.42, 0.12),
+        background = rgb(0.10, 0.04, 0.02),
+        text = rgb(1.00, 0.92, 0.82),
+        secondary = rgb(0.95, 0.72, 0.48),
+        detail = rgb(0.82, 0.58, 0.38),
+        badges = {
+            rgb(0.95, 0.40, 0.12),
+            rgb(1.00, 0.72, 0.22),
+            rgb(0.78, 0.22, 0.10),
+            rgb(0.95, 0.55, 0.28),
+            rgb(0.62, 0.28, 0.14),
+            rgb(0.88, 0.62, 0.32),
+        },
+    },
+    {
+        id = "frost",
+        name = "Frost",
+        backgroundAlpha = 0.48,
+        darkHeader = true,
+        headerShade = 0.4,
+        roundedEdges = true,
+        cornerRadius = 16,
+        roundBadges = true,
+        trackerBorder = false,
+        trackerShadow = false,
+        menuBorderGlow = true,
+        menuGlowRadius = 12,
+        accent = rgb(0.55, 0.88, 1.00),
+        glow = rgb(0.60, 0.92, 1.00),
+        background = rgb(0.02, 0.06, 0.10),
+        text = rgb(0.90, 0.98, 1.00),
+        secondary = rgb(0.70, 0.88, 0.98),
+        detail = rgb(0.55, 0.72, 0.85),
+        badges = {
+            rgb(0.40, 0.75, 0.95),
+            rgb(0.70, 0.90, 1.00),
+            rgb(0.30, 0.55, 0.78),
+            rgb(0.85, 0.95, 1.00),
+            rgb(0.45, 0.65, 0.88),
+            rgb(0.55, 0.80, 0.92),
+        },
+    },
+    {
+        id = "ink",
+        name = "Ink",
+        backgroundAlpha = 0.72,
+        darkHeader = true,
+        headerShade = 0.75,
+        roundedEdges = false,
+        cornerRadius = 4,
+        roundBadges = false,
+        trackerBorder = false,
+        trackerShadow = false,
+        menuBorderGlow = false,
+        menuGlowRadius = 2,
+        accent = rgb(0.92, 0.92, 0.90),
+        glow = rgb(0.80, 0.80, 0.78),
+        background = rgb(0.02, 0.02, 0.02),
+        text = rgb(0.96, 0.96, 0.94),
+        secondary = rgb(0.72, 0.72, 0.70),
+        detail = rgb(0.55, 0.55, 0.52),
+        badges = {
+            rgb(0.88, 0.88, 0.86),
+            rgb(0.55, 0.55, 0.52),
+            rgb(0.72, 0.72, 0.70),
+            rgb(0.40, 0.40, 0.38),
+            rgb(0.95, 0.82, 0.35),
+            rgb(0.62, 0.62, 0.60),
+        },
+    },
+    {
+        id = "neon",
+        name = "Neon",
+        backgroundAlpha = 0.42,
+        darkHeader = true,
+        headerShade = 0.5,
+        roundedEdges = true,
+        cornerRadius = 12,
+        roundBadges = true,
+        trackerBorder = false,
+        trackerShadow = false,
+        menuBorderGlow = true,
+        menuGlowRadius = 16,
+        accent = rgb(1.00, 0.25, 0.72),
+        glow = rgb(0.35, 0.95, 1.00),
+        background = rgb(0.04, 0.02, 0.08),
+        text = rgb(1.00, 0.95, 1.00),
+        secondary = rgb(0.75, 0.90, 1.00),
+        detail = rgb(0.65, 0.70, 0.90),
+        badges = {
+            rgb(1.00, 0.25, 0.72),
+            rgb(0.25, 0.95, 1.00),
+            rgb(0.85, 0.35, 1.00),
+            rgb(0.40, 1.00, 0.65),
+            rgb(1.00, 0.55, 0.20),
+            rgb(0.55, 0.55, 1.00),
+        },
+    },
+    {
+        id = "bronze",
+        name = "Bronze",
+        backgroundAlpha = 0.58,
+        darkHeader = true,
+        headerShade = 0.55,
+        roundedEdges = true,
+        cornerRadius = 6,
+        roundBadges = false,
+        trackerBorder = true,
+        trackerShadow = true,
+        menuBorderGlow = true,
+        menuGlowRadius = 6,
+        accent = rgb(0.78, 0.58, 0.28),
+        glow = rgb(0.85, 0.65, 0.32),
+        background = rgb(0.08, 0.06, 0.03),
+        text = rgb(0.96, 0.90, 0.78),
+        secondary = rgb(0.82, 0.72, 0.52),
+        detail = rgb(0.68, 0.58, 0.40),
+        badges = {
+            rgb(0.72, 0.52, 0.22),
+            rgb(0.90, 0.72, 0.35),
+            rgb(0.55, 0.40, 0.18),
+            rgb(0.82, 0.62, 0.30),
+            rgb(0.45, 0.48, 0.55),
+            rgb(0.65, 0.48, 0.25),
+        },
+    },
+    {
+        id = "obsidian",
+        name = "Obsidian",
+        backgroundAlpha = 0.78,
+        darkHeader = true,
+        headerShade = 0.8,
+        roundedEdges = false,
+        cornerRadius = 4,
+        roundBadges = false,
+        trackerBorder = true,
+        trackerShadow = true,
+        menuBorderGlow = false,
+        menuGlowRadius = 3,
+        accent = rgb(0.55, 0.58, 0.65),
+        glow = rgb(0.45, 0.48, 0.55),
+        background = rgb(0.01, 0.01, 0.02),
+        text = rgb(0.90, 0.92, 0.95),
+        secondary = rgb(0.68, 0.70, 0.75),
+        detail = rgb(0.48, 0.50, 0.55),
+        badges = {
+            rgb(0.45, 0.48, 0.55),
+            rgb(0.70, 0.72, 0.78),
+            rgb(0.30, 0.32, 0.38),
+            rgb(0.85, 0.70, 0.35),
+            rgb(0.55, 0.40, 0.55),
+            rgb(0.38, 0.42, 0.48),
         },
     },
 }
@@ -306,6 +626,11 @@ function ns.Color(name)
         color = themeColor(ns.themesById.rested, name)
     end
     return color[1], color[2], color[3]
+end
+
+function ns.IsLightBackground()
+    local r, g, b = ns.Color("background")
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) >= 0.45
 end
 
 ns.TOOLTIP_MAX_WIDTH = 280
@@ -412,9 +737,7 @@ function ns.ApplyTheme(id)
     ns.db.theme = id
     ns.db.activeProfile = nil
     ns.db.colors = ns.CopyTheme(theme)
-    if type(theme.backgroundAlpha) == "number" then
-        ns.db.trackerBackground = theme.backgroundAlpha
-    end
+    ns.ApplyThemeStyle(theme)
     ns.Apply()
     if ns.RefreshOptions then
         ns.RefreshOptions()
@@ -451,12 +774,14 @@ local boolKeys = {
     trackerShadow = true,
     menuBorderGlow = true,
     showGuidePercent = true,
+    showStepList = true,
     showFlightTimer = true,
     showFlightRecommend = true,
     showTrainReminders = true,
     showCorpseTracker = true,
     standaloneGuide = true,
     hardcoreGuide = true,
+    autoProgress = true,
     promptOffStepJump = true,
     promptDungeonGuide = true,
     hideTracker = true,
@@ -606,6 +931,25 @@ local function sanitizeOptionValue(key, value, default)
         return value
     end
     return value
+end
+
+function ns.ApplyThemeStyle(theme, db)
+    db = db or ns.db
+    if not theme or not db then
+        return
+    end
+    if type(theme.backgroundAlpha) == "number" then
+        db.trackerBackground = sanitizeOptionValue(
+            "trackerBackground",
+            theme.backgroundAlpha,
+            ns.defaults.trackerBackground
+        )
+    end
+    for _, key in ipairs(ns.themeStyleKeys) do
+        if theme[key] ~= nil then
+            db[key] = sanitizeOptionValue(key, theme[key], ns.defaults[key])
+        end
+    end
 end
 
 local function cleanProfileName(name)
@@ -815,6 +1159,7 @@ ns.visualKeys = {
     "flightRecommendMinYards",
     "standaloneGuide",
     "hardcoreGuide",
+    "autoProgress",
 }
 
 function ns.Visuals()
@@ -1223,6 +1568,9 @@ function ns.MouseOverGuide()
     if overFrame(_G.WaynotesTracker) then
         return true
     end
+    if overFrame(_G.WaynotesStepList) then
+        return true
+    end
 
     -- While the Waynotes tracker replaces RXP, ignore concealed RXP chrome.
     if ns.ReplacingGuide() or (ns.db and ns.db.standaloneGuide) then
@@ -1393,6 +1741,9 @@ function ns.Apply()
         if fadeFrame == _G.WaynotesTracker and ns.SetTrackerChromeAlpha then
             ns.SetTrackerChromeAlpha(fadeCurrent)
         end
+        if fadeFrame == _G.WaynotesTracker and ns.SetStepListAlpha then
+            ns.SetStepListAlpha(fadeCurrent)
+        end
     end
 end
 
@@ -1440,6 +1791,9 @@ local function updateFade(dt)
     end
     if frame == _G.WaynotesTracker and ns.SetTrackerChromeAlpha then
         ns.SetTrackerChromeAlpha(fadeCurrent)
+    end
+    if frame == _G.WaynotesTracker and ns.SetStepListAlpha then
+        ns.SetStepListAlpha(fadeCurrent)
     end
 end
 
