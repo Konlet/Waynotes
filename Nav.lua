@@ -1,7 +1,7 @@
 ﻿local _, ns = ...
 
 -- Nav.lua: quick navigation to the nearest inn, bank, repair NPC, auction house,
--- mailbox, flight master or class trainer.
+-- mailbox, flight master, class trainer or profession trainer.
 --
 -- All destination lists come from Data/*.lua (generated from Forever JSON).
 -- Nearest search scores every candidate in player-space HereBeDragons yards.
@@ -53,6 +53,20 @@ do
     mergeZoneTable("auction", ns.NavAuctionHouses)
     mergeZoneTable("mail", ns.NavMailboxes)
     mergeZoneTable("trainer", ns.NavClassTrainers, "class")
+
+    local professions = ns.NavProfessionTrainers
+    if type(professions) == "table" then
+        for index = 1, #professions do
+            local entry = professions[index]
+            if type(entry) == "table" then
+                pushZone("profession", entry, {
+                    profession = entry.profession,
+                    rank = entry.rank,
+                    specialization = entry.specialization,
+                })
+            end
+        end
+    end
 
     local flights = ns.NavFlightMasters
     if type(flights) == "table" then
@@ -116,6 +130,7 @@ local KIND_LABEL = {
     mail = "Mailbox",
     flight = "Flight Master",
     trainer = "Class Trainer",
+    profession = "Profession Trainer",
     boat = "Boat",
     zeppelin = "Zeppelin",
     skycutter = "Skycutter",
@@ -134,6 +149,21 @@ local TRAINER_CLASSES = {
     "Druid",
 }
 
+local PROFESSION_NAMES = {
+    "Alchemy",
+    "Blacksmithing",
+    "Cooking",
+    "Enchanting",
+    "Engineering",
+    "First Aid",
+    "Fishing",
+    "Herbalism",
+    "Leatherworking",
+    "Mining",
+    "Skinning",
+    "Tailoring",
+}
+
 -- Scoring tiers (lower wins). Same-zone / same-continent finite yards must
 -- always beat other-continent results. Unresolved pins are worst.
 -- IMPORTANT: OTHER_CONTINENT must be >> any real same-continent distance, and
@@ -148,6 +178,7 @@ local target
 ns.NavPresets = PRESETS
 ns.NavKindLabel = KIND_LABEL
 ns.NavTrainerClasses = TRAINER_CLASSES
+ns.NavProfessionNames = PROFESSION_NAMES
 
 -- Helpers
 
@@ -1295,10 +1326,10 @@ end
 
 -- Public API: search
 
-function ns.NavFindNearest(kind, className)
+function ns.NavFindNearest(kind, filter)
     local faction = playerFaction()
-    if kind == "trainer" and (type(className) ~= "string" or className == "") then
-        className = playerClassName()
+    if kind == "trainer" and (type(filter) ~= "string" or filter == "") then
+        filter = playerClassName()
     end
 
     local px, py, pinstance = playerPoint()
@@ -1314,7 +1345,10 @@ function ns.NavFindNearest(kind, className)
         if matches and faction and entry.faction and entry.faction ~= "Both" and entry.faction ~= faction then
             matches = false
         end
-        if matches and kind == "trainer" and entry.class ~= className then
+        if matches and kind == "trainer" and entry.class ~= filter then
+            matches = false
+        end
+        if matches and kind == "profession" and entry.profession ~= filter then
             matches = false
         end
         if matches then
@@ -1346,12 +1380,14 @@ function ns.NavFindNearest(kind, className)
     return best
 end
 
-function ns.NavChoose(kind, className)
-    local dest = ns.NavFindNearest(kind, className)
+function ns.NavChoose(kind, filter)
+    local dest = ns.NavFindNearest(kind, filter)
     if not dest then
         local label = KIND_LABEL[kind] or "destination"
-        if kind == "trainer" and className and className ~= "" then
-            label = className .. " Trainer"
+        if kind == "trainer" and filter and filter ~= "" then
+            label = filter .. " Trainer"
+        elseif kind == "profession" and filter and filter ~= "" then
+            label = filter .. " Trainer"
         end
         if UIErrorsFrame and UIErrorsFrame.AddMessage then
             UIErrorsFrame:AddMessage("No " .. label .. " found for your faction.", 1, 0.1, 0.1, 1)
@@ -1453,7 +1489,7 @@ end
 
 -- Dropdown menu
 
-local MENU_WIDTH = 168
+local MENU_WIDTH = 188
 local SUB_WIDTH = 150
 local ROW_HEIGHT = 20
 local PAD = 4
@@ -1463,7 +1499,8 @@ local menu
 local subMenu
 local menuRows = {}
 local subRows = {}
-local trainerRow
+local submenuAnchor
+local activeSubmenu
 
 local function styleNavFrame(frame)
     if ns.StylePopupFrame then
@@ -1521,19 +1558,19 @@ local function placeRow(row, parent, offset)
     row:Show()
 end
 
-local function chooseAndClose(kind, className)
+local function chooseAndClose(kind, filter)
     hideMenus()
-    ns.NavChoose(kind, className)
+    ns.NavChoose(kind, filter)
 end
 
-local function presentSubMenu()
+local function presentClassSubMenu()
     local entries = {}
     local mine = playerClassName()
     if mine then
-        entries[#entries + 1] = { text = "My class (" .. mine .. ")", class = mine, mine = true }
+        entries[#entries + 1] = { text = "My class (" .. mine .. ")", filter = mine, mine = true }
     end
     for _, className in ipairs(TRAINER_CLASSES) do
-        entries[#entries + 1] = { text = className, class = className }
+        entries[#entries + 1] = { text = className, filter = className }
     end
 
     for index, entry in ipairs(entries) do
@@ -1545,27 +1582,51 @@ local function presentSubMenu()
         else
             row.label:SetTextColor(1, 1, 1)
         end
-        row.className = entry.class
+        row.filter = entry.filter
         row:SetScript("OnClick", function(self)
-            chooseAndClose("trainer", self.className)
+            chooseAndClose("trainer", self.filter)
         end)
         placeRow(row, subMenu, (index - 1) * ROW_HEIGHT)
     end
     for extra = #entries + 1, #subRows do
         subRows[extra]:Hide()
-        subRows[extra].className = nil
+        subRows[extra].filter = nil
     end
     subMenu:SetHeight(#entries * ROW_HEIGHT + PAD * 2)
     styleNavFrame(subMenu)
 end
 
-local function openSubMenu()
-    if not trainerRow then
+local function presentProfessionSubMenu()
+    for index, profession in ipairs(PROFESSION_NAMES) do
+        local row = acquireRow(subMenu, subRows, index)
+        row.label:SetText(profession)
+        row.label:SetTextColor(1, 1, 1)
+        row.filter = profession
+        row:SetScript("OnClick", function(self)
+            chooseAndClose("profession", self.filter)
+        end)
+        placeRow(row, subMenu, (index - 1) * ROW_HEIGHT)
+    end
+    for extra = #PROFESSION_NAMES + 1, #subRows do
+        subRows[extra]:Hide()
+        subRows[extra].filter = nil
+    end
+    subMenu:SetHeight(#PROFESSION_NAMES * ROW_HEIGHT + PAD * 2)
+    styleNavFrame(subMenu)
+end
+
+local function openSubMenu(kind)
+    if not submenuAnchor or not kind then
         return
     end
-    presentSubMenu()
+    activeSubmenu = kind
+    if kind == "profession" then
+        presentProfessionSubMenu()
+    else
+        presentClassSubMenu()
+    end
     subMenu:ClearAllPoints()
-    subMenu:SetPoint("TOPLEFT", trainerRow, "TOPRIGHT", PAD + 2, PAD)
+    subMenu:SetPoint("TOPLEFT", submenuAnchor, "TOPRIGHT", PAD + 2, PAD)
     subMenu:Show()
 end
 
@@ -1579,13 +1640,15 @@ local function presentMenu()
         { text = KIND_LABEL.flight, kind = "flight" },
         { text = KIND_LABEL.boat, kind = "boat" },
         { text = KIND_LABEL.zeppelin, kind = "zeppelin" },
-        { text = "Class Trainers  >", submenu = true },
+        { text = "Class Trainers  >", submenu = "trainer" },
+        { text = "Profession Trainers  >", submenu = "profession" },
     }
     if target then
         items[#items + 1] = { text = "Clear destination", clear = true }
     end
 
-    trainerRow = nil
+    submenuAnchor = nil
+    activeSubmenu = nil
     for index, item in ipairs(items) do
         local row = acquireRow(menu, menuRows, index)
         row.label:SetText(item.text)
@@ -1595,14 +1658,21 @@ local function presentMenu()
             row.label:SetTextColor(1, 1, 1)
         end
         if item.submenu then
-            trainerRow = row
-            row:SetScript("OnEnter", openSubMenu)
-            row:SetScript("OnClick", openSubMenu)
+            local submenuKind = item.submenu
+            row:SetScript("OnEnter", function(self)
+                submenuAnchor = self
+                openSubMenu(submenuKind)
+            end)
+            row:SetScript("OnClick", function(self)
+                submenuAnchor = self
+                openSubMenu(submenuKind)
+            end)
         else
             row:SetScript("OnEnter", function()
                 if subMenu then
                     subMenu:Hide()
                 end
+                activeSubmenu = nil
             end)
             row:SetScript("OnClick", function()
                 hideMenus()
@@ -1748,7 +1818,12 @@ do
         pcall(watcher.RegisterEvent, watcher, events[index])
     end
     watcher:SetScript("OnEvent", function(_, event)
+        -- Class-train reminders ignore tradeskill windows; profession Go targets
+        -- still clear when that NPC's trainer UI opens.
         if event == "TRAINER_SHOW" and IsTradeskillTrainer and IsTradeskillTrainer() then
+            if type(target) == "table" and target.kind == "profession" then
+                ns.NavClearIfSpeakingToTarget()
+            end
             return
         end
         ns.NavClearIfSpeakingToTarget()

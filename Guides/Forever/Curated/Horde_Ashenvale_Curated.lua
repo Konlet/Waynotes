@@ -17,7 +17,18 @@ ns.RegisterGuide({
     maxLevel = 22,
     steps = {
         {
-            text = "Enter the Talondeep Path tunnel from Stonetalon and follow the lanterns into Ashenvale. Travel to Zoram'gar Outpost.",
+            text = "Travel to Stonetalon Mountains.",
+            when = "travel",
+            map = 1442,
+            pins = {
+                { x = 47.4, y = 64.3 },
+                { x = 78.0, y = 42.3, note = "Enter the Talondeep Path tunnel.", },
+                { x = 42.4, y = 70.6, note = "Exit the tunnel.", },
+            },
+            note = "If you have another way to get to Ashenvale, you can skip this step.",
+        },
+        {
+            text = "Travel to Zoram'gar Outpost.",
             when = "travel",
             note = "Stay on the road and avoid Astranaar guards on the way.",
             map = 1440,

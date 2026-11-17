@@ -21,9 +21,11 @@ Data/Repairs.lua
 Data/AuctionHouses.lua
 Data/Mailboxes.lua
 Data/ClassTrainers.lua
+Data/ProfessionTrainers.lua
 Nav.lua
 Travel.lua
 Guides.lua
+PartySync.lua
 Guides/Forever/Curated/Horde_Durotar_Curated.lua
 Guides/Forever/Curated/Horde_Mulgore_Curated.lua
 Guides/Forever/Curated/Horde_Tirisfal_Curated.lua
@@ -42,5 +44,6 @@ Guides/Forever/Curated/Professions_Crafting_Curated.lua
 Guides/Forever/Curated/Professions_Secondary_Curated.lua
 ReplaceGuide.lua
 Replace.lua
+StepList.lua
 Minimap.lua
 Options.lua

@@ -11,6 +11,8 @@ local rows = {}
 local declinedOffStep = {}
 local declinedDungeon = {}
 local lastDungeonPromptKey
+local lastSyncStickies = {}
+local lastSyncProgress = {}
 
 local stepApplies
 local progressCounts
@@ -549,6 +551,10 @@ function ns.GuideId()
     return guide and guide.id
 end
 
+function ns.GuideExists(id)
+    return findGuide(id) ~= nil
+end
+
 function ns.GuideTitle()
     local guide = activeGuide()
     if guide then
@@ -585,9 +591,53 @@ function ns.PrintGuides()
     end
 end
 
+-- While party-sync following, prefer the leader's quest snapshot over the local log.
+local function syncQuest(id)
+    if type(id) ~= "number" or id <= 0 then
+        return nil
+    end
+    if not (ns.PartySyncFollowing and ns.PartySyncFollowing()) then
+        return nil
+    end
+    if not ns.PartySyncRemoteQuest then
+        return nil
+    end
+    return ns.PartySyncRemoteQuest(id)
+end
+
+local function syncObjectiveText(id, index, filled, need, finished)
+    local facts = ns.QuestFacts and ns.QuestFacts(id)
+    local label
+    if facts and type(facts.lines) == "table" and type(facts.lines[index]) == "string" then
+        label = facts.lines[index]
+        label = label:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+        label = label:gsub("|cRB_[A-Z]+_", ""):gsub("|cRXP_[A-Z]+_", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        label = label:gsub("%d+%s*/%s*%d+", " ")
+        label = label:gsub("%(%d+%)", " ")
+        label = strtrim(label:gsub("%s+", " "))
+    end
+    if type(need) == "number" and need > 0 then
+        if label and label ~= "" then
+            return string.format("%s: %d/%d", label, filled or 0, need)
+        end
+        return string.format("%d/%d", filled or 0, need)
+    end
+    if label and label ~= "" then
+        return finished and (label .. " (done)") or label
+    end
+    if finished then
+        return "1/1"
+    end
+    return "0/1"
+end
+
 local function questOn(id)
     if type(id) ~= "number" or id <= 0 then
         return false
+    end
+    local remote = syncQuest(id)
+    if remote then
+        return remote.on and true or false
     end
     -- Trust a successful modern API result. Falling through to a full quest-log
     -- scan on "not on quest" made every sticky poll O(steps * log size).
@@ -633,6 +683,10 @@ local function questCompleted(id)
     if type(id) ~= "number" or id <= 0 then
         return false
     end
+    local remote = syncQuest(id)
+    if remote then
+        return remote.completed and true or false
+    end
     if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then
         local ok, done = pcall(C_QuestLog.IsQuestFlaggedCompleted, id)
         if ok then
@@ -660,6 +714,34 @@ local function logObjectives(id, objectiveIndex)
     objectiveIndex = tonumber(objectiveIndex)
     if objectiveIndex and objectiveIndex < 1 then
         objectiveIndex = nil
+    end
+    local remote = syncQuest(id)
+    if remote then
+        local lines = {}
+        local list = remote.objectives
+        if type(list) == "table" then
+            for index, info in ipairs(list) do
+                if not objectiveIndex or index == objectiveIndex then
+                    local text = type(info) == "table" and info.text or nil
+                    if type(text) ~= "string" or text == "" then
+                        text = syncObjectiveText(
+                            id,
+                            index,
+                            info and info.filled,
+                            info and info.need,
+                            info and info.finished
+                        )
+                    end
+                    if type(text) == "string" and text ~= "" then
+                        lines[#lines + 1] = text
+                    end
+                end
+            end
+        end
+        if #lines > 0 then
+            return lines
+        end
+        return nil
     end
     if C_QuestLog and C_QuestLog.GetQuestObjectives then
         local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
@@ -718,6 +800,34 @@ local function logObjectives(id, objectiveIndex)
 end
 
 local function logObjectiveStates(id)
+    local remote = syncQuest(id)
+    if remote then
+        local states = {}
+        local list = remote.objectives
+        if type(list) == "table" then
+            for index, info in ipairs(list) do
+                if type(info) == "table" then
+                    local text = info.text
+                    if type(text) ~= "string" or text == "" then
+                        text = syncObjectiveText(id, index, info.filled, info.need, info.finished)
+                    end
+                    local finished = info.finished and true or false
+                    if not finished and type(info.need) == "number" and info.need > 0 then
+                        finished = (info.filled or 0) >= info.need
+                    end
+                    states[#states + 1] = {
+                        index = index,
+                        text = text,
+                        finished = finished,
+                    }
+                end
+            end
+        end
+        if #states > 0 then
+            return states
+        end
+        return nil
+    end
     if C_QuestLog and C_QuestLog.GetQuestObjectives then
         local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
         if ok and type(list) == "table" and #list > 0 then
@@ -937,6 +1047,77 @@ local function bagProgressLine(line)
         have = need
     end
     return have .. "/" .. need .. " " .. name
+end
+
+local function rewriteProgressDetail(line, filled, need)
+    filled = tonumber(filled) or 0
+    need = tonumber(need) or 0
+    if need < 1 then
+        return line
+    end
+    if filled < 0 then
+        filled = 0
+    elseif filled > need then
+        filled = need
+    end
+    local plain = objectivePlain(line)
+    local name = plain:match("^(.-)%s*%(%d+%)%s*$")
+    if not name then
+        name = plain:gsub("%d+%s*/%s*%d+", " ")
+        name = name:gsub("^:%s*", ""):gsub("%s+", " ")
+        name = strtrim(name)
+    else
+        name = strtrim(name)
+    end
+    if name ~= "" then
+        return filled .. "/" .. need .. " " .. name
+    end
+    return filled .. "/" .. need
+end
+
+local function applyRemoteStepProgress(step, details)
+    if type(details) ~= "table" or not step or type(step.index) ~= "number" then
+        return details
+    end
+    if not (ns.PartySyncFollowing and ns.PartySyncFollowing()) then
+        return details
+    end
+    if not ns.PartySyncRemoteStepProgress then
+        return details
+    end
+    local remote = ns.PartySyncRemoteStepProgress(step.index)
+    if type(remote) ~= "table" or #remote == 0 then
+        return details
+    end
+    local slot = 1
+    -- Prefer live n/m lines first (same order the host encodes).
+    for index, line in ipairs(details) do
+        if slot > #remote then
+            break
+        end
+        local plain = objectivePlain(line)
+        if plain:match("%d+%s*/%s*%d+") then
+            details[index] = rewriteProgressDetail(line, remote[slot].filled, remote[slot].need)
+            slot = slot + 1
+        end
+    end
+    -- Then upgrade authored kill/loot "(N)" placeholders still on the step.
+    for index, line in ipairs(details) do
+        if slot > #remote then
+            break
+        end
+        local plain = objectivePlain(line)
+        if plain:match("%(%d+%)") and not plain:match("%d+%s*/%s*%d+") then
+            details[index] = rewriteProgressDetail(line, remote[slot].filled, remote[slot].need)
+            slot = slot + 1
+        end
+    end
+    while slot <= #remote do
+        local entry = remote[slot]
+        details[#details + 1] = string.format("%d/%d", entry.filled or 0, entry.need or 0)
+        slot = slot + 1
+    end
+    return details
 end
 
 local function objectiveListed(step, line)
@@ -1304,6 +1485,23 @@ local function questObjectiveFinished(id, objectiveIndex)
     if not objectiveIndex or objectiveIndex < 1 then
         return false
     end
+    local remote = syncQuest(id)
+    if remote then
+        if remote.objDone or remote.completed then
+            return true
+        end
+        local info = remote.objectives and remote.objectives[objectiveIndex]
+        if type(info) ~= "table" then
+            return false
+        end
+        if info.finished then
+            return true
+        end
+        if type(info.need) == "number" and info.need > 0 then
+            return (info.filled or 0) >= info.need
+        end
+        return false
+    end
     if C_QuestLog and C_QuestLog.GetQuestObjectives then
         local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
         if ok and type(list) == "table" and #list > 0 then
@@ -1345,6 +1543,29 @@ local function questObjectivesDone(id)
     end
     if not questOn(id) then
         return false
+    end
+    local remote = syncQuest(id)
+    if remote then
+        if remote.objDone or remote.completed then
+            return true
+        end
+        local list = remote.objectives
+        if type(list) ~= "table" or #list == 0 then
+            return false
+        end
+        for _, info in ipairs(list) do
+            if type(info) ~= "table" then
+                return false
+            end
+            local finished = info.finished and true or false
+            if not finished and type(info.need) == "number" and info.need > 0 then
+                finished = (info.filled or 0) >= info.need
+            end
+            if not finished then
+                return false
+            end
+        end
+        return true
     end
     if C_QuestLog and C_QuestLog.IsComplete then
         local ok, done = pcall(C_QuestLog.IsComplete, id)
@@ -1842,6 +2063,44 @@ local function rememberReview(guide, step)
     end
 end
 
+local function partySyncBroadcast()
+    if ns.PartySyncBroadcast and not (ns.PartySyncApplying and ns.PartySyncApplying()) then
+        ns.PartySyncBroadcast()
+    end
+end
+
+local function partySyncBlocksAuto()
+    return ns.PartySyncFollowing and ns.PartySyncFollowing()
+end
+
+-- Quiet guide+step apply for party sync followers (no chat, no catch-up).
+function ns.GuideApplySync(guideId, stepIndex)
+    local guide = findGuide(guideId)
+    if not guide then
+        return false
+    end
+    stepIndex = tonumber(stepIndex)
+    if not stepIndex then
+        return false
+    end
+    stepIndex = math.floor(stepIndex)
+    local count = #guide.steps
+    if count < 1 then
+        return false
+    end
+    if stepIndex < 1 then
+        stepIndex = 1
+    elseif stepIndex > count then
+        stepIndex = count
+    end
+    reviewKey = nil
+    declinedOffStep = {}
+    charDB().guide = guide.id
+    progress(guide.id).step = stepIndex
+    refresh()
+    return true
+end
+
 local function advanceToNextGuide(fromGuide)
     if not fromGuide or type(fromGuide.next) ~= "string" or fromGuide.next == "" then
         return false
@@ -1884,6 +2143,11 @@ function ns.GuideCatchUp()
     if not guide then
         return false
     end
+    -- Followers only move when the synced player broadcasts a new step.
+    if partySyncBlocksAuto() then
+        return false
+    end
+    local auto = not ns.db or ns.db.autoProgress ~= false
     local entry = progress(guide.id)
     local beforeGuide = guide.id
     local before = entry.step
@@ -1900,7 +2164,7 @@ function ns.GuideCatchUp()
             guard = guard + 1
         elseif reviewKey == guide.id .. ":" .. entry.step then
             break
-        elseif stepDone(step) or (catchUpSkipsViaLaterAuto(step) and laterAutoStepDone(guide, entry.step)) then
+        elseif auto and (stepDone(step) or (catchUpSkipsViaLaterAuto(step) and laterAutoStepDone(guide, entry.step))) then
             local hopped = neighbor(guide, entry.step, 1)
             if not hopped then
                 break
@@ -1920,11 +2184,16 @@ function ns.GuideCatchUp()
         end
     end
     local moved = entry.step ~= before
-    if atGuideEnd(guide, entry.step) and advanceToNextGuide(guide) then
+    if auto and atGuideEnd(guide, entry.step) and advanceToNextGuide(guide) then
+        partySyncBroadcast()
         return true
     end
     if activeGuide() and activeGuide().id ~= beforeGuide then
+        partySyncBroadcast()
         return true
+    end
+    if moved then
+        partySyncBroadcast()
     end
     return moved
 end
@@ -2258,6 +2527,7 @@ function ns.GuideSelect(id)
     end
     ns.GuideCatchUp()
     refresh()
+    partySyncBroadcast()
     if not ns.db or not ns.db.standaloneGuide then
         say("Selected " .. guide.name .. ". Turn on Replace RestedXP to show it.")
         return
@@ -2356,6 +2626,7 @@ function ns.GuideStep(direction)
         ns.GuideCatchUp()
     end
     refresh()
+    partySyncBroadcast()
 end
 
 function ns.GuideJump(index)
@@ -2387,6 +2658,7 @@ function ns.GuideJump(index)
     progress(guide.id).step = index
     rememberReview(guide, index)
     refresh()
+    partySyncBroadcast()
 end
 
 function ns.GuideSkip(index)
@@ -2682,6 +2954,75 @@ local function authoredPresentation(step)
         headlineKey = detailKey(headline)
     end
     return headline, details, seen, headlineKey, guideNote
+end
+
+local function plainStepListText(text)
+    if type(text) ~= "string" then
+        return nil
+    end
+    text = text:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+    text = text:gsub("|cRB_[A-Z]+_", "")
+    text = text:gsub("|cRXP_[A-Z]+_", "")
+    text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
+    text = text:gsub("|r", "")
+    text = text:gsub("|n", " ")
+    text = text:gsub("\n", " ")
+    text = strtrim(text)
+    if text == "" then
+        return nil
+    end
+    return text
+end
+
+-- Active step index for the slim step list (no presentation work).
+function ns.GuideStepListCurrent()
+    local guide = activeGuide()
+    if not guide or type(guide.steps) ~= "table" or #guide.steps < 1 then
+        return nil
+    end
+    local current = 1
+    local entry = progress(guide.id)
+    if entry and type(entry.step) == "number" and entry.step >= 1 then
+        current = entry.step
+    end
+    local _, primaryIndex = ns.GuidePrimaryStep()
+    if type(primaryIndex) == "number" and primaryIndex >= 1 then
+        current = primaryIndex
+    end
+    if current > #guide.steps then
+        current = #guide.steps
+    end
+    return current
+end
+
+-- Slim step-list rows: number, one-line header, and tooltip details.
+function ns.GuideStepListData()
+    local guide = activeGuide()
+    if not guide or type(guide.steps) ~= "table" or #guide.steps < 1 then
+        return nil, nil, nil
+    end
+    local current = ns.GuideStepListCurrent() or 1
+
+    local entries = {}
+    for index, step in ipairs(guide.steps) do
+        local headline, details = authoredPresentation(step)
+        local header = plainStepListText(headline) or ("Step " .. index)
+        local tips = {}
+        if type(details) == "table" then
+            for _, line in ipairs(details) do
+                local plain = plainStepListText(line)
+                if plain and plain ~= header then
+                    tips[#tips + 1] = plain
+                end
+            end
+        end
+        entries[index] = {
+            index = index,
+            header = header,
+            details = tips,
+        }
+    end
+    return entries, current, guide.id
 end
 
 local function rememberGuideName(into, seen, name)
@@ -3023,11 +3364,16 @@ local function buildItem(step, full)
         -- Authored "Item (N)" lines that the quest log never upgrades (bag-only
         -- collects for another quest) still need live n/m so they show as
         -- numbered objectives instead of static placeholders.
-        for index, line in ipairs(details) do
-            local upgraded = bagProgressLine(line)
-            if upgraded then
-                details[index] = upgraded
+        -- Skip while party-sync following so local bags cannot override the leader.
+        if not (ns.PartySyncFollowing and ns.PartySyncFollowing()) then
+            for index, line in ipairs(details) do
+                local upgraded = bagProgressLine(line)
+                if upgraded then
+                    details[index] = upgraded
+                end
             end
+        else
+            applyRemoteStepProgress(step, details)
         end
     end
 
@@ -3140,18 +3486,12 @@ function ns.GuideObjectives()
             },
         }
     end
-    -- Travel / flight-path / hearth-bind steps advance while the tracker is open.
-    do
-        local entry = progress(guide.id)
-        local step = guide.steps[entry.step]
-        local pulse = step and stepApplies(step) and (
-            step.when == "travel"
-            or (ns.TravelIsFlightPathStep and ns.TravelIsFlightPathStep(step))
-            or (ns.TravelIsHearthBindStep and ns.TravelIsHearthBindStep(step))
-        )
-        if pulse then
-            ns.GuideCatchUp()
-        end
+    -- Advance past finished accepts/objectives and incomplete stickies before
+    -- choosing what to show. Otherwise a done accept stays primary and the
+    -- sticky kill right after it is treated as "upcoming" and hidden.
+    if not partySyncBlocksAuto() then
+        ns.GuideCatchUp()
+        guide = activeGuide() or guide
     end
     local entry = progress(guide.id)
     local count = #guide.steps
@@ -3224,20 +3564,25 @@ function ns.GuideObjectives()
         waitingCache[index] = false
         return false
     end
-    -- Stickies after a gated step still show when their quest is already in the log
-    -- (the follow-up was picked up). Stop before the next step that can be done now.
+    -- Stickies after the primary still show when their quest is already in the
+    -- log (picked up earlier), or when the primary is gated by earlier work.
+    -- Stop before the next non-sticky step that can be done now.
     local function stickyHorizon(blockedPrimary)
         local last = primaryIndex
-        if not blockedPrimary then
-            return last
-        end
         for index = primaryIndex + 1, count do
             local step = guide.steps[index]
             if stepApplies(step) and not isDone(index) then
-                if not step.sticky and not waiting(index) then
+                if step.sticky then
+                    if blockedPrimary or stepQuestInLog(step) then
+                        last = index
+                    else
+                        break
+                    end
+                elseif waiting(index) then
+                    last = index
+                else
                     break
                 end
-                last = index
             end
         end
         return last
@@ -3301,14 +3646,24 @@ function ns.GuideObjectives()
         end
         return not measured
     end
+    local remoteStickies = ns.PartySyncRemoteStickies and ns.PartySyncRemoteStickies()
     local function showSticky(index, step, blockedPrimary)
-        if not step or not step.sticky or not stepApplies(step) or isDone(index) or waiting(index) then
+        if not step or not step.sticky or not stepApplies(step) then
             return false
         end
         if index == primaryIndex then
             return false
         end
-        if index > primaryIndex and (not blockedPrimary or not stepQuestInLog(step)) then
+        -- Followers mirror the host's sticky set instead of local nearby/done filters.
+        if type(remoteStickies) == "table" then
+            return remoteStickies[index] and true or false
+        end
+        if isDone(index) or waiting(index) then
+            return false
+        end
+        -- Upcoming stickies need their quest already in the log. Past stickies
+        -- (before the primary) stay eligible regardless.
+        if index > primaryIndex and not stepQuestInLog(step) then
             return false
         end
         if not stickyIsNearby(step) then
@@ -3324,6 +3679,13 @@ function ns.GuideObjectives()
     if primary and stepApplies(primary) then
         local primaryWaiting = waiting(primaryIndex)
         local horizon = stickyHorizon(primaryWaiting)
+        if type(remoteStickies) == "table" then
+            for index in pairs(remoteStickies) do
+                if type(index) == "number" and index > horizon then
+                    horizon = index
+                end
+            end
+        end
         local function addStep(step, asSticky)
             items[#items + 1] = buildItem(step, true)
             items[#items].sticky = asSticky and true or false
@@ -3393,8 +3755,38 @@ function ns.GuideObjectives()
             end
         end
     end
+    -- Host caches visible sticky indexes and kill/loot progress for followers.
+    if type(remoteStickies) ~= "table" then
+        local listed = {}
+        local progress = {}
+        for _, item in ipairs(items) do
+            if item.sticky and type(item.stepIndex) == "number" then
+                listed[#listed + 1] = item.stepIndex
+            end
+            if type(item.stepIndex) == "number" and type(item.details) == "table" then
+                local counts = {}
+                for _, line in ipairs(item.details) do
+                    local plain = objectivePlain(line)
+                    local filled, need = plain:match("(%d+)%s*/%s*(%d+)")
+                    filled = tonumber(filled)
+                    need = tonumber(need)
+                    -- Only live n/m (quest log or bag upgrades), not bare "(N)" placeholders.
+                    if filled and need and need > 0 then
+                        counts[#counts + 1] = { filled = filled, need = need }
+                    end
+                end
+                if #counts > 0 then
+                    progress[item.stepIndex] = counts
+                end
+            end
+        end
+        table.sort(listed)
+        lastSyncStickies = listed
+        lastSyncProgress = progress
+    end
     if #items == 0 then
-        if advanceToNextGuide(guide) then
+        local auto = (not ns.db or ns.db.autoProgress ~= false) and not partySyncBlocksAuto()
+        if auto and advanceToNextGuide(guide) then
             return ns.GuideObjectives()
         end
         local details = { "Right-click the tracker to choose another guide." }
@@ -3425,6 +3817,38 @@ function ns.GuideObjectives()
     return items
 end
 
+local MENU_WIDTH = 320
+local MENU_MAX_HEIGHT = 420
+local MENU_SCROLL_STEP = 28
+local MENU_ROW = {
+    action = 26,
+    section = 18,
+    group = 24,
+    subgroup = 22,
+    guide = 22,
+    tip = 28,
+    separator = 8,
+}
+
+local menuScrollBar
+local menuScrollThumb
+local menuColors = {
+    text = { 1, 1, 1 },
+    detail = { 0.82, 0.82, 0.82 },
+    accent = { 1, 0.82, 0 },
+    secondary = { 0.9, 0.9, 0.86 },
+}
+
+local function refreshMenuColors()
+    if not ns.Color then
+        return
+    end
+    menuColors.text[1], menuColors.text[2], menuColors.text[3] = ns.Color("text")
+    menuColors.detail[1], menuColors.detail[2], menuColors.detail[3] = ns.Color("detail")
+    menuColors.accent[1], menuColors.accent[2], menuColors.accent[3] = ns.Color("accent")
+    menuColors.secondary[1], menuColors.secondary[2], menuColors.secondary[3] = ns.Color("secondary")
+end
+
 local function paintMenuLabel(label, r, g, b)
     if not label then
         return
@@ -3437,26 +3861,85 @@ local function paintMenuLabel(label, r, g, b)
     label:SetTextColor(r or 1, g or 1, b or 1)
 end
 
+local function guideLevelBand(guide)
+    if type(guide) ~= "table" then
+        return ""
+    end
+    local minLevel = tonumber(guide.minLevel)
+    local maxLevel = tonumber(guide.maxLevel)
+    if minLevel and maxLevel then
+        return string.format("%d-%d", minLevel, maxLevel)
+    end
+    if minLevel then
+        return tostring(minLevel)
+    end
+    if maxLevel then
+        return tostring(maxLevel)
+    end
+    return ""
+end
+
+local function updateMenuScrollThumb()
+    if not menuScrollBar or not menuScrollThumb or not scroll then
+        return
+    end
+    local height = menuScrollBar:GetHeight() or 0
+    local contentHeight = content and content:GetHeight() or 0
+    local viewHeight = scroll:GetHeight() or 0
+    if height < 8 or contentHeight <= viewHeight + 1 then
+        menuScrollBar:Hide()
+        return
+    end
+    menuScrollBar:Show()
+    local range = scroll:GetVerticalScrollRange() or 0
+    local current = scroll:GetVerticalScroll() or 0
+    local thumbHeight = math.floor(height * (viewHeight / contentHeight))
+    if thumbHeight < 18 then
+        thumbHeight = 18
+    elseif thumbHeight > height then
+        thumbHeight = height
+    end
+    local travel = height - thumbHeight
+    local top = 0
+    if range > 0 and travel > 0 then
+        top = (current / range) * travel
+    end
+    local ar, ag, ab = menuColors.accent[1], menuColors.accent[2], menuColors.accent[3]
+    menuScrollThumb:SetVertexColor(ar, ag, ab, 0.7)
+    menuScrollThumb:ClearAllPoints()
+    menuScrollThumb:SetPoint("TOP", menuScrollBar, "TOP", 0, -top)
+    menuScrollThumb:SetHeight(thumbHeight)
+end
+
 local function styleGuideMenu()
     if not menu then
         return 4
     end
+    refreshMenuColors()
     local radius = 0
     if ns.StylePopupFrame then
         radius = ns.StylePopupFrame(menu) or 0
     end
-    local pad = 4
+    local pad = 6
     if type(radius) == "number" and radius > 0 then
-        pad = math.max(6, math.floor(radius * 0.5) + 2)
+        pad = math.max(8, math.floor(radius * 0.5) + 2)
     end
+    local gutter = 10
     scroll:ClearAllPoints()
     scroll:SetPoint("TOPLEFT", pad, -pad)
-    scroll:SetPoint("BOTTOMRIGHT", -pad, pad)
-    local width = (menu:GetWidth() or 280) - pad * 2
+    scroll:SetPoint("BOTTOMRIGHT", -(pad + gutter), pad)
+    if menuScrollBar then
+        menuScrollBar:ClearAllPoints()
+        menuScrollBar:SetPoint("TOPRIGHT", menu, "TOPRIGHT", -(pad + 1), -pad)
+        menuScrollBar:SetPoint("BOTTOMRIGHT", menu, "BOTTOMRIGHT", -(pad + 1), pad)
+        menuScrollBar:SetWidth(3)
+    end
+    local width = (menu:GetWidth() or MENU_WIDTH) - pad * 2 - gutter
     if width < 40 then
         width = 40
     end
     content:SetWidth(width)
+    updateMenuScrollThumb()
     return pad
 end
 
@@ -3525,18 +4008,120 @@ end
 
 local presentMenu
 
+local function setRowHover(row, on)
+    if not row or not row.hover then
+        return
+    end
+    if not on or not row:IsEnabled() or not row:IsMouseEnabled() then
+        row.hover:Hide()
+        return
+    end
+    local ar, ag, ab = menuColors.accent[1], menuColors.accent[2], menuColors.accent[3]
+    local light = ns.IsLightBackground and ns.IsLightBackground()
+    row.hover:SetVertexColor(ar, ag, ab, light and 0.12 or 0.18)
+    row.hover:Show()
+end
+
+local function setRowMark(row, kind)
+    if not row or not row.mark then
+        return
+    end
+    local ar, ag, ab = menuColors.accent[1], menuColors.accent[2], menuColors.accent[3]
+    if kind == "current" then
+        row.mark:SetVertexColor(ar, ag, ab, 0.95)
+        row.mark:Show()
+    elseif kind == "recommended" then
+        row.mark:SetVertexColor(0.45, 0.9, 0.45, 0.9)
+        row.mark:Show()
+    elseif kind == "action" then
+        row.mark:SetVertexColor(ar, ag, ab, 0.55)
+        row.mark:Show()
+    else
+        row.mark:Hide()
+    end
+end
+
+local function setRowWash(row, kind)
+    if not row or not row.wash then
+        return
+    end
+    local light = ns.IsLightBackground and ns.IsLightBackground()
+    if kind == "group" then
+        local ar, ag, ab = menuColors.accent[1], menuColors.accent[2], menuColors.accent[3]
+        row.wash:SetVertexColor(ar, ag, ab, light and 0.1 or 0.14)
+        row.wash:Show()
+    elseif kind == "current" then
+        local ar, ag, ab = menuColors.accent[1], menuColors.accent[2], menuColors.accent[3]
+        row.wash:SetVertexColor(ar, ag, ab, light and 0.08 or 0.12)
+        row.wash:Show()
+    elseif kind == "recommended" then
+        row.wash:SetVertexColor(0.35, 0.75, 0.4, light and 0.1 or 0.12)
+        row.wash:Show()
+    else
+        row.wash:Hide()
+    end
+end
+
 local function acquireRow(index)
     local row = rows[index]
     if row then
         return row
     end
     row = CreateFrame("Button", nil, content)
-    row:SetHeight(20)
+    row:SetHeight(MENU_ROW.guide)
+    row.wash = row:CreateTexture(nil, "BACKGROUND")
+    row.wash:SetAllPoints()
+    row.wash:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    row.wash:Hide()
+    row.hover = row:CreateTexture(nil, "BORDER")
+    row.hover:SetAllPoints()
+    row.hover:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    row.hover:Hide()
+    row.mark = row:CreateTexture(nil, "ARTWORK")
+    row.mark:SetWidth(2)
+    row.mark:SetPoint("TOPLEFT", 0, 0)
+    row.mark:SetPoint("BOTTOMLEFT", 0, 0)
+    row.mark:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    row.mark:Hide()
+    row.chevron = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.chevron:SetPoint("LEFT", 8, 0)
+    row.chevron:SetWidth(12)
+    row.chevron:SetJustifyH("CENTER")
     row.label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.label:SetPoint("LEFT", 8, 0)
-    row.label:SetPoint("RIGHT", -8, 0)
+    row.label:SetPoint("LEFT", 24, 0)
+    row.label:SetPoint("RIGHT", -52, 0)
     row.label:SetJustifyH("LEFT")
-    row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+    row.meta = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.meta:SetPoint("RIGHT", -10, 0)
+    row.meta:SetWidth(44)
+    row.meta:SetJustifyH("RIGHT")
+    row.rule = row:CreateTexture(nil, "ARTWORK")
+    row.rule:SetHeight(1)
+    row.rule:SetPoint("LEFT", 10, 0)
+    row.rule:SetPoint("RIGHT", -10, 0)
+    row.rule:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    row.rule:Hide()
+    row:SetScript("OnEnter", function(self)
+        if self:IsMouseEnabled() then
+            setRowHover(self, true)
+        end
+        if self.tipTitle then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(self.tipTitle, 1, 1, 1)
+            if self.tipDetail then
+                GameTooltip:AddLine(self.tipDetail, 0.9, 0.9, 0.9, true)
+            end
+            if ns.FinishTooltip then
+                ns.FinishTooltip()
+            else
+                GameTooltip:Show()
+            end
+        end
+    end)
+    row:SetScript("OnLeave", function(self)
+        setRowHover(self, false)
+        GameTooltip:Hide()
+    end)
     row:SetScript("OnClick", function(self)
         if self.action == "options" then
             if menu then
@@ -3544,6 +4129,15 @@ local function acquireRow(index)
             end
             if ns.OpenOptions then
                 ns.OpenOptions()
+            end
+            return
+        end
+        if self.action == "sync" then
+            if menu then
+                menu:Hide()
+            end
+            if ns.PartySyncOpenPicker then
+                ns.PartySyncOpenPicker(menu)
             end
             return
         end
@@ -3826,19 +4420,18 @@ end
 
 presentMenu = function(keepScroll)
     local pad = styleGuideMenu()
-    local y = 4
+    local y = 2
     local index = 0
     local lastGroup
     local list = ns.GuideList()
-    local textR, textG, textB = 1, 1, 1
-    local detailR, detailG, detailB = 0.82, 0.82, 0.82
-    local accentR, accentG, accentB = 1, 0.82, 0
-    if ns.Color then
-        textR, textG, textB = ns.Color("text")
-        detailR, detailG, detailB = ns.Color("detail")
-        accentR, accentG, accentB = ns.Color("accent")
-    end
+    refreshMenuColors()
+    local textR, textG, textB = menuColors.text[1], menuColors.text[2], menuColors.text[3]
+    local detailR, detailG, detailB = menuColors.detail[1], menuColors.detail[2], menuColors.detail[3]
+    local accentR, accentG, accentB = menuColors.accent[1], menuColors.accent[2], menuColors.accent[3]
+    local secondaryR, secondaryG, secondaryB = menuColors.secondary[1], menuColors.secondary[2], menuColors.secondary[3]
     local priorScroll = keepScroll and scroll and (scroll:GetVerticalScroll() or 0) or 0
+    local currentId = ns.GuideId and ns.GuideId() or nil
+
     local function place(row, height)
         row:Show()
         row:ClearAllPoints()
@@ -3847,12 +4440,51 @@ presentMenu = function(keepScroll)
         row:SetHeight(height)
         y = y + height
     end
+
     local function resetRow(row)
         row.guideId = nil
         row.action = nil
         row.groupName = nil
         row.rxpGroup = nil
         row.rxpName = nil
+        row.tipTitle = nil
+        row.tipDetail = nil
+        row:Enable()
+        row:EnableMouse(false)
+        row.chevron:SetText("")
+        row.chevron:ClearAllPoints()
+        row.chevron:SetPoint("LEFT", 8, 0)
+        row.chevron:SetWidth(12)
+        row.chevron:Show()
+        row.label:ClearAllPoints()
+        row.label:SetPoint("LEFT", 24, 0)
+        row.label:SetPoint("RIGHT", -52, 0)
+        row.label:SetJustifyH("LEFT")
+        row.meta:SetText("")
+        row.meta:Show()
+        row.rule:Hide()
+        setRowMark(row, nil)
+        setRowWash(row, nil)
+        setRowHover(row, false)
+    end
+
+    local function layoutLabel(row, left, showChevron)
+        left = left or 10
+        row.chevron:ClearAllPoints()
+        if showChevron then
+            row.chevron:SetPoint("LEFT", left, 0)
+            row.chevron:SetWidth(12)
+            row.chevron:Show()
+            row.label:ClearAllPoints()
+            row.label:SetPoint("LEFT", row.chevron, "RIGHT", 4, 0)
+            row.label:SetPoint("RIGHT", -52, 0)
+        else
+            row.chevron:SetText("")
+            row.chevron:Hide()
+            row.label:ClearAllPoints()
+            row.label:SetPoint("LEFT", left, 0)
+            row.label:SetPoint("RIGHT", -52, 0)
+        end
     end
 
     local function finishMenu()
@@ -3860,12 +4492,13 @@ presentMenu = function(keepScroll)
             rows[extra]:Hide()
             resetRow(rows[extra])
         end
-        local height = math.max(36, y + 8)
+        local height = math.max(40, y + 6)
         content:SetHeight(height)
         local shown = height + pad * 2
-        if shown > 360 then
-            shown = 360
+        if shown > MENU_MAX_HEIGHT then
+            shown = MENU_MAX_HEIGHT
         end
+        menu:SetWidth(MENU_WIDTH)
         menu:SetHeight(shown)
         styleGuideMenu()
         if keepScroll then
@@ -3877,56 +4510,163 @@ presentMenu = function(keepScroll)
         else
             scroll:SetVerticalScroll(0)
         end
+        updateMenuScrollThumb()
     end
 
-    index = index + 1
-    local optionsRow = acquireRow(index)
-    resetRow(optionsRow)
-    optionsRow.action = "options"
-    optionsRow:EnableMouse(true)
-    optionsRow.label:SetText("Options")
-    paintMenuLabel(optionsRow.label, accentR, accentG, accentB)
-    place(optionsRow, 20)
+    local function addSeparator()
+        index = index + 1
+        local row = acquireRow(index)
+        resetRow(row)
+        row.meta:Hide()
+        row.rule:SetVertexColor(accentR, accentG, accentB, 0.28)
+        row.rule:Show()
+        place(row, MENU_ROW.separator)
+    end
+
+    local function addSection(text, r, g, b)
+        index = index + 1
+        local row = acquireRow(index)
+        resetRow(row)
+        row.meta:Hide()
+        layoutLabel(row, 12, false)
+        row.label:SetText(text)
+        paintMenuLabel(row.label, r or detailR, g or detailG, b or detailB)
+        place(row, MENU_ROW.section)
+    end
+
+    local function addAction(action, text, enabled, tipTitle, tipDetail, active)
+        index = index + 1
+        local row = acquireRow(index)
+        resetRow(row)
+        row.action = action
+        row.tipTitle = tipTitle
+        row.tipDetail = tipDetail
+        row.meta:Hide()
+        layoutLabel(row, 12, false)
+        row.label:SetText(text)
+        if enabled then
+            row:EnableMouse(true)
+            paintMenuLabel(row.label, accentR, accentG, accentB)
+            setRowMark(row, "action")
+        else
+            paintMenuLabel(row.label, detailR, detailG, detailB)
+        end
+        if active then
+            setRowWash(row, "current")
+        end
+        place(row, MENU_ROW.action)
+    end
+
+    local function addGuideRow(guide, indent, recommended)
+        index = index + 1
+        local row = acquireRow(index)
+        resetRow(row)
+        row.guideId = guide.id
+        row:EnableMouse(true)
+        local band = guideLevelBand(guide)
+        local isCurrent = currentId == guide.id
+        local isRecommended = recommended and recommended.id == guide.id
+        layoutLabel(row, indent or 18, false)
+        row.label:SetText(guide.name or guide.id)
+        row.meta:SetText(band)
+        paintMenuLabel(row.meta, detailR, detailG, detailB)
+        row.tipTitle = guide.name or guide.id
+        local tipBits = {}
+        if guide.group then
+            tipBits[#tipBits + 1] = guide.group
+        end
+        if guide.subgroup then
+            tipBits[#tipBits + 1] = guide.subgroup
+        end
+        if band ~= "" then
+            tipBits[#tipBits + 1] = "Levels " .. band
+        end
+        if isCurrent then
+            tipBits[#tipBits + 1] = "Currently active"
+        elseif isRecommended then
+            tipBits[#tipBits + 1] = "Recommended for your level"
+        end
+        row.tipDetail = table.concat(tipBits, "  ·  ")
+        if isCurrent then
+            paintMenuLabel(row.label, accentR, accentG, accentB)
+            setRowMark(row, "current")
+            setRowWash(row, "current")
+        elseif isRecommended then
+            paintMenuLabel(row.label, 0.72, 1, 0.72)
+            setRowMark(row, "recommended")
+            setRowWash(row, "recommended")
+        else
+            paintMenuLabel(row.label, textR, textG, textB)
+        end
+        place(row, MENU_ROW.guide)
+    end
+
+    addAction("options", "Options", true, "Options", "Open Waynotes settings.")
+    local syncTarget = ns.PartySyncFollowTarget and ns.PartySyncFollowTarget()
+    local hasPeers = ns.PartySyncHasPeers and ns.PartySyncHasPeers()
+    local standalone = ns.UsingStandalone and ns.UsingStandalone()
+    if syncTarget then
+        addAction("sync", "Synced with " .. syncTarget, true, "Party sync", "Click to change or clear party sync.", true)
+    elseif standalone and hasPeers then
+        addAction("sync", "Sync with party", true, "Party sync", "Follow a party member's guide progress.")
+    elseif standalone then
+        addAction("sync", "Sync with party", true, "Party sync", "No party members available right now.")
+    else
+        addAction("sync", "Sync with party", false, "Party sync", "Turn on Replace RestedXP to sync guides with your party.")
+    end
+    addSeparator()
 
     if ns.db and ns.db.restedXPGuides then
+        addSection("RestedXP guides", accentR, accentG, accentB)
         local rxpRows = ns.RestedXPGuideRows and ns.RestedXPGuideRows()
         if not rxpRows or #rxpRows == 0 then
             index = index + 1
             local row = acquireRow(index)
             resetRow(row)
-            row:EnableMouse(false)
+            row.meta:Hide()
+            layoutLabel(row, 12, false)
             if rxpRows then
                 row.label:SetText("No RestedXP guides for this character.")
             else
                 row.label:SetText("RestedXP is still loading its guides.")
             end
             paintMenuLabel(row.label, detailR, detailG, detailB)
-            place(row, 32)
+            place(row, MENU_ROW.tip)
         else
             for _, entry in ipairs(rxpRows) do
                 index = index + 1
                 local row = acquireRow(index)
                 resetRow(row)
-                row.label:SetText(entry.text or "")
                 if entry.kind == "guide" then
                     row.action = "rxp"
                     row.rxpGroup = entry.group
                     row.rxpName = entry.name
                     row:EnableMouse(true)
+                    row.meta:Hide()
+                    layoutLabel(row, 18, false)
+                    row.label:SetText(strtrim(entry.text or ""))
+                    row.tipTitle = strtrim(entry.text or "")
                     if entry.current then
                         paintMenuLabel(row.label, accentR, accentG, accentB)
+                        setRowMark(row, "current")
+                        setRowWash(row, "current")
                     else
                         paintMenuLabel(row.label, textR, textG, textB)
                     end
-                    place(row, 20)
+                    place(row, MENU_ROW.guide)
+                elseif entry.kind == "group" then
+                    row.meta:Hide()
+                    layoutLabel(row, 12, false)
+                    row.label:SetText(strtrim(entry.text or ""))
+                    paintMenuLabel(row.label, accentR, accentG, accentB)
+                    setRowWash(row, "group")
+                    place(row, MENU_ROW.group)
                 else
-                    row:EnableMouse(false)
-                    if entry.kind == "group" then
-                        paintMenuLabel(row.label, accentR, accentG, accentB)
-                    else
-                        paintMenuLabel(row.label, detailR, detailG, detailB)
-                    end
-                    place(row, 18)
+                    row.meta:Hide()
+                    layoutLabel(row, 18, false)
+                    row.label:SetText(strtrim(entry.text or ""))
+                    paintMenuLabel(row.label, secondaryR, secondaryG, secondaryB)
+                    place(row, MENU_ROW.subgroup)
                 end
             end
         end
@@ -3938,37 +4678,21 @@ presentMenu = function(keepScroll)
         index = index + 1
         local row = acquireRow(index)
         resetRow(row)
-        row:EnableMouse(false)
+        row.meta:Hide()
+        layoutLabel(row, 12, false)
         row.label:SetText("No guides yet. Add a Lua file in the Guides folder.")
         paintMenuLabel(row.label, detailR, detailG, detailB)
-        place(row, 32)
+        place(row, MENU_ROW.tip)
     end
+
     local recommended = ns.RecommendedGuide and ns.RecommendedGuide() or nil
     if recommended then
-        index = index + 1
-        local row = acquireRow(index)
-        resetRow(row)
-        row:EnableMouse(false)
-        row.label:SetText("Recommended")
-        paintMenuLabel(row.label, 0.45, 0.9, 0.45)
-        place(row, 18)
-        index = index + 1
-        row = acquireRow(index)
-        resetRow(row)
-        row.guideId = recommended.id
-        row:EnableMouse(true)
-        local band = ""
-        if recommended.minLevel and recommended.maxLevel then
-            band = string.format("  %d-%d", recommended.minLevel, recommended.maxLevel)
-        end
-        row.label:SetText(recommended.name .. band)
-        if ns.GuideId() == recommended.id then
-            paintMenuLabel(row.label, accentR, accentG, accentB)
-        else
-            paintMenuLabel(row.label, 0.7, 1, 0.7)
-        end
-        place(row, 20)
+        addSection("Recommended", 0.45, 0.9, 0.45)
+        addGuideRow(recommended, 14, recommended)
+        addSeparator()
+        addSection("All guides", detailR, detailG, detailB)
     end
+
     local groupCollapsed = false
     local subgroupCollapsed = false
     local lastSubgroup
@@ -3984,10 +4708,16 @@ presentMenu = function(keepScroll)
             row.action = "toggleGroup"
             row.groupName = guide.group
             row:EnableMouse(true)
-            local marker = groupCollapsed and "+ " or "- "
-            row.label:SetText(marker .. guide.group)
+            row.meta:Hide()
+            layoutLabel(row, 10, true)
+            row.chevron:SetText(groupCollapsed and ">" or "v")
+            paintMenuLabel(row.chevron, accentR, accentG, accentB)
+            row.label:SetText(guide.group)
             paintMenuLabel(row.label, accentR, accentG, accentB)
-            place(row, 18)
+            setRowWash(row, "group")
+            row.tipTitle = guide.group
+            row.tipDetail = groupCollapsed and "Click to expand." or "Click to collapse."
+            place(row, MENU_ROW.group)
         end
         if not groupCollapsed then
             local subgroup = guide.subgroup
@@ -4002,42 +4732,23 @@ presentMenu = function(keepScroll)
                     row.action = "toggleGroup"
                     row.groupName = subKey
                     row:EnableMouse(true)
-                    local marker = subgroupCollapsed and "+ " or "- "
-                    row.label:SetText("  " .. marker .. subgroup)
-                    paintMenuLabel(row.label, accentR, accentG, accentB)
-                    place(row, 18)
+                    row.meta:Hide()
+                    layoutLabel(row, 22, true)
+                    row.chevron:SetText(subgroupCollapsed and ">" or "v")
+                    paintMenuLabel(row.chevron, secondaryR, secondaryG, secondaryB)
+                    row.label:SetText(subgroup)
+                    paintMenuLabel(row.label, secondaryR, secondaryG, secondaryB)
+                    row.tipTitle = subgroup
+                    row.tipDetail = subgroupCollapsed and "Click to expand." or "Click to collapse."
+                    place(row, MENU_ROW.subgroup)
                 end
                 if not subgroupCollapsed then
-                    index = index + 1
-                    local row = acquireRow(index)
-                    resetRow(row)
-                    row.guideId = guide.id
-                    row:EnableMouse(true)
-                    local mark = (recommended and recommended.id == guide.id) and "* " or ""
-                    row.label:SetText("    " .. mark .. guide.name)
-                    if ns.GuideId() == guide.id then
-                        paintMenuLabel(row.label, accentR, accentG, accentB)
-                    else
-                        paintMenuLabel(row.label, textR, textG, textB)
-                    end
-                    place(row, 20)
+                    addGuideRow(guide, 36, recommended)
                 end
             else
                 lastSubgroup = nil
                 subgroupCollapsed = false
-                index = index + 1
-                local row = acquireRow(index)
-                resetRow(row)
-                row.guideId = guide.id
-                row:EnableMouse(true)
-                local mark = (recommended and recommended.id == guide.id) and "* " or ""
-                row.label:SetText(mark .. guide.name)
-                if ns.GuideId() == guide.id then
-                    paintMenuLabel(row.label, accentR, accentG, accentB)
-                else
-                    paintMenuLabel(row.label, textR, textG, textB)
-                end
-                place(row, 20)
+                addGuideRow(guide, 18, recommended)
             end
         end
     end
@@ -4056,7 +4767,7 @@ local function buildMenu()
     end)
 
     menu = CreateFrame("Frame", "WaynotesGuideMenu", UIParent, "BackdropTemplate")
-    menu:SetSize(280, 80)
+    menu:SetSize(MENU_WIDTH, 80)
     menu:SetFrameStrata("DIALOG")
     menu:SetFrameLevel(20)
     menu:SetClampedToScreen(true)
@@ -4067,22 +4778,38 @@ local function buildMenu()
     menu:Hide()
 
     scroll = CreateFrame("ScrollFrame", nil, menu)
-    scroll:SetPoint("TOPLEFT", 4, -4)
-    scroll:SetPoint("BOTTOMRIGHT", -4, 4)
+    scroll:SetPoint("TOPLEFT", 8, -8)
+    scroll:SetPoint("BOTTOMRIGHT", -18, 8)
     content = CreateFrame("Frame", nil, scroll)
-    content:SetSize(268, 40)
+    content:SetSize(MENU_WIDTH - 26, 40)
     scroll:SetScrollChild(content)
 
-    menu:SetScript("OnMouseWheel", function(_, delta)
+    menuScrollBar = CreateFrame("Frame", nil, menu)
+    menuScrollBar:SetWidth(3)
+    menuScrollBar:Hide()
+    menuScrollThumb = menuScrollBar:CreateTexture(nil, "OVERLAY")
+    menuScrollThumb:SetWidth(3)
+    menuScrollThumb:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    menuScrollThumb:SetVertexColor(1, 0.82, 0, 0.7)
+
+    local function scrollBy(delta)
         local current = scroll:GetVerticalScroll() or 0
         local maxScroll = scroll:GetVerticalScrollRange() or 0
-        local nextScroll = current - delta * 24
+        local nextScroll = current - delta * MENU_SCROLL_STEP
         if nextScroll < 0 then
             nextScroll = 0
         elseif nextScroll > maxScroll then
             nextScroll = maxScroll
         end
         scroll:SetVerticalScroll(nextScroll)
+        updateMenuScrollThumb()
+    end
+
+    menu:SetScript("OnMouseWheel", function(_, delta)
+        scrollBy(delta)
+    end)
+    scroll:SetScript("OnVerticalScroll", function()
+        updateMenuScrollThumb()
     end)
     menu:SetScript("OnShow", function()
         catcher:Show()
@@ -4117,7 +4844,7 @@ function ns.ToggleGuideMenu()
     local pad = 8
     local x, y = GetCursorPosition()
     x, y = x / scale, y / scale
-    local width = menu:GetWidth() or 280
+    local width = menu:GetWidth() or MENU_WIDTH
     local height = menu:GetHeight() or 80
     local screenW = UIParent:GetWidth() or 0
     local screenH = UIParent:GetHeight() or 0
@@ -4240,6 +4967,145 @@ local function logQuestIds()
         end
     end
     return ids
+end
+
+function ns.GuideEncodeSyncStickies()
+    if type(lastSyncStickies) ~= "table" or #lastSyncStickies == 0 then
+        return ""
+    end
+    return table.concat(lastSyncStickies, ",")
+end
+
+-- Compact per-step kill/loot progress: step:filled/need,filled/need;...
+function ns.GuideEncodeSyncProgress(maxLen)
+    maxLen = tonumber(maxLen) or 120
+    if type(lastSyncProgress) ~= "table" then
+        return ""
+    end
+    local order = {}
+    for stepIndex in pairs(lastSyncProgress) do
+        order[#order + 1] = stepIndex
+    end
+    table.sort(order)
+    local chunks = {}
+    local used = 0
+    for _, stepIndex in ipairs(order) do
+        local counts = lastSyncProgress[stepIndex]
+        if type(counts) == "table" and #counts > 0 then
+            local parts = {}
+            for _, entry in ipairs(counts) do
+                parts[#parts + 1] = string.format("%d/%d", entry.filled or 0, entry.need or 0)
+            end
+            local body = tostring(stepIndex) .. ":" .. table.concat(parts, ",")
+            local extra = (#chunks > 0 and 1 or 0) + #body
+            if used + extra > maxLen then
+                break
+            end
+            chunks[#chunks + 1] = body
+            used = used + extra
+        end
+    end
+    return table.concat(chunks, ";")
+end
+
+-- Compact quest snapshot for party sync. Uses the local log only (never remote).
+-- Format: id:flags:filled/need,filled/need;...  flags: 1=on 2=turnedIn 4=objDone
+function ns.GuideEncodeSyncQuests(maxLen)
+    maxLen = tonumber(maxLen) or 180
+    local wanted = {}
+    local order = {}
+    local function want(id)
+        id = tonumber(id)
+        if not id or id <= 0 or wanted[id] then
+            return
+        end
+        wanted[id] = true
+        order[#order + 1] = id
+    end
+    for _, id in ipairs(logQuestIds()) do
+        want(id)
+    end
+    local guide = activeGuide()
+    if guide then
+        local current = progress(guide.id).step
+        local from = math.max(1, current - 8)
+        local to = math.min(#guide.steps, current + 2)
+        for index = from, to do
+            local step = guide.steps[index]
+            if step then
+                for _, id in ipairs(step.quests or {}) do
+                    want(id)
+                end
+            end
+        end
+        -- Always include quests from stickies currently shown on the host tracker.
+        for _, index in ipairs(lastSyncStickies) do
+            local step = guide.steps[index]
+            if step then
+                for _, id in ipairs(step.quests or {}) do
+                    want(id)
+                end
+            end
+        end
+    end
+
+    local chunks = {}
+    local used = 0
+    local followingFn = ns.PartySyncFollowing
+    ns.PartySyncFollowing = function()
+        return false
+    end
+    local ok, err = pcall(function()
+        for _, id in ipairs(order) do
+            local on = questOn(id) and true or false
+            local completed = questCompleted(id) and true or false
+            local objDone = false
+            local objs = {}
+            if on then
+                objDone = questObjectivesDone(id) and true or false
+                local states = logObjectiveStates(id)
+                if type(states) == "table" then
+                    for _, info in ipairs(states) do
+                        local filled, need = 0, 0
+                        if type(info.text) == "string" then
+                            local a, b = info.text:match("(%d+)%s*/%s*(%d+)")
+                            filled = tonumber(a) or 0
+                            need = tonumber(b) or 0
+                        end
+                        if need < 1 and info.finished then
+                            filled, need = 1, 1
+                        end
+                        objs[#objs + 1] = string.format("%d/%d", filled, need)
+                    end
+                end
+            end
+            local flags = 0
+            if on then
+                flags = flags + 1
+            end
+            if completed then
+                flags = flags + 2
+            end
+            if objDone then
+                flags = flags + 4
+            end
+            local body = tostring(id) .. ":" .. tostring(flags)
+            if #objs > 0 then
+                body = body .. ":" .. table.concat(objs, ",")
+            end
+            local extra = (#chunks > 0 and 1 or 0) + #body
+            if used + extra > maxLen then
+                break
+            end
+            chunks[#chunks + 1] = body
+            used = used + extra
+        end
+    end)
+    ns.PartySyncFollowing = followingFn
+    if not ok then
+        return ""
+    end
+    return table.concat(chunks, ";")
 end
 
 local function takeObjectiveSnap()

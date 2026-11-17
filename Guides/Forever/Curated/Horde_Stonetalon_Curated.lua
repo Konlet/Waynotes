@@ -67,7 +67,6 @@ ns.RegisterGuide({
             },
         },
         {
-            sticky = true,
             text = "Kill [ENEMY]Grundig Darkcloud[/] and [ENEMY]Grimtotem Brutes[/] at the Grimtotem village.",
             quest = 6629,
             when = "objectives",
@@ -78,6 +77,7 @@ ns.RegisterGuide({
                 "Kill [ENEMY]Grundig Darkcloud[/]",
                 "[ENEMY]Grimtotem Brute[/] (6)",
             },
+            note = "Kaya is in the same camp. Finish Grundig before you start her escort.",
         },
         {
             text = "Talk to [FRIENDLY]Kaya Flathoof[/]. Accept [QUEST]Protect Kaya[/]. Escort her to Camp Aparaje.",
