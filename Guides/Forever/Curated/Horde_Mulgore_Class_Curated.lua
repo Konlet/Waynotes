@@ -197,10 +197,18 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to the [FRIENDLY]Great Bear Spirit[/] northwest of Nighthaven, then return to [FRIENDLY]Dendrite Starblaze[/]. Turn in [QUEST]Great Bear Spirit[/]. Accept [QUEST]Back to Thunder Bluff[/].",
+            text = "Talk to the [FRIENDLY]Great Bear Spirit[/] northwest of Nighthaven and complete its dialogue.",
             map = 1450,
             x = 39.1,
             y = 27.5,
+            quest = 5930,
+            when = "objectives",
+        },
+        {
+            text = "Return to [FRIENDLY]Dendrite Starblaze[/]. Turn in [QUEST]Great Bear Spirit[/]. Accept [QUEST]Back to Thunder Bluff[/].",
+            map = 1450,
+            x = 56.21,
+            y = 30.64,
             quest = 5932,
             when = "accepted",
             details = {
@@ -208,7 +216,15 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Bunthen Plainswind[/] for a flight to Thunder Bluff. Talk to [FRIENDLY]Turak Runetotem[/]. Turn in [QUEST]Back to Thunder Bluff[/]. Accept [QUEST]Body and Heart[/].",
+            text = "Talk to [FRIENDLY]Bunthen Plainswind[/] and fly to Thunder Bluff.",
+            map = 1450,
+            x = 44.28,
+            y = 45.87,
+            quest = 5932,
+            when = "travel",
+        },
+        {
+            text = "Talk to [FRIENDLY]Turak Runetotem[/]. Turn in [QUEST]Back to Thunder Bluff[/]. Accept [QUEST]Body and Heart[/].",
             map = 1456,
             x = 76.5,
             y = 27.2,

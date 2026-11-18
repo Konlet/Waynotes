@@ -23,6 +23,9 @@ local lastWarnGuide
 local registered
 local ticker
 local dropdown
+local broadcastPending
+-- Let Guides.lua's dirty coalesce (~0.05s) refresh lastSync* before we encode.
+local BROADCAST_COALESCE = 0.15
 
 local function say(text)
     if DEFAULT_CHAT_FRAME then
@@ -269,11 +272,36 @@ local function looksLikeProgressBlob(text)
     return saw
 end
 
-local function refreshTracker()
-    if ns.RefreshTracker then
-        ns.RefreshTracker(true)
-    elseif ns.MarkTrackerDirty then
-        ns.MarkTrackerDirty(true)
+-- Never call RefreshTracker(true) from party sync: that bypasses coalesce and
+-- was causing 40ms+ hitches whenever the player was in a group.
+local function markTrackerDirty(force)
+    if ns.MarkTrackerDirty then
+        ns.MarkTrackerDirty(force and true or false)
+    elseif ns.RefreshTracker then
+        ns.RefreshTracker(force and true or false)
+    end
+end
+
+-- Quest/bag spam is frequent in a group. Coalesce broadcasts and let the normal
+-- tracker dirty pass update sticky/progress caches first.
+local function scheduleBroadcast()
+    if applying or not standaloneReady() or not inGroup() then
+        return
+    end
+    if broadcastPending then
+        return
+    end
+    broadcastPending = true
+    local function fire()
+        broadcastPending = false
+        if standaloneReady() and inGroup() then
+            ns.PartySyncBroadcast()
+        end
+    end
+    if C_Timer and C_Timer.After then
+        C_Timer.After(BROADCAST_COALESCE, fire)
+    else
+        fire()
     end
 end
 
@@ -327,7 +355,7 @@ local function applyFollowState(guideId, step, fromName, quests, questSig, stick
     local currentStep = tonumber(entry and entry.step)
     if currentId == guideId and currentStep == step then
         if questsChanged or stickiesChanged or progressChanged then
-            refreshTracker()
+            markTrackerDirty(true)
         end
         return
     end
@@ -418,7 +446,7 @@ function ns.PartySyncClear(silent)
     if not silent then
         say("Stopped syncing to " .. was .. ".")
     end
-    refreshTracker()
+    markTrackerDirty(true)
     notifyUI()
 end
 
@@ -587,7 +615,7 @@ local function clearPeersLeft()
         remoteProgress = nil
         remoteProgressSig = nil
         say("Left the group; party sync cleared.")
-        refreshTracker()
+        markTrackerDirty(true)
     end
     if had then
         notifyUI()
@@ -599,9 +627,7 @@ local function pulse()
         notifyUI()
     end
     clearPeersLeft()
-    if standaloneReady() and inGroup() then
-        refreshTracker()
-    end
+    -- Broadcast only. A forced tracker rebuild here was the group-join lag.
     ns.PartySyncBroadcast()
 end
 
@@ -751,16 +777,20 @@ events:SetScript("OnEvent", function(_, event, ...)
         onAddonMessage(...)
         return
     end
+    if event == "UNIT_QUEST_LOG_CHANGED" then
+        local unit = ...
+        if unit ~= "player" then
+            return
+        end
+    end
     if event == "QUEST_LOG_UPDATE"
         or event == "QUEST_ACCEPTED"
         or event == "QUEST_TURNED_IN"
         or event == "UNIT_QUEST_LOG_CHANGED"
         or event == "BAG_UPDATE_DELAYED"
     then
-        if inGroup() and standaloneReady() then
-            -- Rebuild the host tracker first so kill/loot counts are current.
-            refreshTracker()
-            ns.PartySyncBroadcast()
-        end
+        -- Guides.lua already dirties the tracker; wait for that paint so
+        -- sticky/progress encode is fresh, then send one coalesced broadcast.
+        scheduleBroadcast()
     end
 end)

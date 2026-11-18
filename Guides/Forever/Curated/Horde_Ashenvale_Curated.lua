@@ -199,7 +199,7 @@ ns.RegisterGuide({
     maxLevel = 28,
     steps = {
         {
-            text = "Before you start: get [QUEST]Report to Kadrak[/] from [FRIENDLY]Thork[/] at the Crossroads. Hunters can also pick up [QUEST]The Ashenvale Hunt[/] from [FRIENDLY]Jorn Skyseer[/] at Camp Taurajo. Everyone else accepts the Hunt from Senani at Splintertree.",
+            text = "Before you start, travel to the Crossroads. The next step begins [QUEST]Report to Kadrak[/]. Hunters who already have [QUEST]The Ashenvale Hunt[/] can keep it; everyone else can begin the Hunt at Splintertree Post.",
             note = "Missing Zoram'gar pickups: [QUEST]Between a Rock and a Thistlefur[/], [QUEST]Troll Charm[/], [QUEST]Trouble in the Deeps[/] turn-in.",
         },
         {

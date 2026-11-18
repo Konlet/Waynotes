@@ -1,8 +1,9 @@
 local _, ns = ...
 
 -- Horde Stonetalon Mountains.
--- First pass from the Barrens border into Windshear and Malaka'jin,
--- then the Sun Rock Retreat sweep through the peak and Charred Vale.
+-- First pass: Barrens border, Malaka'jin, Windshear (through Further
+-- Instructions to Ratchet), then return for shredders. Second pass: Sun
+-- Rock, Gerenzo, Charred Vale, and the Peak.
 -- Start after Barrens 20-25 (or mid Barrens ~17+) with The Spirits of
 -- Stonetalon, plus Ziz Fizziks / Letter to Jin'Zil / Deepmoss Eggs if you have them.
 
@@ -110,9 +111,11 @@ ns.RegisterGuide({
             text = "Climb the left path into Malaka'jin.",
             when = "travel",
             map = 1442,
-            x = 71.8,
-            y = 91.6,
-            note = "Follow the path. The mountains are not a shortcut... trust me.",
+            pins = {
+                { x = 82.0, y = 98.7, },
+                { x = 74.7, y = 95.0, },
+            },
+            note = "Follow the path.",
         },
         {
             text = "Enter the cave.",
@@ -123,11 +126,14 @@ ns.RegisterGuide({
         },
         {
             text = "Talk to [FRIENDLY]Witch Doctor Jin'Zil[/]. Turn in [QUEST]Letter to Jin'Zil[/]. Accept [QUEST]Jin'Zil's Forest Magic[/].",
-            quests = { 1057, 1058 },
+            quest = 1058,
             when = "accepted",
             map = 1442,
             x = 74.5,
             y = 97.9,
+            details = {
+                "Turn in [QUEST]Letter to Jin'Zil[/]",
+            },
         },
         {
             text = "Talk to [FRIENDLY]Xen'Zilla[/]. Accept [QUEST]Blood Feeders[/].",
@@ -241,20 +247,30 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In Windshear Crag, kill [ENEMY]XT:4[/] and [ENEMY]XT:9[/].",
-            quest = 1068,
-            when = "objectives",
-            map = 1442,
-            x = 62.2,
-            y = 52.0,
-            pins = {
-                { x = 67.3, y = 46.6, note = "XT:4" },
-                { x = 70.7, y = 56.1, note = "XT:9" },
-            },
+            text = "Travel to Ratchet.",
+            when = "travel",
+            map = 1413,
+            x = 62.7,
+            y = 37.0,
+            note = "You are delivering [QUEST]Further Instructions[/] from Ziz. Fly if you have the path.",
+        },
+        {
+            text = "Talk to [FRIENDLY]Sputtervalve[/]. Turn in [QUEST]Further Instructions[/]. Accept [QUEST]Further Instructions[/].",
+            quest = 1095,
+            when = "accepted",
+            map = 1413,
+            x = 63.0,
+            y = 37.2,
             details = {
-                "[ENEMY]XT:4[/] (1)",
-                "[ENEMY]XT:9[/] (1)",
+                "Turn in [QUEST]Further Instructions[/]",
             },
+        },
+        {
+            text = "Travel to Stonetalon Mountains.",
+            when = "travel",
+            map = 1413,
+            x = 35.3,
+            y = 27.6,
         },
         {
             text = "Talk to [FRIENDLY]Ziz Fizziks[/]. Turn in [QUEST]Further Instructions[/]. Accept [QUEST]Gerenzo Wrenchwhistle[/].",
@@ -263,31 +279,42 @@ ns.RegisterGuide({
             map = 1442,
             x = 59.0,
             y = 62.6,
-            details = {
-                "Turn in [QUEST]Further Instructions[/]",
-            },
+            note = "Leave [QUEST]Gerenzo Wrenchwhistle[/] for the Sun Rock route.",
         },
         {
-            text = "Climb to the platform and kill [ENEMY]Gerenzo Wrenchwhistle[/]. Loot [LOOT]Gerenzo's Mechanical Arm[/].",
-            quest = 1096,
+            sticky = true,
+            text = "Kill [ENEMY]XT:4[/].",
+            quest = 1068,
+            objective = 1,
             when = "objectives",
             map = 1442,
-            x = 64.6,
-            y = 39.8,
+            x = 67.3,
+            y = 46.6,
             details = {
-                "[LOOT]Gerenzo's Mechanical Arm[/] (1)",
+                "[ENEMY]XT:4[/] (1)",
             },
         },
         {
-            text = "Talk to [FRIENDLY]Ziz Fizziks[/]. Turn in [QUEST]Gerenzo Wrenchwhistle[/].",
-            quest = 1096,
-            when = "complete",
+            text = "Kill [ENEMY]XT:9[/].",
+            quest = 1068,
+            objective = 2,
+            when = "objectives",
             map = 1442,
-            x = 59.0,
-            y = 62.6,
+            x = 70.7,
+            y = 56.1,
+            details = {
+                "[ENEMY]XT:9[/] (1)",
+            },
         },
         {
-            text = "Travel to Sun Rock Retreat. Get the flight path from [FRIENDLY]Tharm[/].",
+            text = "Travel to Sun Rock Retreat.",
+            when = "travel",
+            map = 1442,
+            x = 45.1,
+            y = 59.8,
+        },
+        {
+            text = "Talk to [FRIENDLY]Tharm[/]. Get the Sun Rock Retreat flight path.",
             map = 1442,
             x = 45.1,
             y = 59.8,
@@ -328,6 +355,32 @@ ns.RegisterGuide({
             y = 64.3,
         },
         {
+            text = "Climb the east path to reach [ENEMY]Gerenzo Wrenchwhistle[/].",
+            when = "travel",
+            map = 1442,
+            x = 69.3,
+            y = 40.3,
+        },
+        {
+            text = "Climb to the platform and kill [ENEMY]Gerenzo Wrenchwhistle[/]. Loot [LOOT]Gerenzo's Mechanical Arm[/].",
+            quest = 1096,
+            when = "objectives",
+            map = 1442,
+            x = 64.6,
+            y = 39.8,
+            details = {
+                "[LOOT]Gerenzo's Mechanical Arm[/] (1)",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Ziz Fizziks[/]. Turn in [QUEST]Gerenzo Wrenchwhistle[/].",
+            quest = 1096,
+            when = "complete",
+            map = 1442,
+            x = 59.0,
+            y = 62.6,
+        },
+        {
             sticky = true,
             text = "Gather [LOOT]Gaea Seeds[/] around Mirkfallon Lake.",
             quest = 6301,
@@ -350,23 +403,59 @@ ns.RegisterGuide({
                 { x = 36.6, y = 51.3 }
             },
             details = {
-                "[LOOT]Incendrite[/] (10)",
+                "[LOOT]Incendrites[/] (10)",
                 "Dropped by [ENEMY]Rogue Flame Spirit[/], [ENEMY]Burning Ravager[/], and [ENEMY]Burning Destroyer[/]",
             },
         },
         {
             sticky = true,
-            text = "At Stonetalon Peak, finish [QUEST]Jin'Zil's Forest Magic[/]: [LOOT]Courser Eyes[/], [LOOT]Stonetalon Sap[/], [LOOT]Twilight Whiskers[/], and a [LOOT]Fey Dragon Scale[/].",
+            text = "Kill [ENEMY]Antlered Coursers[/] and [ENEMY]Great Coursers[/] for [LOOT]Courser Eyes[/] on the way to the Peak.",
             quest = 1058,
+            objective = 3,
             when = "objectives",
             map = 1442,
-            x = 35.4,
-            y = 17.8,
+            x = 45.0,
+            y = 21.3,
             details = {
                 "[LOOT]Courser Eye[/] (30)",
+            },
+        },
+        {
+            text = "Kill [ENEMY]Sap Beasts[/] for [LOOT]Stonetalon Sap[/].",
+            quest = 1058,
+            objective = 1,
+            when = "objectives",
+            map = 1442,
+            x = 35.7,
+            y = 18.3,
+            details = {
                 "[LOOT]Stonetalon Sap[/] (5)",
-                "[LOOT]Twilight Whisker[/] (5)",
+            },
+        },
+        {
+            sticky = true,
+            text = "Kill [ENEMY]Fey Dragons[/] for a [LOOT]Fey Dragon Scale[/].",
+            quest = 1058,
+            objective = 4,
+            when = "objectives",
+            map = 1442,
+            x = 33.1,
+            y = 13.2,
+            details = {
                 "[LOOT]Fey Dragon Scale[/] (1)",
+            },
+        },
+        {
+            sticky = true,
+            text = "Kill [ENEMY]Twilight Runners[/] for [LOOT]Twilight Whiskers[/].",
+            quest = 1058,
+            objective = 2,
+            when = "objectives",
+            map = 1442,
+            x = 32.7,
+            y = 11.1,
+            details = {
+                "[LOOT]Twilight Whisker[/] (5)",
             },
         },
         {
@@ -397,16 +486,37 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Return to Sun Rock Retreat. Turn in [QUEST]Elemental War[/], [QUEST]Harpies Threaten[/], [QUEST]Cenarius' Legacy[/], and [QUEST]Cycle of Rebirth[/]. Accept [QUEST]New Life[/].",
+            text = "Talk to [FRIENDLY]Tsunaman[/]. Turn in [QUEST]Elemental War[/].",
+            quest = 6393,
+            when = "complete",
+            map = 1442,
+            x = 47.4,
+            y = 64.3,
+        },
+        {
+            text = "Talk to [FRIENDLY]Maggran Earthbinder[/]. Turn in [QUEST]Harpies Threaten[/].",
+            quest = 6282,
+            when = "complete",
+            map = 1442,
+            x = 47.2,
+            y = 61.2,
+        },
+        {
+            text = "Talk to [FRIENDLY]Braelyn Firehand[/]. Turn in [QUEST]Cenarius' Legacy[/].",
+            quest = 1087,
+            when = "complete",
+            map = 1442,
+            x = 45.9,
+            y = 60.4,
+        },
+        {
+            text = "Talk to [FRIENDLY]Tammra Windfield[/]. Turn in [QUEST]Cycle of Rebirth[/]. Accept [QUEST]New Life[/].",
             quest = 6381,
             when = "accepted",
             map = 1442,
             x = 47.5,
             y = 58.4,
             details = {
-                "Turn in [QUEST]Elemental War[/]",
-                "Turn in [QUEST]Harpies Threaten[/]",
-                "Turn in [QUEST]Cenarius' Legacy[/]",
                 "Turn in [QUEST]Cycle of Rebirth[/]",
             },
         },
