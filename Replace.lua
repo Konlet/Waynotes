@@ -226,6 +226,7 @@ UI.STRIP_UPDATE_SECONDS = 0.25
 UI.TRAIN_UPDATE_SECONDS = 1
 -- Full step rebuilds are event-driven. These only gate light pulse work.
 UI.TRACKER_COALESCE_SECONDS = 0.05
+UI.TRACKER_COMBAT_COALESCE_SECONDS = 0.2
 UI.TRAVEL_PULSE_SECONDS = 0.5
 UI.POSITION_PULSE_SECONDS = 0.5
 UI.POSITION_DIRTY_YARDS = 40
@@ -1615,8 +1616,8 @@ do
         placeBottomChrome()
         State.remeasure = true
         State.lastSignature = nil
-        if tracker:IsShown() and ns.RefreshTracker then
-            ns.RefreshTracker(true)
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
         end
     end
 
@@ -1841,8 +1842,8 @@ do
         end
         State.remeasure = true
         State.lastSignature = nil
-        if tracker:IsShown() and ns.RefreshTracker then
-            ns.RefreshTracker(true)
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
         end
     end
 
@@ -2097,8 +2098,8 @@ do
         end
         State.remeasure = true
         State.lastSignature = nil
-        if tracker:IsShown() and ns.RefreshTracker then
-            ns.RefreshTracker(true)
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
         end
     end
 
@@ -2391,8 +2392,8 @@ do
         end
         State.remeasure = true
         State.lastSignature = nil
-        if tracker:IsShown() and ns.RefreshTracker then
-            ns.RefreshTracker(true)
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
         end
     end
 
@@ -2814,9 +2815,9 @@ do
         return false
     end
 
-    -- Cache longer than TRAIN_UPDATE_SECONDS so the 1s timer usually hits.
-    -- A 1s TTL with a 1s poll almost always missed and re-walked What's Training.
-    local MISSING_CACHE_SECONDS = 5
+    -- Event-driven cache. TTL is only a safety net; SPELLS_CHANGED / trainer /
+    -- level events invalidate. A short TTL re-walked What's Training for ~10ms+.
+    local MISSING_CACHE_SECONDS = 120
 
     local function hasMissingAvailableSpells()
         local now = GetTime and GetTime() or 0
@@ -2853,11 +2854,16 @@ do
         missingCache.at = -1
     end
 
-    -- SPELLS_CHANGED also fires for weapon-skill ups. Debounce so a skill
-    -- grind does not re-walk What's Training on every tick.
+    -- SPELLS_CHANGED also fires for weapon swaps / skill noise. Debounce so a
+    -- grind does not re-walk What's Training on every tick. Combat defers.
     local trainEventAt = 0
+    local trainPending = false
     local function queueTrainStrip()
         if not tracker:IsShown() then
+            return
+        end
+        if InCombatLockdown and InCombatLockdown() then
+            trainPending = true
             return
         end
         local now = GetTime and GetTime() or 0
@@ -3025,11 +3031,31 @@ do
     end)
 
     function updateTrainStrip()
+        -- Trainer reminder never needs a mid-fight scan (~10ms What's Training walk).
+        if InCombatLockdown and InCombatLockdown() then
+            trainPending = true
+            return
+        end
+        trainPending = false
         local enabled = ns.db and ns.db.showTrainReminders
+        if not enabled or not tracker:IsShown() then
+            if strip:IsShown() then
+                showTrain(false)
+            end
+            State.train.level = nil
+            return
+        end
         local level = currentTrainLevel()
-        local missing = enabled and hasMissingAvailableSpells()
-        local showUI = tracker:IsShown() and enabled and level and missing and not isDismissed(level)
-        if not showUI then
+        -- Dismissed for this level: skip the spell catalog walk entirely.
+        if not level or isDismissed(level) then
+            if strip:IsShown() then
+                showTrain(false)
+            end
+            State.train.level = nil
+            return
+        end
+        local missing = hasMissingAvailableSpells()
+        if not missing then
             if strip:IsShown() then
                 showTrain(false)
             end
@@ -3052,10 +3078,28 @@ do
     watcher:RegisterEvent("TRAINER_UPDATE")
     watcher:RegisterEvent("TRAINER_CLOSED")
     watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+    watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
     watcher:RegisterEvent("SPELLS_CHANGED")
     pcall(watcher.RegisterEvent, watcher, "LEARNED_SPELL_IN_TAB")
     pcall(watcher.RegisterEvent, watcher, "LEARNED_SPELL_IN_SKILL_LINE")
     watcher:SetScript("OnEvent", function(_, event)
+        if event == "PLAYER_REGEN_ENABLED" then
+            if trainPending then
+                invalidateMissingCache()
+                queueTrainStrip()
+            end
+            return
+        end
+        -- Combat: remember to rescan after, do not walk spells mid-fight.
+        if InCombatLockdown and InCombatLockdown()
+            and event ~= "TRAINER_SHOW"
+            and event ~= "TRAINER_UPDATE"
+            and event ~= "TRAINER_CLOSED"
+            and event ~= "PLAYER_LEVEL_UP"
+        then
+            trainPending = true
+            return
+        end
         invalidateMissingCache()
         if event == "TRAINER_SHOW" or event == "TRAINER_UPDATE" then
             if not (IsTradeskillTrainer and IsTradeskillTrainer()) then
@@ -3189,8 +3233,8 @@ do
         end
         State.remeasure = true
         State.lastSignature = nil
-        if tracker:IsShown() and ns.RefreshTracker then
-            ns.RefreshTracker(true)
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
         end
     end
 
@@ -7265,7 +7309,12 @@ function ns.MarkTrackerDirty(force)
         State.trackerForce = true
     end
     if not State.dirtyAt or State.dirtyAt == 0 then
-        State.dirtyAt = (GetTime and GetTime() or 0) + UI.TRACKER_COALESCE_SECONDS
+        -- Kill/objective spam batches harder in combat so one refresh covers many ticks.
+        local delay = UI.TRACKER_COALESCE_SECONDS
+        if InCombatLockdown and InCombatLockdown() then
+            delay = UI.TRACKER_COMBAT_COALESCE_SECONDS or 0.2
+        end
+        State.dirtyAt = (GetTime and GetTime() or 0) + delay
     end
 end
 
@@ -7401,43 +7450,60 @@ State.refreshTracker = function(force)
         tracker:SetScale(scale)
     end
 
-    if InCombatLockdown() and next(State.parked) then
-        for index, item in ipairs(displayItems) do
-            local row = State.rows[index]
-            if row and row.text then
-                local main = index == 1
-                if row.badge and row.badge.text then
-                    local badgeNumber, badgeText = badgeLabel(item, index)
-                    RG.applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
-                    row.badge.text:SetText(badgeText)
-                    row.badge.stepIndex = item.stepIndex
-                    row.badge.sticky = item.sticky
-                    bindStepTip(row, item)
+    local contentChanged = signature ~= State.lastSignature
+
+    -- Combat: never restyle chrome / rebuild the step list on every kill tick.
+    -- Previously this lite path only ran when secure buttons were parked, so
+    -- text-only steps paid the full out-of-combat rebuild (~50ms) in combat.
+    if InCombatLockdown() then
+        local rowCount = #displayItems
+        local rowCountChanged = rowCount ~= (State.combatRowCount or -1)
+        if force or rowCountChanged or State.remeasure then
+            if layout(displayItems, contentChanged or force) then
+                State.lastSignature = signature
+                State.remeasure = false
+                State.combatRowCount = rowCount
+            else
+                State.remeasure = true
+            end
+        elseif contentChanged then
+            State.lastSignature = signature
+            for index, item in ipairs(displayItems) do
+                local row = State.rows[index]
+                if row and row.text then
+                    local main = index == 1
+                    if row.badge and row.badge.text then
+                        local badgeNumber, badgeText = badgeLabel(item, index)
+                        RG.applyFont(row.badge.text, badgeFontSize(main, badgeNumber), "OUTLINE")
+                        row.badge.text:SetText(badgeText)
+                        row.badge.stepIndex = item.stepIndex
+                        row.badge.sticky = item.sticky
+                        bindStepTip(row, item)
+                    end
+                    if row.arrow and not item.__rxpbCompleting then
+                        row.arrow.__rxpbWp = item.waypoint
+                    end
+                    applyRowText(row, item, index)
+                    syncProgressBars(row, item)
                 end
-                if row.arrow and not item.__rxpbCompleting then
-                    row.arrow.__rxpbWp = item.waypoint
-                end
-                applyRowText(row, item, index)
             end
         end
-        paintRowColors()
-        styleTracker()
-        styleStepButtons()
-        if State.syncStepMapPins then
+        if State.syncStepMapPins and (force or contentChanged) then
             State.syncStepMapPins(items)
         end
-        if ns.RefreshStepList then
-            ns.RefreshStepList(force)
+        -- Step list only needs a pulse when the active step actually moved.
+        if force and ns.RefreshStepList then
+            ns.RefreshStepList(true)
         end
         State.notePrimaryRouteStep()
         rememberPulsePosition()
         return
     end
 
+    State.combatRowCount = nil
     local sizeNow = readTrackerWidth() .. ":" .. (readTrackerHeight() or 0)
     local sizeChanged = sizeNow ~= State.sizeKey
     State.sizeKey = sizeNow
-    local contentChanged = signature ~= State.lastSignature
     local completingPending = State.completing and next(State.completing)
     if force or contentChanged or sizeChanged or State.remeasure or (completingPending and contentChanged) then
         if layout(displayItems, contentChanged) then
@@ -7468,8 +7534,9 @@ State.refreshTracker = function(force)
     if updateHearthRecStrip then
         updateHearthRecStrip()
     end
+    -- Objective text changes must not force a step-list restyle/rebuild.
     if ns.RefreshStepList then
-        ns.RefreshStepList(force or contentChanged)
+        ns.RefreshStepList(force)
     end
     State.notePrimaryRouteStep()
     rememberPulsePosition()

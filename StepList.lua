@@ -485,6 +485,7 @@ function ns.RefreshStepList(force)
     local restyle = force or not painted
     if restyle then
         stylePanel()
+        painted = true
     end
 
     -- Cheap path: same guide, only the active step moved.
@@ -504,7 +505,10 @@ function ns.RefreshStepList(force)
         return
     end
 
-    if not rebuilt and not currentChanged and not restyle then
+    -- force/restyle alone must not rebuild every row; that was a combat hitch
+    -- whenever objective text dirtied the tracker with force=false but
+    -- contentChanged was treated as force upstream.
+    if not rebuilt and not currentChanged then
         panel:Show()
         local hostAlpha = host:GetAlpha()
         if type(hostAlpha) == "number" then

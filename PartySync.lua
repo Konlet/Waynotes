@@ -24,8 +24,11 @@ local registered
 local ticker
 local dropdown
 local broadcastPending
--- Let Guides.lua's dirty coalesce (~0.05s) refresh lastSync* before we encode.
+local combatBroadcastPending
+-- Let Guides.lua's dirty coalesce refresh lastSync* before we encode.
 local BROADCAST_COALESCE = 0.15
+-- Ability reagents / ammo / thrown fire BAG_UPDATE often. Never encode that fast.
+local BROADCAST_BAG_COALESCE = 1.0
 
 local function say(text)
     if DEFAULT_CHAT_FRAME then
@@ -284,10 +287,16 @@ end
 
 -- Quest/bag spam is frequent in a group. Coalesce broadcasts and let the normal
 -- tracker dirty pass update sticky/progress caches first.
-local function scheduleBroadcast()
+local function scheduleBroadcast(delay)
     if applying or not standaloneReady() or not inGroup() then
         return
     end
+    -- Mid-fight encodes hitch the caster; flush once combat ends.
+    if InCombatLockdown and InCombatLockdown() then
+        combatBroadcastPending = true
+        return
+    end
+    delay = tonumber(delay) or BROADCAST_COALESCE
     if broadcastPending then
         return
     end
@@ -299,7 +308,7 @@ local function scheduleBroadcast()
         end
     end
     if C_Timer and C_Timer.After then
-        C_Timer.After(BROADCAST_COALESCE, fire)
+        C_Timer.After(delay, fire)
     else
         fire()
     end
@@ -355,7 +364,11 @@ local function applyFollowState(guideId, step, fromName, quests, questSig, stick
     local currentStep = tonumber(entry and entry.step)
     if currentId == guideId and currentStep == step then
         if questsChanged or stickiesChanged or progressChanged then
-            markTrackerDirty(true)
+            -- Progress/quest text only: never force a full rebuild. Sticky set
+            -- changes may add/remove rows, but MarkTrackerDirty(false) still
+            -- rebuilds when the signature changes. Forcing was a 40-60ms hitch
+            -- on every peer bag/ability broadcast while following.
+            markTrackerDirty(stickiesChanged and true or false)
         end
         return
     end
@@ -501,6 +514,13 @@ function ns.PartySyncBroadcast()
     if not standaloneReady() or not inGroup() then
         return
     end
+    -- Encoding quests/progress walks the log. Doing that on every combat
+    -- bag tick (reagents, ammo) was a group-only cast hitch.
+    if InCombatLockdown and InCombatLockdown() then
+        combatBroadcastPending = true
+        return
+    end
+    combatBroadcastPending = false
     registerPrefix()
     local guideId, step = currentState()
     if not guideId then
@@ -760,11 +780,19 @@ events:RegisterEvent("QUEST_ACCEPTED")
 events:RegisterEvent("QUEST_TURNED_IN")
 events:RegisterEvent("UNIT_QUEST_LOG_CHANGED")
 events:RegisterEvent("BAG_UPDATE_DELAYED")
+events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:SetScript("OnEvent", function(_, event, ...)
     if event == "PLAYER_LOGIN" then
         registerPrefix()
         ensureTicker()
         pulse()
+        return
+    end
+    if event == "PLAYER_REGEN_ENABLED" then
+        if combatBroadcastPending then
+            combatBroadcastPending = false
+            scheduleBroadcast(BROADCAST_COALESCE)
+        end
         return
     end
     if event == "GROUP_ROSTER_UPDATE" then
@@ -787,10 +815,15 @@ events:SetScript("OnEvent", function(_, event, ...)
         or event == "QUEST_ACCEPTED"
         or event == "QUEST_TURNED_IN"
         or event == "UNIT_QUEST_LOG_CHANGED"
-        or event == "BAG_UPDATE_DELAYED"
     then
         -- Guides.lua already dirties the tracker; wait for that paint so
         -- sticky/progress encode is fresh, then send one coalesced broadcast.
-        scheduleBroadcast()
+        scheduleBroadcast(BROADCAST_COALESCE)
+        return
+    end
+    if event == "BAG_UPDATE_DELAYED" then
+        -- Collect/loot steps need bag sync, but casts that spend reagents also
+        -- fire this. Use a long coalesce and never encode during combat.
+        scheduleBroadcast(BROADCAST_BAG_COALESCE)
     end
 end)

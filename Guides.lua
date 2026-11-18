@@ -13,6 +13,7 @@ local declinedDungeon = {}
 local lastDungeonPromptKey
 local lastSyncStickies = {}
 local lastSyncProgress = {}
+local lastSyncNeedsBag = false
 
 local stepApplies
 local progressCounts
@@ -2097,7 +2098,8 @@ function ns.GuideApplySync(guideId, stepIndex)
     declinedOffStep = {}
     charDB().guide = guide.id
     progress(guide.id).step = stepIndex
-    refresh()
+    -- Coalesced dirty instead of a synchronous RefreshTracker(true) hitch.
+    markStepsDirty(true)
     return true
 end
 
@@ -3407,6 +3409,7 @@ local function buildItem(step, full)
                     -- Quest log already tracks this loot: drop the authored duplicate.
                     if not covered then
                         kept[#kept + 1] = upgraded
+                        lastSyncNeedsBag = true
                     end
                 else
                     kept[#kept + 1] = line
@@ -3510,6 +3513,7 @@ function ns.GuideObjectives()
     if ns.TravelBeginHints then
         ns.TravelBeginHints()
     end
+    lastSyncNeedsBag = false
     local guide = activeGuide()
     if not guide then
         return {
@@ -4910,6 +4914,7 @@ local catchUpAt = 0
 local objectiveSnap
 local objectiveSnapReady = false
 local pendingOffStepCheck = false
+local pendingBagDirty = false
 local promptedOffStepAt = 0
 local promptedDungeonAt = 0
 local dungeonCheckAt = 0
@@ -4927,6 +4932,7 @@ watcher:RegisterEvent("QUEST_LOG_UPDATE")
 watcher:RegisterEvent("UNIT_QUEST_LOG_CHANGED")
 watcher:RegisterEvent("BAG_UPDATE_DELAYED")
 watcher:RegisterEvent("PLAYER_LEVEL_UP")
+watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 local function objectiveParts(id)
     local parts = {}
@@ -5155,6 +5161,27 @@ local function takeObjectiveSnap()
         snap[id] = objectiveSignature(id)
     end
     return snap
+end
+
+local function snapsEqual(a, b)
+    if a == b then
+        return true
+    end
+    if type(a) ~= "table" or type(b) ~= "table" then
+        return false
+    end
+    local count = 0
+    for id, signature in pairs(a) do
+        if b[id] ~= signature then
+            return false
+        end
+        count = count + 1
+    end
+    local other = 0
+    for _ in pairs(b) do
+        other = other + 1
+    end
+    return count == other
 end
 
 local function progressedQuestIds(before, after)
@@ -5419,20 +5446,28 @@ local function runCatchUp()
     local beforeSnap = objectiveSnap
     local checkOffStep = pendingOffStepCheck and objectiveSnapReady
     pendingOffStepCheck = false
+    local afterSnap = takeObjectiveSnap()
+    local changed = not objectiveSnapReady or not snapsEqual(beforeSnap, afterSnap)
     local progressed
-    if checkOffStep then
-        local afterSnap = takeObjectiveSnap()
+    if checkOffStep and changed then
         progressed = progressedQuestIds(beforeSnap, afterSnap)
-        objectiveSnap = afterSnap
-    else
-        objectiveSnap = takeObjectiveSnap()
-        objectiveSnapReady = true
+    end
+    objectiveSnap = afterSnap
+    objectiveSnapReady = true
+    -- QUEST_LOG_UPDATE also fires when looting non-grey items (and similar
+    -- noise). If no quest objective actually changed, skip CatchUp + refresh.
+    -- That was the ~45ms cast/loot hitch.
+    if not changed then
+        return false
     end
     -- Quest progress always wins over a manual review pause.
     reviewKey = nil
     local moved = ns.GuideCatchUp()
-    -- Always dirty the tracker: objective text can change without a step advance.
-    markStepsDirty(moved and true or false)
+    if moved then
+        markStepsDirty(true)
+    else
+        markStepsDirty(false)
+    end
     if checkOffStep and progressed and #progressed > 0 then
         considerOffStepJump(progressed)
     end
@@ -5529,7 +5564,29 @@ watcher:SetScript("OnEvent", function(_, event, name)
         markStepsDirty(false)
         return
     end
-    if event == "BAG_UPDATE_DELAYED" or event == "PLAYER_LEVEL_UP" then
+    if event == "PLAYER_REGEN_ENABLED" then
+        if pendingBagDirty then
+            pendingBagDirty = false
+            if lastSyncNeedsBag then
+                markStepsDirty(false)
+            end
+        end
+        return
+    end
+    if event == "PLAYER_LEVEL_UP" then
+        markStepsDirty(false)
+        return
+    end
+    if event == "BAG_UPDATE_DELAYED" then
+        -- Loot and reagent spends fire this constantly. Only rebuild when the
+        -- tracker is showing bag-fed collect lines (not every grey/green loot).
+        if not lastSyncNeedsBag then
+            return
+        end
+        if InCombatLockdown and InCombatLockdown() then
+            pendingBagDirty = true
+            return
+        end
         markStepsDirty(false)
         return
     end
