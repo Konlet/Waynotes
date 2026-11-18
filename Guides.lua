@@ -2739,6 +2739,19 @@ local function detailCovers(longKey, shortKey)
         end
         return list
     end
+    -- "Incendrite (10)" must cover live "1/10 Incendrites".
+    local function wordStem(word)
+        if type(word) ~= "string" or #word < 4 then
+            return word
+        end
+        if word:sub(-3) == "ies" and #word >= 5 then
+            return word:sub(1, -4) .. "y"
+        end
+        if word:sub(-1) == "s" and word:sub(-2, -2) ~= "s" then
+            return word:sub(1, -2)
+        end
+        return word
+    end
     local shortWords = words(shortKey)
     local longWords = words(longKey)
     if #shortWords == 0 or #longWords == 0 then
@@ -2747,16 +2760,21 @@ local function detailCovers(longKey, shortKey)
     local have = {}
     for _, word in ipairs(longWords) do
         have[word] = true
+        have[wordStem(word)] = true
     end
     local shared = 0
     for _, word in ipairs(shortWords) do
-        if have[word] then
+        if have[word] or have[wordStem(word)] then
             shared = shared + 1
         end
     end
-    -- One coded id (xt:4) is distinctive enough; plain words still need overlap.
-    if shared == #shortWords and shared == 1 and shortWords[1]:find("%d") then
-        return true
+    -- One coded id (xt:4) or one long item name (incendrites) is enough when
+    -- every short token matched. Shorter plain words still need overlap.
+    if shared == #shortWords and shared == 1 then
+        local only = shortWords[1]
+        if only:find("%d") or #only >= 5 then
+            return true
+        end
     end
     return shared >= math.max(2, math.ceil(#shortWords * 0.75))
 end
@@ -3366,12 +3384,35 @@ local function buildItem(step, full)
         -- numbered objectives instead of static placeholders.
         -- Skip while party-sync following so local bags cannot override the leader.
         if not (ns.PartySyncFollowing and ns.PartySyncFollowing()) then
-            for index, line in ipairs(details) do
+            local function looksLiveProgress(line)
+                return objectivePlain(line):match("%d+%s*/%s*%d+") ~= nil
+            end
+            local kept = {}
+            for _, line in ipairs(details) do
                 local upgraded = bagProgressLine(line)
                 if upgraded then
-                    details[index] = upgraded
+                    local upgradeKey = detailKey(upgraded)
+                    local covered = false
+                    for _, other in ipairs(details) do
+                        if other ~= line and looksLiveProgress(other) then
+                            local otherKey = detailKey(other)
+                            if otherKey and upgradeKey and (
+                                detailCovers(otherKey, upgradeKey) or detailCovers(upgradeKey, otherKey)
+                            ) then
+                                covered = true
+                                break
+                            end
+                        end
+                    end
+                    -- Quest log already tracks this loot: drop the authored duplicate.
+                    if not covered then
+                        kept[#kept + 1] = upgraded
+                    end
+                else
+                    kept[#kept + 1] = line
                 end
             end
+            details = kept
         else
             applyRemoteStepProgress(step, details)
         end

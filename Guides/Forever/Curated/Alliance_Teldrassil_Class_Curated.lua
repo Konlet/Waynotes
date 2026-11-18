@@ -141,10 +141,18 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to the [FRIENDLY]Great Bear Spirit[/], then return to [FRIENDLY]Dendrite Starblaze[/]. Turn in [QUEST]Great Bear Spirit[/]. Accept [QUEST]Back to Darnassus[/].",
+            text = "Talk to the [FRIENDLY]Great Bear Spirit[/] northwest of Nighthaven.",
             map = 1450,
             x = 39.1,
             y = 27.5,
+            quest = 5929,
+            when = "objectives",
+        },
+        {
+            text = "Return to [FRIENDLY]Dendrite Starblaze[/]. Turn in [QUEST]Great Bear Spirit[/]. Accept [QUEST]Back to Darnassus[/].",
+            map = 1450,
+            x = 56.4,
+            y = 30.5,
             quest = 5931,
             when = "accepted",
             details = {
@@ -152,7 +160,14 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Silva Fil'naveth[/] for a flight to Rut'theran, then enter Darnassus. Talk to [FRIENDLY]Mathrengyl Bearwalker[/]. Turn in [QUEST]Back to Darnassus[/]. Accept [QUEST]Body and Heart[/].",
+            text = "Talk to [FRIENDLY]Silva Fil'naveth[/] for a flight to Rut'theran.",
+            map = 1450,
+            x = 44.15,
+            y = 45.22,
+            when = "travel",
+        },
+        {
+            text = "Enter Darnassus. Talk to [FRIENDLY]Mathrengyl Bearwalker[/]. Turn in [QUEST]Back to Darnassus[/]. Accept [QUEST]Body and Heart[/].",
             map = 1457,
             x = 35.4,
             y = 8.4,
