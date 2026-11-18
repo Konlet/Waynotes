@@ -13,8 +13,8 @@ Waynotes is a World of Warcraft addon for **WoW Forever**. It provides a WoW-sty
 
 ## Optional addons
 
-- **QuestieDB** – quest names, givers, and map pins
-- **WhatsTraining** – trainer reminder support
+- **QuestieDB** - quest names, givers, and map pins
+- **WhatsTraining** - trainer reminder support
 
 ## Usage
 
