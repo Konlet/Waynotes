@@ -2936,7 +2936,10 @@ do
         if ns.GuideCatchUp then
             pcall(ns.GuideCatchUp)
         end
-        if ns.RefreshTracker then
+        -- Coalesce; never RefreshTracker(true) inline (that was a 45ms cast hitch).
+        if ns.MarkTrackerDirty then
+            ns.MarkTrackerDirty(true)
+        elseif ns.RefreshTracker then
             pcall(ns.RefreshTracker, true)
         end
     end
@@ -2960,11 +2963,11 @@ do
             return
         end
         if event == "BAG_UPDATE_COOLDOWN" or event == "PLAYER_REGEN_ENABLED" then
+            -- BAG_UPDATE_COOLDOWN fires on cast GCD / item CD updates. Only the
+            -- hearth button needs that; a full forced tracker rebuild was the
+            -- every-cast ~45ms spike.
             if hearthButton then
                 updateHearthCooldown(hearthButton)
-            end
-            if ns.RefreshTracker then
-                pcall(ns.RefreshTracker, true)
             end
             return
         end
