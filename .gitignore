@@ -2,3 +2,5 @@
 _questiedb/
 scripts/deploy.path
 Guides/REFERENCE/
+
+*.zip
