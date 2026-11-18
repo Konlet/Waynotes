@@ -4911,13 +4911,18 @@ end
 
 local watcher = CreateFrame("Frame")
 local catchUpAt = 0
+local catchUpFirstAt = 0
 local objectiveSnap
 local objectiveSnapReady = false
 local pendingOffStepCheck = false
 local pendingBagDirty = false
+local pendingCatchUpForce = false
 local promptedOffStepAt = 0
 local promptedDungeonAt = 0
 local dungeonCheckAt = 0
+-- Coalesce QUEST_LOG spam without sliding forever past a turn-in/accept.
+local CATCH_UP_DELAY = 0.15
+local CATCH_UP_MAX_WAIT = 0.35
 
 watcher:RegisterEvent("ADDON_LOADED")
 watcher:RegisterEvent("PLAYER_LOGIN")
@@ -5441,11 +5446,14 @@ end
 local function runCatchUp()
     if not ns.UsingStandalone or not ns.UsingStandalone() then
         pendingOffStepCheck = false
+        pendingCatchUpForce = false
         return false
     end
     local beforeSnap = objectiveSnap
     local checkOffStep = pendingOffStepCheck and objectiveSnapReady
+    local force = pendingCatchUpForce
     pendingOffStepCheck = false
+    pendingCatchUpForce = false
     local afterSnap = takeObjectiveSnap()
     local changed = not objectiveSnapReady or not snapsEqual(beforeSnap, afterSnap)
     local progressed
@@ -5454,18 +5462,16 @@ local function runCatchUp()
     end
     objectiveSnap = afterSnap
     objectiveSnapReady = true
-    -- QUEST_LOG_UPDATE also fires when looting non-grey items (and similar
-    -- noise). If no quest objective actually changed, skip CatchUp + refresh.
-    -- That was the ~45ms cast/loot hitch.
-    if not changed then
-        return false
-    end
+    -- Always advance steps. QUEST_LOG can fire before the log API reflects a
+    -- turn-in; skipping CatchUp on "unchanged" snap left the guide stuck.
     -- Quest progress always wins over a manual review pause.
     reviewKey = nil
     local moved = ns.GuideCatchUp()
+    -- Rebuild only when something real happened. Loot/cast QUEST_LOG noise
+    -- with no snap change and no step move stays quiet (cast lag fix).
     if moved then
         markStepsDirty(true)
-    else
+    elseif changed or force then
         markStepsDirty(false)
     end
     if checkOffStep and progressed and #progressed > 0 then
@@ -5484,6 +5490,7 @@ local function pumpWatcher()
         end
         if dueCatchUp then
             catchUpAt = 0
+            catchUpFirstAt = 0
         end
         if dueDungeon then
             dungeonCheckAt = 0
@@ -5500,13 +5507,30 @@ local function pumpWatcher()
     end)
 end
 
-local function queueCatchUp(delay, checkOffStep)
+local function queueCatchUp(delay, checkOffStep, force)
     if checkOffStep then
         pendingOffStepCheck = true
     end
-    local when = GetTime() + (delay or 0)
-    if when > catchUpAt then
-        catchUpAt = when
+    if force then
+        pendingCatchUpForce = true
+    end
+    delay = tonumber(delay) or CATCH_UP_DELAY
+    local now = GetTime()
+    if catchUpAt <= 0 then
+        catchUpFirstAt = now
+        catchUpAt = now + delay
+    else
+        -- Trailing coalesce, but never slide past first-event + max wait.
+        -- The old "always extend" timer never fired during loot QUEST_LOG spam.
+        local trailing = now + delay
+        local capped = (catchUpFirstAt > 0 and catchUpFirstAt or now) + CATCH_UP_MAX_WAIT
+        local when = trailing
+        if when > capped then
+            when = capped
+        end
+        if when < catchUpAt then
+            catchUpAt = when
+        end
     end
     pumpWatcher()
 end
@@ -5571,6 +5595,10 @@ watcher:SetScript("OnEvent", function(_, event, name)
                 markStepsDirty(false)
             end
         end
+        -- Combat may have deferred quest catch-up under loot spam; flush now.
+        if ns.UsingStandalone and ns.UsingStandalone() then
+            queueCatchUp(0.05, true, true)
+        end
         return
     end
     if event == "PLAYER_LEVEL_UP" then
@@ -5596,6 +5624,12 @@ watcher:SetScript("OnEvent", function(_, event, name)
     if not ns.UsingStandalone or not ns.UsingStandalone() then
         return
     end
+    -- Accept / turn-in / remove must always refresh, even if the objective snap
+    -- looks unchanged for a frame (Forever can fire before the log API settles).
+    if event == "QUEST_ACCEPTED" or event == "QUEST_TURNED_IN" or event == "QUEST_REMOVED" then
+        queueCatchUp(0.05, false, true)
+        return
+    end
     local checkOffStep = event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED"
-    queueCatchUp(0.15, checkOffStep)
+    queueCatchUp(CATCH_UP_DELAY, checkOffStep)
 end)
