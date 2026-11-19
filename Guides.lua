@@ -2786,8 +2786,14 @@ local function detailCovers(longKey, shortKey)
     local function words(key)
         local list = {}
         local seen = {}
+        -- Drop live "3/8" and authored "(8)" counts so sibling lines like
+        -- "Empty Vial Labeled #1 (1)" vs "#2 (1)" compare on the name only.
+        local rest = key:gsub("%d+%s*/%s*%d+", " ")
+        rest = rest:gsub("%(%s*%d+%s*%)", " ")
+        -- Treat #1 / #2 labels as digit tokens ("Empty Vial Labeled #1").
+        rest = rest:gsub("#", " ")
         -- Coded names like XT:4. Skip "Name: 3/8" live-progress colons.
-        local rest = key:gsub("(%a+)[%:%-]%s*(%d+)(/?)", function(letters, digits, slash)
+        rest = rest:gsub("(%a+)[%:%-]%s*(%d+)(/?)", function(letters, digits, slash)
             if slash == "/" then
                 return letters .. " " .. digits .. slash
             end
@@ -2799,7 +2805,9 @@ local function detailCovers(longKey, shortKey)
             return " "
         end)
         for word in rest:gmatch("%w+") do
-            if #word >= 3 and not skip[word] and not seen[word] then
+            -- Keep digits so "Vial #1" and "Vial #2" stay distinct.
+            local keep = (not skip[word]) and (#word >= 3 or word:match("^%d+$"))
+            if keep and not seen[word] then
                 seen[word] = true
                 list[#list + 1] = word
             end
@@ -2835,15 +2843,19 @@ local function detailCovers(longKey, shortKey)
             shared = shared + 1
         end
     end
-    -- One coded id (xt:4) or one long item name (incendrites) is enough when
-    -- every short token matched. Shorter plain words still need overlap.
-    if shared == #shortWords and shared == 1 then
-        local only = shortWords[1]
-        if only:find("%d") or #only >= 5 then
-            return true
-        end
+    -- Short is covered only when every short token appears in long.
+    -- A 75% overlap was collapsing sibling objectives that share boilerplate
+    -- ("Attack Plan … destroyed", "Shut off … Valve", "Visit … Raptor Nest").
+    if shared ~= #shortWords then
+        return false
     end
-    return shared >= math.max(2, math.ceil(#shortWords * 0.75))
+    -- One coded id (xt:4) or one long item name (incendrites) is enough when
+    -- that single token matched. Two or more matched tokens always cover.
+    if shared == 1 then
+        local only = shortWords[1]
+        return only:find("%d") ~= nil or #only >= 5
+    end
+    return true
 end
 
 -- Strip author-only quest numbers, guide ids, and UI prompts from player-facing text.

@@ -13,6 +13,7 @@ ns.RegisterGuide({
     faction = "Alliance",
     forever = true,
     listed = true,
+    next = "alliance-ashenvale-21-24",
     minLevel = 19,
     maxLevel = 21,
     steps = {
@@ -519,6 +520,10 @@ ns.RegisterGuide({
             x = 73.8,
             y = 45.0,
             note = "Hand-off: Duskwood (Darkshire).",
+        },
+        {
+            text = "Redridge is done for now. Continue to Ashenvale.",
+            guide = "alliance-ashenvale-21-24",
         },
     },
 })

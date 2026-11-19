@@ -625,6 +625,7 @@ ns.RegisterGuide({
     faction = "Alliance",
     forever = true,
     listed = true,
+    next = "alliance-loch-modan-18-19",
     minLevel = 16,
     maxLevel = 20,
     steps = {
@@ -812,12 +813,12 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Darkshore is done for now. Take [QUEST]The Tower of Althalaxx[/] into Ashenvale, boat for Loch Modan / Wetlands leftovers, or continue to Redridge around level 19.",
+            text = "Darkshore is done for now. Continue to Loch Modan around level 18, then curated Redridge around level 19.",
             map = 1440,
             x = 26.2,
             y = 38.7,
             note = "Hand-off: Ashenvale (Tower of Althalaxx), then Redridge curated around 19.",
-            guide = "alliance-redridge-19-21",
+            guide = "alliance-loch-modan-18-19",
         },
     },
 })
