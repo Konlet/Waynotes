@@ -567,15 +567,35 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "In Kolkar Crag, burn the three [PICK]Attack Plans[/] (Valley of Trials, Sen'jin Village, Orgrimmar).",
+            text = "Destroy Attack Plan: Valley of Trials.",
             map = 1411,
-            x = 47.7,
-            y = 77.3,
+            x = 49.8,
+            y = 81.3,
             quest = 786,
             when = "objectives",
             details = {
                 "Attack Plan: Valley of Trials destroyed",
+            },
+        },
+        {
+            text = "Destroy Attack Plan: Sen'jin Village.",
+            map = 1411,
+            x = 47,7,
+            y = 77.3,
+            quest = 786,
+            when = "objectives",
+            details = {
                 "Attack Plan: Sen'jin Village destroyed",
+            },
+        },
+        {
+            text = "Destroy Attack Plan: Orgrimmar.",
+            map = 1411,
+            x = 46.2,
+            y = 79.0,
+            quest = 786,
+            when = "objectives",
+            details = {
                 "Attack Plan: Orgrimmar destroyed",
             },
         },
