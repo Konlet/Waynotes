@@ -17,7 +17,7 @@ ns.RegisterGuide({
     maxLevel = 30,
     steps = {
         {
-            text = "In Sun Rock Retreat, talk to [FRIENDLY]Maggran Earthbinder[/]. Accept [QUEST]Calling in the Reserves[/] if you do not have it.",
+            text = "In Sun Rock Retreat, talk to [FRIENDLY]Maggran Earthbinder[/]. Accept [QUEST]Calling in the Reserves[/].",
             map = 1442,
             x = 47.2,
             y = 61.2,
@@ -553,6 +553,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    next = "horde-desolace-34-36",
     minLevel = 33,
     maxLevel = 34,
     steps = {
@@ -876,7 +877,8 @@ ns.RegisterGuide({
             y = 77.1,
         },
         {
-            text = "Thousand Needles is done for now. Hold [QUEST]Family Tree[/] for Desolace, [QUEST]Goblin Sponsorship[/] and Stranglethorn pickups for STV, and [QUEST]Martek the Exiled[/] for the Badlands later.",
+            text = "Thousand Needles is done for now. Hold [QUEST]Family Tree[/] for Desolace, [QUEST]Goblin Sponsorship[/] for Stranglethorn Vale, and [QUEST]Martek the Exiled[/] for the Badlands later. Continue to Desolace.",
+            guide = "horde-desolace-34-36",
             note = "Hand-off: Desolace (Family Tree), Stranglethorn Vale (Goblin Sponsorship / Rumormonger chain), Badlands (Martek).",
             map = 1441,
             x = 45.7,

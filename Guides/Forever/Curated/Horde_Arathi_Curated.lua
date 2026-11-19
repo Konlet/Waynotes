@@ -222,6 +222,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    next = "horde-badlands-39-40",
     minLevel = 38,
     maxLevel = 39,
     steps = {

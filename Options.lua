@@ -1,9 +1,17 @@
-local _, ns = ...
+local addonName, ns = ...
 
 local refreshers = {}
 
 local function addRefresher(widget)
     refreshers[#refreshers + 1] = widget
+end
+
+local function addonVersion()
+    local getter = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+    if getter then
+        return getter(addonName, "Version") or ""
+    end
+    return ""
 end
 
 local sliderCount = 0
@@ -157,23 +165,169 @@ local function createCheck(parent, text, tooltip, key)
     return box
 end
 
-local function createHeader(parent, text)
+local ACCENT = { 0.808, 0.482, 1 }
+local LOGO = "Interface\\AddOns\\Waynotes\\logo"
+local HEADER_HEIGHT = 58
+local SECTION_PAD = 10
+local BODY_INSET = 10
+local sectionCollapse = {}
+local layoutSections = {}
+local layoutParent
+local layoutFooter
+local relayoutSections
+
+local function createPageHeader(parent)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(22)
+    holder:SetHeight(HEADER_HEIGHT)
 
-    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    label:SetPoint("LEFT", 0, 2)
-    label:SetText(text)
-    label:SetTextColor(0.86, 0.7, 1)
+    local wash = holder:CreateTexture(nil, "BACKGROUND")
+    wash:SetPoint("TOPLEFT", 0, 0)
+    wash:SetPoint("BOTTOMRIGHT", 0, 4)
+    wash:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    wash:SetVertexColor(0.12, 0.08, 0.18, 0.55)
 
-    local line = holder:CreateTexture(nil, "ARTWORK")
-    line:SetHeight(1)
-    line:SetPoint("LEFT", label, "RIGHT", 8, 0)
-    line:SetPoint("RIGHT", holder, "RIGHT", 0, 0)
-    line:SetTexture("Interface\\BUTTONS\\WHITE8X8")
-    line:SetVertexColor(0.55, 0.38, 0.75, 0.9)
+    local accent = holder:CreateTexture(nil, "ARTWORK")
+    accent:SetHeight(2)
+    accent:SetPoint("BOTTOMLEFT", 0, 4)
+    accent:SetPoint("BOTTOMRIGHT", 0, 4)
+    accent:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    accent:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.85)
+
+    local logo = holder:CreateTexture(nil, "ARTWORK")
+    logo:SetSize(36, 36)
+    logo:SetPoint("LEFT", 12, 2)
+    logo:SetTexture(LOGO)
+
+    local title = holder:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("LEFT", logo, "RIGHT", 10, 6)
+    title:SetText("Waynotes")
+    title:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
+
+    local version = addonVersion()
+    if version ~= "" then
+        local versionText = holder:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+        versionText:SetPoint("LEFT", title, "RIGHT", 8, 0)
+        versionText:SetText("v" .. version)
+    end
+
+    local subtitle = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -2)
+    subtitle:SetPoint("RIGHT", holder, "RIGHT", -16, 0)
+    subtitle:SetJustifyH("LEFT")
+    subtitle:SetText("Tracker style, guides, and display options.")
+    subtitle:SetTextColor(0.78, 0.78, 0.82)
 
     return holder
+end
+
+local function createSection(parent, key, title, defaultCollapsed)
+    local section = CreateFrame("Frame", nil, parent)
+    section.key = key
+    section.title = title
+    section.collapsed = sectionCollapse[key]
+    if section.collapsed == nil then
+        section.collapsed = defaultCollapsed and true or false
+    end
+
+    local header = CreateFrame("Button", nil, section)
+    header:SetHeight(30)
+    header:SetPoint("TOPLEFT", 0, 0)
+    header:SetPoint("TOPRIGHT", 0, 0)
+    header:RegisterForClicks("LeftButtonUp")
+
+    local bg = header:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    bg:SetVertexColor(0.16, 0.11, 0.24, 0.72)
+
+    local stripe = header:CreateTexture(nil, "ARTWORK")
+    stripe:SetWidth(3)
+    stripe:SetPoint("TOPLEFT", 0, 0)
+    stripe:SetPoint("BOTTOMLEFT", 0, 0)
+    stripe:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    stripe:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.95)
+
+    local underline = header:CreateTexture(nil, "ARTWORK")
+    underline:SetHeight(1)
+    underline:SetPoint("BOTTOMLEFT", 3, 0)
+    underline:SetPoint("BOTTOMRIGHT", 0, 0)
+    underline:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    underline:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.35)
+
+    local chevron = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    chevron:SetPoint("LEFT", 12, 0)
+    chevron:SetWidth(12)
+    chevron:SetJustifyH("CENTER")
+    chevron:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
+
+    local label = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    label:SetPoint("LEFT", chevron, "RIGHT", 6, 0)
+    label:SetText(title)
+    label:SetTextColor(0.94, 0.9, 1)
+
+    local hover = header:CreateTexture(nil, "HIGHLIGHT")
+    hover:SetAllPoints()
+    hover:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    hover:SetVertexColor(1, 1, 1, 0.06)
+
+    local body = CreateFrame("Frame", nil, section)
+    body:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -2)
+    body:SetPoint("TOPRIGHT", header, "BOTTOMRIGHT", 0, -2)
+    body.contentHeight = 0
+
+    local bodyBg = body:CreateTexture(nil, "BACKGROUND")
+    bodyBg:SetPoint("TOPLEFT", 0, 0)
+    bodyBg:SetPoint("BOTTOMRIGHT", 0, 0)
+    bodyBg:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    bodyBg:SetVertexColor(0.08, 0.06, 0.12, 0.35)
+
+    section.header = header
+    section.body = body
+    section.chevron = chevron
+
+    local function applyCollapsed()
+        sectionCollapse[key] = section.collapsed
+        if section.collapsed then
+            chevron:SetText(">")
+            body:Hide()
+            section:SetHeight(30)
+        else
+            chevron:SetText("v")
+            body:Show()
+            section:SetHeight(32 + (body.contentHeight or 0))
+        end
+    end
+
+    function section:SetContentHeight(height)
+        body.contentHeight = math.max(height, 8)
+        body:SetHeight(body.contentHeight)
+        applyCollapsed()
+    end
+
+    function section:SetCollapsed(collapsed)
+        self.collapsed = collapsed and true or false
+        applyCollapsed()
+        if relayoutSections then
+            relayoutSections()
+        end
+    end
+
+    header:SetScript("OnClick", function()
+        section:SetCollapsed(not section.collapsed)
+    end)
+
+    applyCollapsed()
+    layoutSections[#layoutSections + 1] = section
+    return section
+end
+
+local function placeIn(widget, body, y, left, right)
+    widget:SetPoint("TOPLEFT", body, "TOPLEFT", left or BODY_INSET, y)
+    widget:SetPoint("TOPRIGHT", body, "TOPRIGHT", -(right or BODY_INSET), y)
+end
+
+local function placeCheck(check, body, y)
+    check:SetPoint("TOPLEFT", body, "TOPLEFT", 4, y)
 end
 
 local function createLayers(parent)
@@ -663,48 +817,73 @@ function ns.ApplySoon()
     end)
 end
 
-local function place(widget, parent, y)
-    widget:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, y)
-    widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, y)
-end
-
 local function trackerOn()
     return ns.db and (ns.db.standaloneGuide or ns.db.replaceGuide) and true or false
 end
 
+relayoutSections = function()
+    if not layoutParent then
+        return
+    end
+    local y = -SECTION_PAD
+    for _, section in ipairs(layoutSections) do
+        section:ClearAllPoints()
+        section:SetPoint("TOPLEFT", layoutParent, "TOPLEFT", SECTION_PAD, y)
+        section:SetPoint("TOPRIGHT", layoutParent, "TOPRIGHT", -SECTION_PAD, y)
+        y = y - section:GetHeight() - 8
+    end
+    if layoutFooter then
+        layoutFooter:ClearAllPoints()
+        layoutFooter:SetPoint("TOPLEFT", layoutParent, "TOPLEFT", SECTION_PAD + 6, y - 4)
+        y = y - 36
+    end
+    layoutParent:SetHeight(math.abs(y) + 16)
+    local scrollFrame = layoutParent:GetParent()
+    if scrollFrame and scrollFrame.GetVerticalScroll and scrollFrame.SetVerticalScroll then
+        local maxScroll = scrollFrame:GetVerticalScrollRange() or 0
+        local current = scrollFrame:GetVerticalScroll() or 0
+        if current > maxScroll then
+            scrollFrame:SetVerticalScroll(maxScroll)
+        end
+    end
+end
+
+local function finishSection(section, y)
+    section:SetContentHeight(math.abs(y) + SECTION_PAD)
+end
+
 local function build(parent)
-    local y = -4
+    wipe(layoutSections)
+    layoutParent = parent
+    layoutFooter = nil
 
-    local desc = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    desc:SetPoint("TOPLEFT", 16, y)
-    desc:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
-    desc:SetJustifyH("LEFT")
-    desc:SetJustifyV("TOP")
-    desc:SetText("Tracker style and colors. Replace RestedXP runs your custom guides and hides the RestedXP window.")
-    y = y - 36
+    local appearance = createSection(parent, "appearance", "Appearance", false)
+    local body = appearance.body
+    local y = -SECTION_PAD
 
-    local autoProgress = createCheck(parent, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
-    autoProgress:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local autoProgress = createCheck(body, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
+    placeCheck(autoProgress, body, y)
     y = y - 30
 
-    local themes = createThemes(parent)
-    place(themes, parent, y)
+    local themes = createThemes(body)
+    placeIn(themes, body, y)
     y = y - 52
 
-    local colors = createColors(parent)
-    place(colors, parent, y)
+    local colors = createColors(body)
+    placeIn(colors, body, y)
     y = y - 204
 
-    local profiles = createProfiles(parent)
-    place(profiles, parent, y)
+    local profiles = createProfiles(body)
+    placeIn(profiles, body, y)
     y = y - 104
+    finishSection(appearance, y)
 
-    local ourHeader = createHeader(parent, "Replace RestedXP")
-    place(ourHeader, parent, y)
-    y = y - 28
+    local replaceSection = createSection(parent, "replace", "Replace RestedXP", false)
+    body = replaceSection.body
+    y = -SECTION_PAD
 
-    local standalone = createCheck(parent, "Replace RestedXP", "Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", "standaloneGuide")
-    standalone:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local standalone = createCheck(body, "Replace RestedXP", "Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", "standaloneGuide")
+    placeCheck(standalone, body, y)
     local standaloneRefresh = standalone.Refresh
     function standalone:Refresh()
         if standaloneRefresh then
@@ -748,26 +927,26 @@ local function build(parent)
     end)
     y = y - 28
 
-    local hardcore = createCheck(parent, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
-    hardcore:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local hardcore = createCheck(body, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
+    placeCheck(hardcore, body, y)
     y = y - 28
 
-    local offStep = createCheck(parent, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
-    offStep:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local offStep = createCheck(body, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
+    placeCheck(offStep, body, y)
     y = y - 28
 
-    local dungeonGuide = createCheck(parent, "Suggest dungeon guide on enter", "When you enter a dungeon, asks if you want to load the matching dungeon guide. Turn this back on after choosing Don't Ask Again.", "promptDungeonGuide")
-    dungeonGuide:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local dungeonGuide = createCheck(body, "Suggest dungeon guide on enter", "When you enter a dungeon, asks if you want to load the matching dungeon guide. Turn this back on after choosing Don't Ask Again.", "promptDungeonGuide")
+    placeCheck(dungeonGuide, body, y)
     y = y - 28
 
-    local guideStatus = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    local guideStatus = body:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     guideStatus:SetJustifyH("LEFT")
     guideStatus:SetJustifyV("TOP")
     if guideStatus.SetWordWrap then
         guideStatus:SetWordWrap(true)
     end
     guideStatus:SetHeight(32)
-    place(guideStatus, parent, y)
+    placeIn(guideStatus, body, y)
     function guideStatus:Refresh()
         if ns.RestedXPActive and ns.RestedXPActive() then
             local title = "RestedXP"
@@ -814,226 +993,233 @@ local function build(parent)
     end
     addRefresher(guideStatus)
     y = y - 40
+    finishSection(replaceSection, y)
 
-    local replaceHeader = createHeader(parent, "Tracker")
-    place(replaceHeader, parent, y)
-    y = y - 28
+    local trackerSection = createSection(parent, "tracker", "Tracker", false)
+    body = trackerSection.body
+    y = -SECTION_PAD
 
-    local replace = createCheck(parent, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Replace RestedXP is on, this stays paused and RestedXP stays hidden.", "replaceGuide")
-    replace:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local replace = createCheck(body, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Replace RestedXP is on, this stays paused and RestedXP stays hidden.", "replaceGuide")
+    placeCheck(replace, body, y)
     y = y - 30
 
-    local simple = createCheck(parent, "Simple mode", "Shows only one step at a time: the earliest incomplete active step, including sticky steps.", "simpleMode")
-    simple:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local simple = createCheck(body, "Simple mode", "Shows only one step at a time: the earliest incomplete active step, including sticky steps.", "simpleMode")
+    placeCheck(simple, body, y)
     y = y - 30
 
-    local guidePercent = createCheck(parent, "Show guide progress", "Shows how far you are through the current guide as a percentage in the tracker header.", "showGuidePercent")
-    guidePercent:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local guidePercent = createCheck(body, "Show guide progress", "Shows how far you are through the current guide as a percentage in the tracker header.", "showGuidePercent")
+    placeCheck(guidePercent, body, y)
     y = y - 30
 
-    local stepList = createCheck(parent, "Show step list", "Shows a slim scrollable list of every step under the guide. The current step stays highlighted at the top. Hover a row for details.", "showStepList")
-    stepList:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local stepList = createCheck(body, "Show step list", "Shows a slim scrollable list of every step under the guide. The current step stays highlighted at the top. Hover a row for details.", "showStepList")
+    placeCheck(stepList, body, y)
     y = y - 30
 
-    local flightTimer = createCheck(parent, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. Uses Forever flight-time data by default, then updates your local times after each flight.", "showFlightTimer")
-    flightTimer:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local flightTimer = createCheck(body, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. Uses Forever flight-time data by default, then updates your local times after each flight.", "showFlightTimer")
+    placeCheck(flightTimer, body, y)
     y = y - 30
 
-    local flightRecommend = createCheck(parent, "Flight path recommendations", "When a travel destination is far enough that flying saves ground distance, shows a closable tip at the bottom of the guide. Click it to navigate to the departure flight master.", "showFlightRecommend")
-    flightRecommend:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local flightRecommend = createCheck(body, "Flight path recommendations", "When a travel destination is far enough that flying saves ground distance, shows a closable tip at the bottom of the guide. Click it to navigate to the departure flight master.", "showFlightRecommend")
+    placeCheck(flightRecommend, body, y)
     y = y - 36
 
     local flyYardRange = { min = 50, max = 5000, step = 50, percent = false, decimals = 0, suffix = " yd" }
-    local flyMin = createSlider(parent, "Flight recommend savings", "Minimum ground distance a flight path must save before the guide recommends flying. Default 500 yards.", "flightRecommendMinYards", function()
+    local flyMin = createSlider(body, "Flight recommend savings", "Minimum ground distance a flight path must save before the guide recommends flying. Default 500 yards.", "flightRecommendMinYards", function()
         return ns.db and ns.db.showFlightRecommend
     end, flyYardRange)
-    place(flyMin, parent, y)
+    placeIn(flyMin, body, y)
     y = y - 52
 
-    local trainReminders = createCheck(parent, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or the x to dismiss. Uses What's Training when installed.", "showTrainReminders")
-    trainReminders:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local trainReminders = createCheck(body, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or the x to dismiss. Uses What's Training when installed.", "showTrainReminders")
+    placeCheck(trainReminders, body, y)
     y = y - 30
 
-    local corpseTracker = createCheck(parent, "Corpse tracker", "While you are dead, shows distance and a direction arrow to your corpse at the bottom of the guide.", "showCorpseTracker")
-    corpseTracker:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local corpseTracker = createCheck(body, "Corpse tracker", "While you are dead, shows distance and a direction arrow to your corpse at the bottom of the guide.", "showCorpseTracker")
+    placeCheck(corpseTracker, body, y)
     y = y - 36
 
-    local nearHeader = createHeader(parent, "Near distance")
-    place(nearHeader, parent, y)
-    y = y - 28
-
-    local yardRange = { min = 1, max = 500, step = 1, percent = false, decimals = 0, suffix = " yd" }
-    local nearEnemy = createSlider(parent, "Enemy objectives", "Yards at which kill / grind steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsEnemy", nil, yardRange)
-    place(nearEnemy, parent, y)
-    y = y - 52
-
-    local nearLoot = createSlider(parent, "Loot objectives", "Yards at which loot-tag steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsLoot", nil, yardRange)
-    place(nearLoot, parent, y)
-    y = y - 52
-
-    local nearPick = createSlider(parent, "Pick objectives", "Yards at which pick / click-object steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsPick", nil, yardRange)
-    place(nearPick, parent, y)
-    y = y - 52
-
-    local nearSingle = createSlider(parent, "Single-target objectives", "Yards used when a step only needs one kill, loot, or pick. Guide steps with nearYards still override this.", "nearYardsSingle", nil, yardRange)
-    place(nearSingle, parent, y)
-    y = y - 52
-
-    local nearTravel = createSlider(parent, "Travel arrive", "Yards used to arrive at travel / multi-pin route points when the step does not set arriveYards.", "nearYardsTravel", nil, yardRange)
-    place(nearTravel, parent, y)
-    y = y - 58
-
-    local trackerScale = createSlider(parent, "Tracker scale", "Zooms the whole tracker, including the text. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
+    local trackerScale = createSlider(body, "Tracker scale", "Zooms the whole tracker, including the text. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
         return trackerOn()
     end, { min = 0.8, max = 2, step = 0.05, percent = true })
-    place(trackerScale, parent, y)
+    placeIn(trackerScale, body, y)
     y = y - 52
 
-    local trackerWidth = createSlider(parent, "Tracker width", "Width of the panel. The steps wrap to fit. This does not change the font size.", "trackerWidth", function()
+    local trackerWidth = createSlider(body, "Tracker width", "Width of the panel. The steps wrap to fit. This does not change the font size.", "trackerWidth", function()
         return trackerOn()
     end, { min = 220, max = 640, step = 10, percent = false, decimals = 0, suffix = " px" })
-    place(trackerWidth, parent, y)
+    placeIn(trackerWidth, body, y)
     y = y - 52
 
-    local fitHeight = createCheck(parent, "Fit height to steps", "The panel grows with the steps. Turn this off to set a height and scroll the rest.", "trackerFitHeight")
-    fitHeight:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local fitHeight = createCheck(body, "Fit height to steps", "The panel grows with the steps. Turn this off to set a height and scroll the rest.", "trackerFitHeight")
+    placeCheck(fitHeight, body, y)
     y = y - 30
 
-    local trackerHeight = createSlider(parent, "Tracker height", "Height of the panel. Extra steps scroll inside it.", "trackerHeight", function()
+    local trackerHeight = createSlider(body, "Tracker height", "Height of the panel. Extra steps scroll inside it.", "trackerHeight", function()
         return trackerOn() and not ns.db.trackerFitHeight
     end, { min = 120, max = 800, step = 10, percent = false, decimals = 0, suffix = " px" })
-    place(trackerHeight, parent, y)
+    placeIn(trackerHeight, body, y)
     y = y - 52
 
-    local trackerBackground = createSlider(parent, "Tracker background", "Darkness of the panel behind the objectives. The text stays solid.", "trackerBackground", function()
+    local trackerBackground = createSlider(body, "Tracker background", "Darkness of the panel behind the objectives. The text stays solid.", "trackerBackground", function()
         return trackerOn()
     end)
-    place(trackerBackground, parent, y)
-    y = y - 58
+    placeIn(trackerBackground, body, y)
+    y = y - 52
+    finishSection(trackerSection, y)
 
-    local styleHeader = createHeader(parent, "Style")
-    place(styleHeader, parent, y)
-    y = y - 28
+    local nearSection = createSection(parent, "near", "Near distance", true)
+    body = nearSection.body
+    y = -SECTION_PAD
 
-    local darkHeader = createCheck(parent, "Darkened header", "Draws a darker bar behind the guide name and the step buttons.", "darkHeader")
-    darkHeader:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local yardRange = { min = 1, max = 500, step = 1, percent = false, decimals = 0, suffix = " yd" }
+    local nearEnemy = createSlider(body, "Enemy objectives", "Yards at which kill / grind steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsEnemy", nil, yardRange)
+    placeIn(nearEnemy, body, y)
+    y = y - 52
+
+    local nearLoot = createSlider(body, "Loot objectives", "Yards at which loot-tag steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsLoot", nil, yardRange)
+    placeIn(nearLoot, body, y)
+    y = y - 52
+
+    local nearPick = createSlider(body, "Pick objectives", "Yards at which pick / click-object steps show NEAR and mark a pin visited. Guide steps with nearYards still override this.", "nearYardsPick", nil, yardRange)
+    placeIn(nearPick, body, y)
+    y = y - 52
+
+    local nearSingle = createSlider(body, "Single-target objectives", "Yards used when a step only needs one kill, loot, or pick. Guide steps with nearYards still override this.", "nearYardsSingle", nil, yardRange)
+    placeIn(nearSingle, body, y)
+    y = y - 52
+
+    local nearTravel = createSlider(body, "Travel arrive", "Yards used to arrive at travel / multi-pin route points when the step does not set arriveYards.", "nearYardsTravel", nil, yardRange)
+    placeIn(nearTravel, body, y)
+    y = y - 52
+    finishSection(nearSection, y)
+
+    local styleSection = createSection(parent, "style", "Style", true)
+    body = styleSection.body
+    y = -SECTION_PAD
+
+    local darkHeader = createCheck(body, "Darkened header", "Draws a darker bar behind the guide name and the step buttons.", "darkHeader")
+    placeCheck(darkHeader, body, y)
     y = y - 30
 
-    local headerShade = createSlider(parent, "Header shade", "How much darker that bar is than the tracker background.", "headerShade", function()
+    local headerShade = createSlider(body, "Header shade", "How much darker that bar is than the tracker background.", "headerShade", function()
         return trackerOn() and ns.db.darkHeader
     end)
-    place(headerShade, parent, y)
+    placeIn(headerShade, body, y)
     y = y - 52
 
-    local rounded = createCheck(parent, "Rounded edges", "Rounds the tracker corners and the header buttons.", "roundedEdges")
-    rounded:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local rounded = createCheck(body, "Rounded edges", "Rounds the tracker corners and the header buttons.", "roundedEdges")
+    placeCheck(rounded, body, y)
     y = y - 30
 
-    local cornerSize = createSlider(parent, "Corner size", "Radius of the tracker corners.", "cornerRadius", function()
+    local cornerSize = createSlider(body, "Corner size", "Radius of the tracker corners.", "cornerRadius", function()
         return trackerOn() and ns.db.roundedEdges
     end, { min = 4, max = 16, step = 1, percent = false, decimals = 0, suffix = " px" })
-    place(cornerSize, parent, y)
+    placeIn(cornerSize, body, y)
     y = y - 52
 
-    local roundBadges = createCheck(parent, "Round step numbers", "Draws each step number as a circle.", "roundBadges")
-    roundBadges:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local roundBadges = createCheck(body, "Round step numbers", "Draws each step number as a circle.", "roundBadges")
+    placeCheck(roundBadges, body, y)
     y = y - 30
 
-    local trackerBorder = createCheck(parent, "Tracker border", "Draws an accent line around the tracker.", "trackerBorder")
-    trackerBorder:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local trackerBorder = createCheck(body, "Tracker border", "Draws an accent line around the tracker.", "trackerBorder")
+    placeCheck(trackerBorder, body, y)
     y = y - 30
 
-    local trackerShadow = createCheck(parent, "Drop shadow", "Draws a shadow behind the tracker so it stands out from the world.", "trackerShadow")
-    trackerShadow:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local trackerShadow = createCheck(body, "Drop shadow", "Draws a shadow behind the tracker so it stands out from the world.", "trackerShadow")
+    placeCheck(trackerShadow, body, y)
     y = y - 30
 
-    local menuGlow = createCheck(parent, "Border glow", "Draws a soft glow around the tracker and the guide/travel menus. Color is under Theme colors as Menu glow.", "menuBorderGlow")
-    menuGlow:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local menuGlow = createCheck(body, "Border glow", "Draws a soft glow around the tracker and the guide/travel menus. Color is under Theme colors as Menu glow.", "menuBorderGlow")
+    placeCheck(menuGlow, body, y)
     y = y - 30
 
-    local glowRadius = createSlider(parent, "Glow radius", "How far the glow spreads outward from the tracker and menu edges.", "menuGlowRadius", function()
+    local glowRadius = createSlider(body, "Glow radius", "How far the glow spreads outward from the tracker and menu edges.", "menuGlowRadius", function()
         return trackerOn() and ns.db.menuBorderGlow
     end, { min = 1, max = 16, step = 1, percent = false, decimals = 0, suffix = " px" })
-    place(glowRadius, parent, y)
+    placeIn(glowRadius, body, y)
+    y = y - 52
+    finishSection(styleSection, y)
+
+    local guideSection = createSection(parent, "guideWindow", "Guide window", true)
+    body = guideSection.body
+    y = -SECTION_PAD
+
+    local background = createSlider(body, "Background", "Fades the dark fill behind the guide. Text, icons, and the logo stay solid.", "backgroundAlpha")
+    placeIn(background, body, y)
     y = y - 52
 
-    local guideHeader = createHeader(parent, "Guide window")
-    place(guideHeader, parent, y)
-    y = y - 30
-
-    local background = createSlider(parent, "Background", "Fades the dark fill behind the guide. Text, icons, and the logo stay solid.", "backgroundAlpha")
-    place(background, parent, y)
+    local banner = createSlider(body, "Banner", "Fades the header and footer artwork. The logo and buttons stay solid.", "bannerAlpha")
+    placeIn(banner, body, y)
     y = y - 52
 
-    local banner = createSlider(parent, "Banner", "Fades the header and footer artwork. The logo and buttons stay solid.", "bannerAlpha")
-    place(banner, parent, y)
+    local border = createSlider(body, "Border", "Fades the frame edges and the step list scrollbar.", "borderAlpha")
+    placeIn(border, body, y)
     y = y - 52
 
-    local border = createSlider(parent, "Border", "Fades the frame edges and the step list scrollbar.", "borderAlpha")
-    place(border, parent, y)
-    y = y - 52
-
-    local steps = createSlider(parent, "Faded steps", "How visible completed, skipped, and past steps are in the step list. Current and upcoming steps stay solid.", "stepListAlpha")
-    place(steps, parent, y)
+    local steps = createSlider(body, "Faded steps", "How visible completed, skipped, and past steps are in the step list. Current and upcoming steps stay solid.", "stepListAlpha")
+    placeIn(steps, body, y)
     y = y - 50
 
-    local outline = createCheck(parent, "Outline guide text", "Draws a dark outline on guide text so it stays readable when the background is faint.", "textOutline")
-    outline:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local outline = createCheck(body, "Outline guide text", "Draws a dark outline on guide text so it stays readable when the background is faint.", "textOutline")
+    placeCheck(outline, body, y)
     y = y - 32
 
-    local layers = createLayers(parent)
-    place(layers, parent, y)
+    local layers = createLayers(body)
+    placeIn(layers, body, y)
     y = y - 52
+    finishSection(guideSection, y)
 
-    local fadeHeader = createHeader(parent, "Fade")
-    place(fadeHeader, parent, y)
+    local fadeSection = createSection(parent, "fade", "Fade", true)
+    body = fadeSection.body
+    y = -SECTION_PAD
+
+    local hover = createCheck(body, "Fade unless the cursor is over the guide", "Dims the whole guide, including text, until you mouse over it.", "fadeUnlessHover")
+    placeCheck(hover, body, y)
     y = y - 30
 
-    local hover = createCheck(parent, "Fade unless the cursor is over the guide", "Dims the whole guide, including text, until you mouse over it.", "fadeUnlessHover")
-    hover:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
-    y = y - 30
-
-    local idle = createSlider(parent, "Idle visibility", "How visible the guide is while the cursor is somewhere else.", "idleAlpha", function()
+    local idle = createSlider(body, "Idle visibility", "How visible the guide is while the cursor is somewhere else.", "idleAlpha", function()
         return ns.db.fadeUnlessHover
     end)
-    place(idle, parent, y)
+    placeIn(idle, body, y)
     y = y - 52
 
-    local combat = createCheck(parent, "Fade while in combat", "Caps the guide, arrow, active items, and target frame while you are in combat.", "fadeInCombat")
-    combat:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, y)
+    local combat = createCheck(body, "Fade while in combat", "Caps the guide, arrow, active items, and target frame while you are in combat.", "fadeInCombat")
+    placeCheck(combat, body, y)
     y = y - 30
 
-    local combatAlpha = createSlider(parent, "Combat visibility", "Visibility used during combat. The guide fades to this, and the arrow, active items, and target frame are capped at it.", "combatAlpha", function()
+    local combatAlpha = createSlider(body, "Combat visibility", "Visibility used during combat. The guide fades to this, and the arrow, active items, and target frame are capped at it.", "combatAlpha", function()
         return ns.db.fadeInCombat
     end)
-    place(combatAlpha, parent, y)
-    y = y - 56
+    placeIn(combatAlpha, body, y)
+    y = y - 52
+    finishSection(fadeSection, y)
 
-    local otherHeader = createHeader(parent, "Other frames")
-    place(otherHeader, parent, y)
-    y = y - 30
+    local otherSection = createSection(parent, "other", "Other frames", true)
+    body = otherSection.body
+    y = -SECTION_PAD
 
-    local arrow = createSlider(parent, "Waypoint arrow", "Opacity of the arrow and its distance text. RestedXP still hides the arrow when it has no destination.", "arrowAlpha")
-    place(arrow, parent, y)
+    local arrow = createSlider(body, "Waypoint arrow", "Opacity of the arrow and its distance text. RestedXP still hides the arrow when it has no destination.", "arrowAlpha")
+    placeIn(arrow, body, y)
     y = y - 52
 
-    local items = createSlider(parent, "Active items", "Opacity of the active item button.", "activeItemAlpha")
-    place(items, parent, y)
+    local items = createSlider(body, "Active items", "Opacity of the active item button.", "activeItemAlpha")
+    placeIn(items, body, y)
     y = y - 52
 
-    local target = createSlider(parent, "Target frame", "Opacity of the RestedXP target frame.", "targetAlpha")
-    place(target, parent, y)
-    y = y - 58
+    local target = createSlider(body, "Target frame", "Opacity of the RestedXP target frame.", "targetAlpha")
+    placeIn(target, body, y)
+    y = y - 52
+    finishSection(otherSection, y)
 
     local reset = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
     reset:SetSize(150, 24)
-    reset:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, y)
     reset:SetText("Reset defaults")
     reset:SetScript("OnClick", function()
         ns.Reset()
     end)
+    layoutFooter = reset
 
-    parent:SetHeight(math.abs(y) + 48)
+    relayoutSections()
 end
 
 local canvas = CreateFrame("Frame", "WaynotesOptions")
@@ -1043,8 +1229,12 @@ if canvas.SetClipsChildren then
     canvas:SetClipsChildren(true)
 end
 
+local pageHeader = createPageHeader(canvas)
+pageHeader:SetPoint("TOPLEFT", 0, 0)
+pageHeader:SetPoint("TOPRIGHT", 0, 0)
+
 local scroll = CreateFrame("ScrollFrame", "WaynotesOptionsScroll", canvas, "UIPanelScrollFrameTemplate")
-scroll:SetPoint("TOPLEFT", 0, -4)
+scroll:SetPoint("TOPLEFT", 0, -(HEADER_HEIGHT + 2))
 scroll:SetPoint("BOTTOMRIGHT", -28, 4)
 
 local child = CreateFrame("Frame", nil, scroll)
@@ -1058,6 +1248,9 @@ local function fitScroll()
         width = 520
     end
     child:SetWidth(width - 36)
+    if relayoutSections then
+        relayoutSections()
+    end
 end
 
 local function refreshCanvas()
