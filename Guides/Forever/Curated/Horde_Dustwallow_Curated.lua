@@ -13,7 +13,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
-    next = "horde-dustwallow-41-42",
+    next = "horde-alterac-38-39",
     minLevel = 37,
     maxLevel = 38,
     steps = {
@@ -347,8 +347,8 @@ ns.RegisterGuide({
             y = 37.62,
         },
         {
-            text = "First Dustwallow pass done. Hold [QUEST]The Troll Witchdoctor[/] for Kin'weelay in Grom'gol, then open 41-42 Dustwallow when you return with Deadmire and any Marg Speaks or Razzeric leftovers.",
-            guide = "horde-dustwallow-41-42",
+            text = "First Dustwallow pass done. Hold [QUEST]The Troll Witchdoctor[/] for Kin'weelay in Grom'gol and [QUEST]Deadmire[/] for the 41-42 return. Continue to Alterac Mountains.",
+            guide = "horde-alterac-38-39",
         },
     },
 })
@@ -360,6 +360,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    next = "horde-tanaris-42-43",
     minLevel = 41,
     maxLevel = 42,
     steps = {

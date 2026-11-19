@@ -422,6 +422,8 @@ Do not write "until [QUEST]… is finished" (or "done" / "complete"). The step a
 
 Do not write "for [QUEST]Quest[/]" (or "for QuestName" without the tag). The player already sees the quest by mousing over or clicking the step. Name the action, target, and place; leave the quest name to Accept/Turn in lines and to the step's quest link.
 
+Do not write "Accept [QUEST]… if you do not have it" (or "them", "if you haven't picked it up", and similar). Quest-gated Accept steps already skip when the player already has the quest or finished it. Just say Accept.
+
 A short location lead-in is allowed only when the player is arriving somewhere new: `In the Charred Vale, kill ...`, `At Thorn Hill, loot ...`. Do not restate the place the player is already in from the previous step or travel pin (`In Windshear Crag, ...` right after talking to Ziz in that crag). Prefer `Return to Location` when they left and come back.
 
 ### 7.3 Details lines
@@ -476,6 +478,7 @@ note = "Verog only spawns after enough Razormane die. Camp his spawn point if it
 | Not allowed | Problem | Write instead |
 | --- | --- | --- |
 | `Grab the quest from Makaba if needed.` | "if needed" and similar hedges. The guide already skips steps that do not apply. | `Talk to [FRIENDLY]Makaba Flathoof[/]. Accept [QUEST]Avenge My Village[/].` |
+| `Accept [QUEST]Quest[/] if you do not have it.`, `... if you do not have them.`, `... if you haven't picked it up.` | Redundant. Quest-gated Accept steps already skip when the player has the quest (or finished it). | `Accept [QUEST]Quest[/].` |
 | `You may want to`, `if you want`, `feel free to`, `consider`, `optionally` | Suggestions instead of instructions. | State the action, or mark it `[WARN]Optional:[/]`. |
 | `Skip if you cannot find them.`, `Skip freely.`, `Skip if you do not have the quest.` | Skip advice. Players can always skip, and quest-gated steps skip themselves. | Delete it. |
 | `Press Next when done.`, `Click Next to continue.` | UI instructions. The engine strips them. | Delete it. |
@@ -580,7 +583,7 @@ Run through every item. Agents should report any failed item instead of silently
 **Verbiage**
 
 - [ ] Every NPC, mob, quest, item, and object name is color tagged.
-- [ ] No "if needed", "skip", "optional" (outside a `[WARN]` prefix), "Press Next", raw ids, or cleanup steps.
+- [ ] No "if needed", "if you do not have it/them", "skip", "optional" (outside a `[WARN]` prefix), "Press Next", raw ids, or cleanup steps.
 - [ ] No headline repeats the loot or kill target that the details already count.
 - [ ] No "until [QUEST]… is finished/done/complete" (or similar) in kill or loot headlines.
 - [ ] No "for [QUEST]…" (or untagged "for QuestName") in step text or details; quest names belong on Accept/Turn in lines only.

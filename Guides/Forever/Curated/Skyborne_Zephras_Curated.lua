@@ -1015,7 +1015,7 @@ ns.RegisterGuide({
             text = "This guide is meant for Skyborne. Choose the starter zone you began in.",
         },
         {
-            text = "Talk to [FRIENDLY]Constable Aonda[/]. Accept [QUEST]To Valanaar[/] and [QUEST]Deliver the Signet[/] if you do not have them.",
+            text = "Talk to [FRIENDLY]Constable Aonda[/]. Accept [QUEST]To Valanaar[/] and [QUEST]Deliver the Signet[/].",
             map = 2521,
             x = 45.67,
             y = 45.5,
@@ -3168,7 +3168,7 @@ ns.RegisterGuide({
             text = "This guide is meant for Skyborne. Choose the starter zone you began in.",
         },
         {
-            text = "Talk to [FRIENDLY]Constable Aonda[/]. Accept [QUEST]To Valanaar[/] and [QUEST]Deliver the Signet[/] if you do not have them.",
+            text = "Talk to [FRIENDLY]Constable Aonda[/]. Accept [QUEST]To Valanaar[/] and [QUEST]Deliver the Signet[/].",
             map = 2521,
             x = 45.67,
             y = 45.5,

@@ -12,7 +12,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
-    next = "horde-desolace-41-41",
+    next = "horde-stranglethorn-36-37",
     minLevel = 34,
     maxLevel = 36,
     steps = {
@@ -533,8 +533,8 @@ ns.RegisterGuide({
             y = 52.63,
         },
         {
-            text = "First Desolace pass done. Hold [QUEST]Ongeku[/] for Swamp of Sorrows and [QUEST]Hunting in Stranglethorn[/] for STV. Open 41 Desolace when you return.",
-            guide = "horde-desolace-41-41",
+            text = "First Desolace pass done. Hold [QUEST]Ongeku[/] for Swamp of Sorrows and [QUEST]Hunting in Stranglethorn[/] for Stranglethorn Vale. Continue to Stranglethorn Vale.",
+            guide = "horde-stranglethorn-36-37",
         },
     },
 })
@@ -546,6 +546,7 @@ ns.RegisterGuide({
     faction = "Horde",
     forever = true,
     listed = true,
+    next = "horde-tanaris-41-42",
     minLevel = 41,
     maxLevel = 41,
     steps = {

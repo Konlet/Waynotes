@@ -1711,8 +1711,34 @@ local function linkedGuideFinished(id)
     return sawAuto
 end
 
+local function stepManuallySkipped(step)
+    if not step or type(step.index) ~= "number" then
+        return false
+    end
+    local guide = activeGuide()
+    if not guide then
+        return false
+    end
+    local skips = progress(guide.id).skip
+    return type(skips) == "table" and skips[step.index] and true or false
+end
+
+local function markStepSkipped(guide, index)
+    if not guide or type(index) ~= "number" then
+        return
+    end
+    local entry = progress(guide.id)
+    if type(entry.skip) ~= "table" then
+        entry.skip = {}
+    end
+    entry.skip[index] = true
+end
+
 local function stepDone(step)
     if not step or not stepApplies(step) then
+        return true
+    end
+    if stepManuallySkipped(step) then
         return true
     end
     if step.when == "travel" then
@@ -2664,7 +2690,46 @@ function ns.GuideJump(index)
 end
 
 function ns.GuideSkip(index)
-    ns.GuideJump((tonumber(index) or 0) + 1)
+    index = tonumber(index)
+    if not index then
+        return
+    end
+    index = math.floor(index)
+    local guide = activeGuide()
+    if not guide then
+        return
+    end
+    local count = #guide.steps
+    if index < 1 or index > count then
+        return
+    end
+    local step = guide.steps[index]
+    if not step then
+        return
+    end
+    markStepSkipped(guide, index)
+    local entry = progress(guide.id)
+    -- Do not use GuideJump: that sets a review lock on already-complete steps
+    -- and never CatchUps, so skip could park on a finished neighbor.
+    reviewKey = nil
+    if step.sticky then
+        -- Stickies ride along behind the primary. Keep the current cursor unless
+        -- progress was somehow parked on the skipped sticky itself.
+        if entry.step == index then
+            local hopped = neighbor(guide, index, 1)
+            if hopped then
+                entry.step = hopped
+            end
+        end
+    else
+        local hopped = neighbor(guide, index, 1)
+        if hopped then
+            entry.step = hopped
+        end
+    end
+    ns.GuideCatchUp()
+    refresh()
+    partySyncBroadcast()
 end
 
 local function detailKey(text)
@@ -3924,6 +3989,91 @@ local function guideLevelBand(guide)
     return ""
 end
 
+-- Quest-log style colours for guide level fit vs the player.
+local GUIDE_DIFFICULTY = {
+    impossible = { r = 1.00, g = 0.10, b = 0.10, label = "Too hard" },
+    verydifficult = { r = 1.00, g = 0.50, b = 0.25, label = "Hard" },
+    difficult = { r = 1.00, g = 1.00, b = 0.00, label = "On level" },
+    standard = { r = 0.25, g = 0.75, b = 0.25, label = "Easy" },
+    trivial = { r = 0.50, g = 0.50, b = 0.50, label = "Trivial" },
+}
+
+local function guideCompareLevel(guide)
+    if type(guide) ~= "table" then
+        return nil
+    end
+    local minLevel = tonumber(guide.minLevel)
+    local maxLevel = tonumber(guide.maxLevel)
+    if not minLevel and not maxLevel then
+        return nil
+    end
+    minLevel = minLevel or maxLevel
+    maxLevel = maxLevel or minLevel
+    local level = playerLevel()
+    if level < minLevel then
+        return minLevel
+    end
+    if level > maxLevel then
+        return maxLevel
+    end
+    return level
+end
+
+local function questGreenRange(level)
+    if GetQuestGreenRange then
+        local range = GetQuestGreenRange()
+        if type(range) == "number" and range > 0 then
+            return range
+        end
+    end
+    if level < 10 then
+        return 4
+    elseif level < 20 then
+        return 5
+    elseif level < 30 then
+        return 6
+    elseif level < 40 then
+        return 7
+    end
+    return 8
+end
+
+local function guideDifficultyKey(compareLevel)
+    local level = playerLevel()
+    local levelDiff = compareLevel - level
+    if levelDiff >= 5 then
+        return "impossible"
+    elseif levelDiff >= 3 then
+        return "verydifficult"
+    elseif levelDiff >= -2 then
+        return "difficult"
+    elseif -levelDiff <= questGreenRange(level) then
+        return "standard"
+    end
+    return "trivial"
+end
+
+-- Returns label, r, g, b for the guide's estimated difficulty at the player's level.
+local function guideDifficultyInfo(guide)
+    local compare = guideCompareLevel(guide)
+    if not compare then
+        return nil
+    end
+    if GetQuestDifficultyColor then
+        local color = GetQuestDifficultyColor(compare)
+        local key = guideDifficultyKey(compare)
+        local info = GUIDE_DIFFICULTY[key]
+        if type(color) == "table" and info then
+            return info.label, color.r or info.r, color.g or info.g, color.b or info.b
+        end
+    end
+    local info = GUIDE_DIFFICULTY[guideDifficultyKey(compare)]
+    if not info then
+        return nil
+    end
+    return info.label, info.r, info.g, info.b
+end
+
 local function updateMenuScrollThumb()
     if not menuScrollBar or not menuScrollThumb or not scroll then
         return
@@ -4155,6 +4305,18 @@ local function acquireRow(index)
             GameTooltip:SetText(self.tipTitle, 1, 1, 1)
             if self.tipDetail then
                 GameTooltip:AddLine(self.tipDetail, 0.9, 0.9, 0.9, true)
+            end
+            if self.guideId then
+                local guide = findGuide(self.guideId)
+                local band = guideLevelBand(guide)
+                local label, r, g, b = guideDifficultyInfo(guide)
+                if band ~= "" and label then
+                    GameTooltip:AddLine(string.format("Levels %s · %s", band, label), r, g, b, true)
+                elseif label then
+                    GameTooltip:AddLine("Difficulty: " .. label, r, g, b, true)
+                elseif band ~= "" then
+                    GameTooltip:AddLine("Levels " .. band, 0.9, 0.9, 0.9, true)
+                end
             end
             if ns.FinishTooltip then
                 ns.FinishTooltip()
@@ -4614,7 +4776,12 @@ presentMenu = function(keepScroll)
         layoutLabel(row, indent or 18, false)
         row.label:SetText(guide.name or guide.id)
         row.meta:SetText(band)
-        paintMenuLabel(row.meta, detailR, detailG, detailB)
+        local _, diffR, diffG, diffB = guideDifficultyInfo(guide)
+        if diffR then
+            paintMenuLabel(row.meta, diffR, diffG, diffB)
+        else
+            paintMenuLabel(row.meta, detailR, detailG, detailB)
+        end
         row.tipTitle = guide.name or guide.id
         local tipBits = {}
         if guide.group then
@@ -4623,15 +4790,14 @@ presentMenu = function(keepScroll)
         if guide.subgroup then
             tipBits[#tipBits + 1] = guide.subgroup
         end
-        if band ~= "" then
-            tipBits[#tipBits + 1] = "Levels " .. band
-        end
         if isCurrent then
             tipBits[#tipBits + 1] = "Currently active"
         elseif isRecommended then
             tipBits[#tipBits + 1] = "Recommended for your level"
         end
-        row.tipDetail = table.concat(tipBits, "  ·  ")
+        if #tipBits > 0 then
+            row.tipDetail = table.concat(tipBits, "  ·  ")
+        end
         if isCurrent then
             paintMenuLabel(row.label, accentR, accentG, accentB)
             setRowMark(row, "current")

@@ -17,7 +17,7 @@ ns.RegisterGuide({
     maxLevel = 24,
     steps = {
         {
-            text = "In The Sepulcher, talk to [FRIENDLY]Apothecary Renferrel[/]. Accept [QUEST]Journey to Hillsbrad Foothills[/] if you do not have it.",
+            text = "In The Sepulcher, talk to [FRIENDLY]Apothecary Renferrel[/]. Accept [QUEST]Journey to Hillsbrad Foothills[/].",
             map = 1421,
             x = 42.8,
             y = 40.9,
@@ -45,16 +45,17 @@ ns.RegisterGuide({
             y = 19.0,
         },
         {
-            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Journey to Hillsbrad Foothills[/] and [QUEST]Journey to Tarren Mill[/]. Accept [QUEST]Blood of Innocents[/], [QUEST]Elixir of Suffering[/], and [QUEST]Elixir of Pain[/].",
+            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Journey to Hillsbrad Foothills[/] and [QUEST]Journey to Tarren Mill[/]. Accept [QUEST]Elixir of Suffering[/] and [QUEST]Elixir of Pain[/].",
             map = 1424,
             x = 61.4,
             y = 19.1,
-            quests = { 1066, 496, 501 },
+            quests = { 496, 501 },
             when = "accepted",
             details = {
                 "Turn in [QUEST]Journey to Hillsbrad Foothills[/]",
                 "Turn in [QUEST]Journey to Tarren Mill[/]",
             },
+            note = "Journey to Tarren Mill (Thunder Bluff / Zamah) also unlocks Blood of Innocents here. Elixir of Agony opens at 24 for the 30-32 return.",
         },
         {
             classes = { "Rogue" },
@@ -151,6 +152,7 @@ ns.RegisterGuide({
             },
         },
         {
+            sticky = true,
             text = "Kill [ENEMY]Syndicate Shadow Mages[/] for [LOOT]Vials of Innocent Blood[/].",
             map = 1424,
             x = 79.0,
@@ -162,7 +164,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "On the way back to Tarren Mill, kill [ENEMY]Gray Bears[/] for tongues and [ENEMY]Forest Moss Creepers[/] for ichor.",
+            text = "Kill [ENEMY]Gray Bears[/] and [ENEMY]Forest Moss Creepers[/].",
             map = 1424,
             x = 62.8,
             y = 34.2,
@@ -174,16 +176,16 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Blood of Innocents[/] and [QUEST]Elixir of Suffering[/]. Accept [QUEST]Elixir of Suffering[/] and [QUEST]Return to Thunder Bluff[/].",
+            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Elixir of Suffering[/]. Accept [QUEST]Elixir of Suffering[/].",
             map = 1424,
             x = 61.4,
             y = 19.1,
-            quests = { 499, 1067 },
+            quest = 499,
             when = "accepted",
             details = {
-                "Turn in [QUEST]Blood of Innocents[/]",
                 "Turn in [QUEST]Elixir of Suffering[/]",
             },
+            note = "Blood of Innocents turn-in unlocks Return to Thunder Bluff for Zamah.",
         },
         {
             text = "Talk to [FRIENDLY]Umpi[/]. Turn in [QUEST]Elixir of Suffering[/].",
