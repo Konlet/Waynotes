@@ -2,7 +2,7 @@
 ## Title: Waynotes
 ## Notes: A WoW-style tracker, and a standalone questing guide for WoW Forever.
 ## Author: Waynotes
-## Version: 1.4.5
+## Version: 1.4.6
 ## Category: Quests
 ## IconTexture: Interface\AddOns\Waynotes\logo
 ## AllowLoadGameType: forever, camelot
