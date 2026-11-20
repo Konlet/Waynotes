@@ -215,8 +215,8 @@ ns.RegisterGuide({
             sticky = true,
             text = "Kill [ENEMY]Starving Mountain Lions[/] for blood along the way.",
             map = 1424,
-            x = 35.0,
-            y = 39.0,
+            x = 54.0,
+            y = 37.0,
             quest = 501,
             when = "objectives",
             details = {

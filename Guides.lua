@@ -1619,11 +1619,21 @@ local function questObjectivesDone(id)
 end
 
 local function questSatisfied(id, when, objectiveIndex, step)
-    if when == "complete" then
-        return questCompleted(id)
-    end
     if when == "accepted" then
+        -- Accept steps stay until the quest is taken (or was already finished).
         return questOn(id) or questCompleted(id)
+    end
+    -- Objectives / turn-ins: skip when reached if the quest is not in the log
+    -- (abandoned, never picked up, or already turned in). Accept steps above
+    -- still park until pickup.
+    if questCompleted(id) then
+        return true
+    end
+    if not questOn(id) then
+        return true
+    end
+    if when == "complete" then
+        return false
     end
     if objectiveIndex then
         return questObjectiveFinished(id, objectiveIndex)
@@ -2762,10 +2772,22 @@ local function detailCovers(longKey, shortKey)
     if #shortKey < 6 then
         return false
     end
+    -- Live "3/8" or authored "(8)" counts. Sibling kill/loot lines that share a
+    -- suffix ("Young Night Web Spider" vs "Night Web Spider") both look counted
+    -- and must match on the full name, not a subset.
+    local function hasCount(key)
+        return key:find("%d+%s*/%s*%d+") ~= nil or key:find("%(%s*%d+%s*%)") ~= nil
+    end
+    local bothCounted = hasCount(longKey) and hasCount(shortKey)
     if longKey:find(shortKey, 1, true) then
-        return true
+        if not bothCounted then
+            return true
+        end
+        -- Fall through: counted substring still needs equal name tokens.
     end
     -- Token overlap: "Escort Kaya Flathoof" vs "Escort Kaya Flathoof to Camp Aparaje".
+    -- Drop quest-log progress verbs so "10/10 Young Night Web Spider slain"
+    -- still matches authored "Young Night Web Spider (10)".
     local skip = {
         the = true,
         ["and"] = true,
@@ -2782,6 +2804,15 @@ local function detailCovers(longKey, shortKey)
         an = true,
         your = true,
         this = true,
+        kill = true,
+        killed = true,
+        slain = true,
+        collect = true,
+        collected = true,
+        loot = true,
+        looted = true,
+        destroy = true,
+        destroyed = true,
     }
     local function words(key)
         local list = {}
@@ -2847,6 +2878,10 @@ local function detailCovers(longKey, shortKey)
     -- A 75% overlap was collapsing sibling objectives that share boilerplate
     -- ("Attack Plan … destroyed", "Shut off … Valve", "Visit … Raptor Nest").
     if shared ~= #shortWords then
+        return false
+    end
+    -- "Young Night Web Spider (10)" must not swallow "Night Web Spider (8)".
+    if bothCounted and #longWords ~= #shortWords then
         return false
     end
     -- One coded id (xt:4) or one long item name (incendrites) is enough when
@@ -3769,6 +3804,21 @@ function ns.GuideObjectives()
         return not measured
     end
     local remoteStickies = ns.PartySyncRemoteStickies and ns.PartySyncRemoteStickies()
+    -- Sticky block parked immediately before the primary (only stickies /
+    -- finished steps in between). Those ride with the current work even when
+    -- their pin is along the route and outside the usual nearby radius.
+    local function stickyContiguousBeforePrimary(index)
+        if type(index) ~= "number" or index >= primaryIndex then
+            return false
+        end
+        for i = index + 1, primaryIndex - 1 do
+            local step = guide.steps[i]
+            if step and stepApplies(step) and not isDone(i) and not step.sticky then
+                return false
+            end
+        end
+        return true
+    end
     local function showSticky(index, step, blockedPrimary)
         if not step or not step.sticky or not stepApplies(step) then
             return false
@@ -3789,6 +3839,11 @@ function ns.GuideObjectives()
             return false
         end
         if not stickyIsNearby(step) then
+            -- Concurrent sticky for this primary (e.g. lion blood along the way
+            -- to the fields) must stay listed even when pins differ by >750 yd.
+            if stickyContiguousBeforePrimary(index) then
+                return true
+            end
             -- Far stickies that gate the current step still show so the block
             -- reason is visible.
             if not (blockedPrimary and questStepBlocks(step, primary)) then
@@ -5093,7 +5148,6 @@ local catchUpFirstAt = 0
 local objectiveSnap
 local objectiveSnapReady = false
 local pendingOffStepCheck = false
-local pendingBagDirty = false
 local pendingCatchUpForce = false
 local promptedOffStepAt = 0
 local promptedDungeonAt = 0
@@ -5767,13 +5821,7 @@ watcher:SetScript("OnEvent", function(_, event, name)
         return
     end
     if event == "PLAYER_REGEN_ENABLED" then
-        if pendingBagDirty then
-            pendingBagDirty = false
-            if lastSyncNeedsBag then
-                markStepsDirty(false)
-            end
-        end
-        -- Combat may have deferred quest catch-up under loot spam; flush now.
+        -- Flush any catch-up that coalesced under combat loot/quest spam.
         if ns.UsingStandalone and ns.UsingStandalone() then
             queueCatchUp(0.05, true, true)
         end
@@ -5784,16 +5832,18 @@ watcher:SetScript("OnEvent", function(_, event, name)
         return
     end
     if event == "BAG_UPDATE_DELAYED" then
-        -- Loot and reagent spends fire this constantly. Only rebuild when the
-        -- tracker is showing bag-fed collect lines (not every grey/green loot).
+        -- Loot and reagent spends fire this constantly. Only touch the tracker
+        -- when it is showing bag-fed collect lines (not every grey/green loot).
+        -- Do not wait for combat end: that left loot n/m and sticky completion
+        -- stuck until regen, while kills (QUEST_LOG) updated mid-fight.
+        -- MarkTrackerDirty already coalesces harder in combat (~0.2s).
         if not lastSyncNeedsBag then
             return
         end
-        if InCombatLockdown and InCombatLockdown() then
-            pendingBagDirty = true
-            return
-        end
         markStepsDirty(false)
+        if ns.UsingStandalone and ns.UsingStandalone() then
+            queueCatchUp(CATCH_UP_DELAY, false)
+        end
         return
     end
     if event == "UNIT_QUEST_LOG_CHANGED" and name ~= "player" then

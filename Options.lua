@@ -1019,7 +1019,7 @@ local function build(parent)
     placeCheck(flightTimer, body, y)
     y = y - 30
 
-    local flightRecommend = createCheck(body, "Flight path recommendations", "When a travel destination is far enough that flying saves ground distance, shows a closable tip at the bottom of the guide. Click it to navigate to the departure flight master.", "showFlightRecommend")
+    local flightRecommend = createCheck(body, "Flight path recommendations", "When a travel destination is far enough that flying saves ground distance, shows a closable tip at the bottom of the guide. Click it to navigate to the departure flight master, or right-click to dismiss.", "showFlightRecommend")
     placeCheck(flightRecommend, body, y)
     y = y - 36
 
@@ -1030,7 +1030,7 @@ local function build(parent)
     placeIn(flyMin, body, y)
     y = y - 52
 
-    local trainReminders = createCheck(body, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or the x to dismiss. Uses What's Training when installed.", "showTrainReminders")
+    local trainReminders = createCheck(body, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or right-click (or the x) to dismiss. Uses What's Training when installed.", "showTrainReminders")
     placeCheck(trainReminders, body, y)
     y = y - 30
 
