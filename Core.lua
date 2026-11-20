@@ -78,6 +78,7 @@ ns.defaults = {
     targetAlpha = 1,
     replaceGuide = true,
     simpleMode = false,
+    maxTrackerSteps = 10,
     trackerScale = 1.2,
     trackerWidth = 300,
     trackerFitHeight = true,
@@ -860,6 +861,19 @@ local function sanitizeOptionValue(key, value, default)
         end
         return value
     end
+    if key == "maxTrackerSteps" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 1 then
+            return 1
+        end
+        if value > 15 then
+            return 15
+        end
+        return value
+    end
     if key == "trackerWidth" then
         if type(value) ~= "number" then
             return default
@@ -1178,6 +1192,7 @@ ns.visualKeys = {
     "targetAlpha",
     "replaceGuide",
     "simpleMode",
+    "maxTrackerSteps",
     "trackerScale",
     "trackerWidth",
     "trackerFitHeight",
@@ -1202,6 +1217,22 @@ ns.visualKeys = {
     "hardcoreGuide",
     "autoProgress",
 }
+
+-- Cap on concurrent tracker rows (primary + stickies). Simple mode still forces 1.
+function ns.MaxTrackerSteps()
+    local n = tonumber(ns.db and ns.db.maxTrackerSteps)
+    if not n then
+        n = ns.defaults.maxTrackerSteps or 10
+    end
+    n = math.floor(n + 0.5)
+    if n < 1 then
+        return 1
+    end
+    if n > 15 then
+        return 15
+    end
+    return n
+end
 
 function ns.Visuals()
     return ns.db or ns.defaults

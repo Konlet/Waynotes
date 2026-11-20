@@ -14,14 +14,25 @@ if (-not (Test-Path $root)) {
     Write-Error "Addon root not found: $root"
 }
 
-if (-not $ZipPath) {
-    $ZipPath = Join-Path (Split-Path -Parent $root) "Waynotes.zip"
-}
-
 $tocName = "Waynotes.toc"
 $tocPath = Join-Path $root $tocName
 if (-not (Test-Path $tocPath)) {
     Write-Error "Missing $tocName"
+}
+
+# WowUp matches Forever clients by a release asset name ending in -forever.zip
+if (-not $ZipPath) {
+    $version = $null
+    foreach ($line in Get-Content -LiteralPath $tocPath) {
+        if ($line -match '^##\s*Version:\s*(.+)\s*$') {
+            $version = $Matches[1].Trim()
+            break
+        }
+    }
+    if (-not $version) {
+        Write-Error "Missing ## Version in $tocName"
+    }
+    $ZipPath = Join-Path (Split-Path -Parent $root) "Waynotes-$version-forever.zip"
 }
 
 $tocFiles = @()
@@ -132,7 +143,7 @@ finally {
 
 $bad = @($names | Where-Object {
     $_ -match '(^|/)(REFERENCE|Zygor|_questiedb|scripts)(/|$)' -or
-    $_ -match 'ClassQuests|_arrow_preview|\.py$|\.json$|Vanilla\.toc$|RestedXP-Better'
+    $_ -match 'ClassQuests|_arrow_preview|\.py$|\.json$|Vanilla\.toc$'
 })
 if ($bad.Count -gt 0) {
     Write-Error ("Zip contains excluded paths:`n" + ($bad -join "`n"))

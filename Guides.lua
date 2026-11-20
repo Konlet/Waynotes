@@ -3709,6 +3709,19 @@ local function buildItem(step, full)
         -- numbered objectives instead of static placeholders.
         -- Skip while party-sync following so local bags cannot override the leader.
         if not (ns.PartySyncFollowing and ns.PartySyncFollowing()) then
+            -- Any shown LOOT collect must listen to bag events, even when the
+            -- quest log already supplies n/m. Otherwise a stale QUEST_LOG snap
+            -- (cast-lag filter) leaves counts stuck until combat flush.
+            if type(step.details) == "table" then
+                for _, raw in ipairs(step.details) do
+                    if type(raw) == "string" and (
+                        raw:find("[LOOT]", 1, true) or raw:find("RB_LOOT_", 1, true)
+                    ) then
+                        lastSyncNeedsBag = true
+                        break
+                    end
+                end
+            end
             local function looksLiveProgress(line)
                 return objectivePlain(line):match("%d+%s*/%s*%d+") ~= nil
             end
@@ -3732,8 +3745,8 @@ local function buildItem(step, full)
                     -- Quest log already tracks this loot: drop the authored duplicate.
                     if not covered then
                         kept[#kept + 1] = upgraded
-                        lastSyncNeedsBag = true
                     end
+                    lastSyncNeedsBag = true
                 else
                     kept[#kept + 1] = line
                 end
@@ -4162,6 +4175,12 @@ function ns.GuideObjectives()
             end
             if #items == 0 then
                 addStep(primary, false)
+            end
+        end
+        local cap = ns.MaxTrackerSteps and ns.MaxTrackerSteps() or 10
+        if #items > cap then
+            for index = #items, cap + 1, -1 do
+                items[index] = nil
             end
         end
     end
@@ -6078,13 +6097,16 @@ watcher:SetScript("OnEvent", function(_, event, name)
         -- when it is showing bag-fed collect lines (not every grey/green loot).
         -- Do not wait for combat end: that left loot n/m and sticky completion
         -- stuck until regen, while kills (QUEST_LOG) updated mid-fight.
-        -- MarkTrackerDirty already coalesces harder in combat (~0.2s).
+        -- Force the coalesced catch-up: Forever often fires QUEST_LOG before
+        -- objective counts settle, so the unchanged-snap filter would skip the
+        -- paint, and GetItemCount also needs a beat after DELAYED.
         if not lastSyncNeedsBag then
             return
         end
-        markStepsDirty(false)
         if ns.UsingStandalone and ns.UsingStandalone() then
-            queueCatchUp(CATCH_UP_DELAY, false)
+            queueCatchUp(CATCH_UP_DELAY, false, true)
+        else
+            markStepsDirty(false)
         end
         return
     end
