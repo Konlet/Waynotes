@@ -12,8 +12,12 @@ local watchedKids = {}
 -- refresh) hits ShouldShowMawBuffs and throws, which freezes the Blizzard
 -- tracker mid-layout. Maw powers do not exist on Forever; skip the secret
 -- aura read. Prefer C_MawBuffs when Blizzard's newer API is present.
+-- Lua 5.1 cannot store fields on functions, so the patched wrapper is tracked
+-- by identity instead of a __waynotesPatched flag.
+local patchedShouldShowMawBuffs
+
 local function patchShouldShowMawBuffs()
-    if type(ShouldShowMawBuffs) ~= "function" or ShouldShowMawBuffs.__waynotesPatched then
+    if type(ShouldShowMawBuffs) ~= "function" or ShouldShowMawBuffs == patchedShouldShowMawBuffs then
         return
     end
 
@@ -38,7 +42,7 @@ local function patchShouldShowMawBuffs()
         end
     end
 
-    patched.__waynotesPatched = true
+    patchedShouldShowMawBuffs = patched
     _G.ShouldShowMawBuffs = patched
 end
 
