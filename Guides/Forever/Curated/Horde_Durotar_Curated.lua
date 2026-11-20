@@ -626,10 +626,38 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Optional: talk to [FRIENDLY]Brakk[/]. Turn in [QUEST]The Adventurer[/], sit at the campfire for The Great Outdoors, then accept [QUEST]Camping 101: Cooking[/].",
+            text = "[WARN]Optional:[/] Talk to [FRIENDLY]Brakk[/]. Turn in [QUEST]The Adventurer[/]. Accept [QUEST]The Great Outdoors[/].",
             map = 1411,
             x = 52.0,
             y = 47.3,
+            quest = 96604,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]The Adventurer[/]",
+            },
+        },
+        {
+            text = "Type /sit at the campfire and wait about a minute for the Camp Benefits buff.",
+            map = 1411,
+            x = 52.0,
+            y = 47.3,
+            quest = 96604,
+            when = "objectives",
+            details = {
+                "Use the /sit emote near the campfire",
+                "Gain the Boosted Rest buff",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Brakk[/]. Turn in [QUEST]The Great Outdoors[/]. Accept [QUEST]Camping 101: Cooking[/].",
+            map = 1411,
+            x = 52.0,
+            y = 47.3,
+            quest = 96655,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]The Great Outdoors[/]",
+            },
         },
         {
             text = "Enter Razor Hill. Talk to [FRIENDLY]Orgnil Soulscar[/]. Turn in [QUEST]Report to Orgnil[/]. Accept [QUEST]Dark Storms[/].",

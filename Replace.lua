@@ -1916,15 +1916,19 @@ do
         })
     end
 
-    close:SetScript("OnClick", function()
+    local function dismissFlyRec()
         State.flyRec.dismissed = routeKey(State.flyRec.route)
         State.flyRec.route = nil
         lastTitle, lastDetail = nil, nil
         updateFlyRecStrip()
+    end
+
+    close:SetScript("OnClick", function()
+        dismissFlyRec()
     end)
     close:SetScript("OnMouseUp", function(_, button)
-        if button == "RightButton" and ns.OpenGuideMenu then
-            ns.OpenGuideMenu()
+        if button == "RightButton" then
+            dismissFlyRec()
         end
     end)
     close:SetScript("OnEnter", function(self)
@@ -1939,9 +1943,7 @@ do
 
     strip:SetScript("OnMouseUp", function(_, button)
         if button == "RightButton" then
-            if ns.OpenGuideMenu then
-                ns.OpenGuideMenu()
-            end
+            dismissFlyRec()
             return
         end
         if button ~= "LeftButton" or close:IsMouseOver() then
@@ -1957,6 +1959,7 @@ do
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("Fly instead", r, g, b)
         GameTooltip:AddLine("Left-click to navigate to the departure flight master.", 1, 1, 1, true)
+        GameTooltip:AddLine("Right-click to dismiss.", 0.75, 0.75, 0.75, true)
         ns.FinishTooltip()
     end)
     strip:SetScript("OnLeave", function()
@@ -2180,16 +2183,20 @@ do
         hearthOnStrip = true
     end
 
-    close:SetScript("OnClick", function()
+    local function dismissHearthRec()
         State.hearthRec.dismissed = routeKey(State.hearthRec.route)
         State.hearthRec.route = nil
         lastTitle, lastDetail = nil, nil
         detachHearthButton()
         updateHearthRecStrip()
+    end
+
+    close:SetScript("OnClick", function()
+        dismissHearthRec()
     end)
     close:SetScript("OnMouseUp", function(_, button)
-        if button == "RightButton" and ns.OpenGuideMenu then
-            ns.OpenGuideMenu()
+        if button == "RightButton" then
+            dismissHearthRec()
         end
     end)
     close:SetScript("OnEnter", function(self)
@@ -2203,8 +2210,8 @@ do
     end)
 
     strip:SetScript("OnMouseUp", function(_, button)
-        if button == "RightButton" and ns.OpenGuideMenu then
-            ns.OpenGuideMenu()
+        if button == "RightButton" then
+            dismissHearthRec()
         end
     end)
     strip:SetScript("OnEnter", function(self)
@@ -2215,6 +2222,7 @@ do
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("Hearth instead", r, g, b)
         GameTooltip:AddLine("Use the Hearthstone button when it saves walking distance.", 1, 1, 1, true)
+        GameTooltip:AddLine("Right-click to dismiss.", 0.75, 0.75, 0.75, true)
         ns.FinishTooltip()
     end)
     strip:SetScript("OnLeave", function()
@@ -2939,13 +2947,17 @@ do
         end
     end
 
-    close:SetScript("OnClick", function()
+    local function dismissTrainNotice()
         dismissLevel(State.train.level or currentTrainLevel())
         updateTrainStrip()
+    end
+
+    close:SetScript("OnClick", function()
+        dismissTrainNotice()
     end)
     close:SetScript("OnMouseUp", function(_, button)
-        if button == "RightButton" and ns.OpenGuideMenu then
-            ns.OpenGuideMenu()
+        if button == "RightButton" then
+            dismissTrainNotice()
         end
     end)
 
@@ -2970,6 +2982,7 @@ do
             GameTooltip:SetText("Train class spells", r, g, b)
         end
         GameTooltip:AddLine(trainerHint(), 1, 1, 1, true)
+        GameTooltip:AddLine("Right-click to dismiss for this level.", 0.75, 0.75, 0.75, true)
         ns.FinishTooltip()
         placeTrainTip(owner)
     end
@@ -2995,8 +3008,8 @@ do
         goToTrainer()
     end)
     notice:SetScript("OnMouseUp", function(_, button)
-        if button == "RightButton" and ns.OpenGuideMenu then
-            ns.OpenGuideMenu()
+        if button == "RightButton" then
+            dismissTrainNotice()
         end
     end)
     notice:SetScript("OnEnter", function(self)
