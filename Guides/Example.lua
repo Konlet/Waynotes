@@ -11,6 +11,10 @@ local _, ns = ...
 -- when = "travel" advances once you arrive near map/x/y (or step.travel).
 --        Use for zone transitions and long runs with no quest gate.
 --        Optional arriveYards overrides the default arrival radius.
+-- when = "grind" advances once you reach level (and optional xp into that
+--        level). xp in (0, 1) is a fraction of the bar; xp >= 1 is absolute.
+-- locale = "Razor Hill" is an optional place tag for sticky grouping.
+-- minLevel / maxLevel skip the step outside that character level.
 -- nearYards overrides the NEAR radius on kill/loot/pick objective steps
 --        (and multi-pin visit distance). Defaults come from Options >
 --        Near distance (enemy / loot / pick / single-target / travel).

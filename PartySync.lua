@@ -399,6 +399,21 @@ function ns.PartySyncRemoteQuest(id)
     return remoteQuests[id]
 end
 
+-- Quest ids present in the leader snapshot (for title lookups while following).
+function ns.PartySyncRemoteQuestIds()
+    if not followName or type(remoteQuests) ~= "table" then
+        return nil
+    end
+    local ids = {}
+    for id in pairs(remoteQuests) do
+        id = tonumber(id)
+        if id then
+            ids[#ids + 1] = id
+        end
+    end
+    return ids
+end
+
 function ns.PartySyncRemoteStickies()
     if not followName or type(remoteStickies) ~= "table" then
         return nil

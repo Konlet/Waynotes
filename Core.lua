@@ -7,6 +7,43 @@ local hookedSatellite = {}
 local hookedFont = {}
 local watchedKids = {}
 
+-- Forever ships Blizzard_MawBuffs with an unguarded GetAuraDataByIndex call.
+-- Any addon-tainted Objective Tracker update (quest log, map pins, guide
+-- refresh) hits ShouldShowMawBuffs and throws, which freezes the Blizzard
+-- tracker mid-layout. Maw powers do not exist on Forever; skip the secret
+-- aura read. Prefer C_MawBuffs when Blizzard's newer API is present.
+local function patchShouldShowMawBuffs()
+    if type(ShouldShowMawBuffs) ~= "function" or ShouldShowMawBuffs.__waynotesPatched then
+        return
+    end
+
+    local patched
+    if C_MawBuffs and C_MawBuffs.HasAnyMawBuffs then
+        patched = function()
+            return (IsInJailersTower and IsInJailersTower())
+                or C_MawBuffs.HasAnyMawBuffs()
+                or false
+        end
+    else
+        local orig = ShouldShowMawBuffs
+        patched = function()
+            if IsInJailersTower and IsInJailersTower() then
+                return true
+            end
+            if C_Secrets and C_Secrets.ShouldAurasBeSecret and C_Secrets.ShouldAurasBeSecret() then
+                return false
+            end
+            local ok, result = pcall(orig)
+            return ok and result and true or false
+        end
+    end
+
+    patched.__waynotesPatched = true
+    _G.ShouldShowMawBuffs = patched
+end
+
+patchShouldShowMawBuffs()
+
 local STRATA = {
     BACKGROUND = true,
     LOW = true,
@@ -1845,6 +1882,10 @@ end
 
 events:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" then
+        if name == "Blizzard_MawBuffs" then
+            patchShouldShowMawBuffs()
+            return
+        end
         if name == "RXPGuides" and ns.db then
             ns.ApplyRestedXPMode()
             safe(ns.Apply)
@@ -1857,6 +1898,7 @@ events:SetScript("OnEvent", function(_, event, name)
             return
         end
         started = true
+        patchShouldShowMawBuffs()
         if type(WaynotesDB) == "table" or type(RestedXPBetterDB) == "table" then
             boot()
         end
@@ -1864,6 +1906,7 @@ events:SetScript("OnEvent", function(_, event, name)
     end
 
     if event == "PLAYER_LOGIN" then
+        patchShouldShowMawBuffs()
         boot()
         if ns.WarmQuestieNameIndexes then
             ns.WarmQuestieNameIndexes()

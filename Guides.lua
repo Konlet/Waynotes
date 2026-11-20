@@ -320,6 +320,17 @@ local function cleanStep(step)
     if step.sticky then
         copy.sticky = true
     end
+    if type(step.locale) == "string" and strtrim(step.locale) ~= "" then
+        copy.locale = strtrim(step.locale)
+    end
+    local minLevel = tonumber(step.minLevel)
+    if minLevel and minLevel >= 1 then
+        copy.minLevel = math.floor(minLevel)
+    end
+    local maxLevel = tonumber(step.maxLevel)
+    if maxLevel and maxLevel >= 1 then
+        copy.maxLevel = math.floor(maxLevel)
+    end
     local objective = tonumber(step.objective)
     if objective and objective >= 1 then
         copy.objective = math.floor(objective)
@@ -363,10 +374,20 @@ local function cleanStep(step)
         end
     end
     copy.quests = quests
-    if step.when == "accepted" or step.when == "complete" or step.when == "objectives" or step.when == "travel" then
+    if step.when == "accepted" or step.when == "complete" or step.when == "objectives" or step.when == "travel" or step.when == "grind" then
         copy.when = step.when
     elseif #quests > 0 then
         copy.when = "objectives"
+    end
+    if copy.when == "grind" then
+        local grindLevel = tonumber(step.level)
+        if grindLevel and grindLevel >= 1 then
+            copy.level = math.floor(grindLevel)
+        end
+        local grindXp = tonumber(step.xp)
+        if grindXp and grindXp > 0 then
+            copy.xp = grindXp
+        end
     end
     if type(step.details) == "table" then
         local details = {}
@@ -1293,6 +1314,16 @@ stepApplies = function(step)
             return false
         end
     end
+    local level = UnitLevel and UnitLevel("player") or 0
+    if type(level) ~= "number" or level < 1 then
+        level = 1
+    end
+    if type(step.minLevel) == "number" and level < step.minLevel then
+        return false
+    end
+    if type(step.maxLevel) == "number" and level > step.maxLevel then
+        return false
+    end
     return true
 end
 
@@ -1666,7 +1697,7 @@ local function isQuestAutoStep(step)
     return when == "accepted" or when == "complete" or when == "objectives"
 end
 
--- Quest autos plus travel (arrive near the pin). Used to park the guide.
+-- Quest autos plus travel / grind. Used to park the guide.
 local function isAutoStep(step)
     if not step then
         return false
@@ -1674,7 +1705,75 @@ local function isAutoStep(step)
     if isQuestAutoStep(step) then
         return true
     end
-    return step.when == "travel"
+    return step.when == "travel" or step.when == "grind"
+end
+
+-- Grind until UnitLevel reaches step.level, optionally with UnitXP into that
+-- level. xp in (0, 1) is a fraction of the bar (0.5 = mid-level); xp >= 1 is
+-- absolute experience into the level.
+local function grindXpThreshold(step, maxXp)
+    local need = tonumber(step and step.xp)
+    if not need or need <= 0 then
+        return nil
+    end
+    if need > 0 and need < 1 then
+        if type(maxXp) == "number" and maxXp > 0 then
+            return maxXp * need
+        end
+        return nil
+    end
+    return need
+end
+
+local function grindStepDone(step)
+    local target = tonumber(step and step.level)
+    if not target or target < 1 then
+        return false
+    end
+    local level = UnitLevel and UnitLevel("player") or 0
+    if type(level) ~= "number" then
+        level = 0
+    end
+    if level > target then
+        return true
+    end
+    if level < target then
+        return false
+    end
+    local threshold = grindXpThreshold(step, UnitXPMax and UnitXPMax("player"))
+    if not threshold then
+        return true
+    end
+    local cur = UnitXP and UnitXP("player") or 0
+    return cur >= threshold
+end
+
+local function grindProgressLine(step)
+    local target = tonumber(step and step.level)
+    if not target or target < 1 then
+        return nil
+    end
+    local level = UnitLevel and UnitLevel("player") or 0
+    local cur = UnitXP and UnitXP("player") or 0
+    local maxXp = UnitXPMax and UnitXPMax("player") or 0
+    if grindStepDone(step) then
+        return string.format("Level %d · done", target)
+    end
+    if level < target then
+        if type(maxXp) == "number" and maxXp > 0 then
+            return string.format("Level %d · %d/%d XP (to %d)", level, cur, maxXp, target)
+        end
+        return string.format("Level %d (to %d)", level, target)
+    end
+    local threshold = grindXpThreshold(step, maxXp)
+    if not threshold then
+        return string.format("Level %d · done", target)
+    end
+    local goal = math.floor(threshold + 0.5)
+    if type(maxXp) == "number" and maxXp > 0 then
+        return string.format("Level %d · %d/%d XP", level, cur, goal)
+    end
+    return string.format("Level %d · %d XP", level, goal)
 end
 
 -- True when every applicable quest-gated step in a linked guide is finished.
@@ -1753,6 +1852,9 @@ local function stepDone(step)
     end
     if step.when == "travel" then
         return ns.TravelStepDone and ns.TravelStepDone(step) and true or false
+    end
+    if step.when == "grind" then
+        return grindStepDone(step)
     end
     if not isAutoStep(step) then
         -- Side-guide / next-guide pointer: skip once that guide's content is done.
@@ -2934,8 +3036,105 @@ local function isTalkDetail(text)
     return plain:match("^[Tt]alk to%s+") ~= nil or plain:match("^[Ss]peak with%s+") ~= nil
 end
 
+-- Quest-log titles for filtering authored "Turn in [QUEST]…[/]" detail lines.
+-- Rebuilt once per presentation pass (buildItem / step list).
+local questLogTitleCache
+
+local function resetQuestLogTitleCache()
+    questLogTitleCache = nil
+end
+
+local function questLogTitleSet()
+    if questLogTitleCache then
+        return questLogTitleCache
+    end
+    local titles = {}
+    if GetNumQuestLogEntries and GetQuestLogTitle then
+        local count = GetNumQuestLogEntries() or 0
+        for index = 1, count do
+            local title, _, _, isHeader = GetQuestLogTitle(index)
+            if not isHeader and type(title) == "string" and title ~= "" then
+                titles[title:lower()] = true
+            end
+        end
+    end
+    -- Party-sync followers: also mark quests the leader is on, by resolved name.
+    if ns.PartySyncFollowing and ns.PartySyncFollowing() and ns.PartySyncRemoteQuestIds then
+        local ids = ns.PartySyncRemoteQuestIds()
+        if type(ids) == "table" then
+            for _, id in ipairs(ids) do
+                local remote = syncQuest(id)
+                if remote and remote.on then
+                    local name = questName(id)
+                    if type(name) == "string" and name ~= "" and not name:match("^Quest%s+%d+$") then
+                        titles[name:lower()] = true
+                    end
+                end
+            end
+        end
+    end
+    questLogTitleCache = titles
+    return titles
+end
+
+local function formatTurnInQuests(names)
+    local function tag(name)
+        return "[QUEST]" .. name .. "[/]"
+    end
+    if #names == 1 then
+        return "Turn in " .. tag(names[1])
+    end
+    if #names == 2 then
+        return "Turn in " .. tag(names[1]) .. " and " .. tag(names[2])
+    end
+    local chunks = {}
+    for index = 1, #names - 1 do
+        chunks[#chunks + 1] = tag(names[index])
+    end
+    return "Turn in " .. table.concat(chunks, ", ") .. ", and " .. tag(names[#names])
+end
+
+-- Drop or trim "Turn in [QUEST]…[/]" lines when those quests are not in the log.
+-- Leaves "Turn in to/at [FRIENDLY|PICK]…" alone (no quest tags).
+local function filterTurnInDetail(text)
+    if type(text) ~= "string" then
+        return text
+    end
+    local plain = objectivePlain(text)
+    if plain:match("^[Tt]urn%s+into%s+") then
+        return text
+    end
+    if not plain:match("^[Tt]urn%s+in%s+") then
+        return text
+    end
+    local names = {}
+    for name in text:gmatch("%[QUEST%](.-)%[%/%a*%]") do
+        if name ~= "" then
+            names[#names + 1] = name
+        end
+    end
+    if #names == 0 then
+        return text
+    end
+    local titles = questLogTitleSet()
+    local kept = {}
+    for _, name in ipairs(names) do
+        if titles[name:lower()] then
+            kept[#kept + 1] = name
+        end
+    end
+    if #kept == 0 then
+        return nil
+    end
+    if #kept == #names then
+        return text
+    end
+    return formatTurnInQuests(kept)
+end
+
 local function addDetail(details, seen, text, headlineKey)
     text = scrubPlayerText(text)
+    text = filterTurnInDetail(text)
     if type(text) ~= "string" then
         return
     end
@@ -3135,6 +3334,7 @@ function ns.GuideStepListData()
     end
     local current = ns.GuideStepListCurrent() or 1
 
+    resetQuestLogTitleCache()
     local entries = {}
     for index, step in ipairs(guide.steps) do
         local headline, details = authoredPresentation(step)
@@ -3319,6 +3519,9 @@ local function stepAreaFlags(step)
 end
 
 local function stepIsAreaObjective(step)
+    if step.when == "grind" then
+        return true
+    end
     if step.when ~= "objectives" then
         return false
     end
@@ -3355,11 +3558,15 @@ local function defaultNear(kind)
 end
 
 -- One named kill or one (1) loot/pick uses the single radius. Grind counts use
--- the matching enemy / loot / pick option.
+-- the matching enemy / loot / pick option. Level/XP grind camps always use the
+-- enemy camp radius unless nearYards is set.
 local function stepNearYards(step)
     local authored = tonumber(step.nearYards)
     if authored and authored > 0 then
         return authored
+    end
+    if step.when == "grind" then
+        return defaultNear(stepAreaKind(step))
     end
     if not stepIsAreaObjective(step) then
         return nil
@@ -3426,6 +3633,7 @@ local function worldPoint(pin)
 end
 
 local function buildItem(step, full)
+    resetQuestLogTitleCache()
     local entries = {}
     local primary
     for _, id in ipairs(step.quests) do
@@ -3452,6 +3660,9 @@ local function buildItem(step, full)
         if not hasAuthoredText then
             local facts = step.quests[1] and ns.QuestFacts and ns.QuestFacts(step.quests[1])
             addDetail(details, seen, whoLine(facts and (step.when == "complete" and facts.turnIn or facts.giver), step.when == "complete"), headlineKey)
+        end
+        if step.when == "grind" then
+            addDetail(details, seen, grindProgressLine(step), headlineKey)
         end
         local allDone = #step.quests > 0
         local unresolved = false
@@ -3819,6 +4030,19 @@ function ns.GuideObjectives()
         end
         return true
     end
+    local function localeKey(step)
+        if not step or type(step.locale) ~= "string" then
+            return nil
+        end
+        local key = strtrim(step.locale):lower()
+        if key == "" then
+            return nil
+        end
+        return key
+    end
+    local function stickyGatesPrimary(step, blockedPrimary)
+        return blockedPrimary and questStepBlocks(step, primary) and true or false
+    end
     local function showSticky(index, step, blockedPrimary)
         if not step or not step.sticky or not stepApplies(step) then
             return false
@@ -3838,6 +4062,15 @@ function ns.GuideObjectives()
         if index > primaryIndex and not stepQuestInLog(step) then
             return false
         end
+        local stickyLocale = localeKey(step)
+        local primaryLocale = localeKey(primary)
+        if stickyLocale and primaryLocale then
+            if stickyLocale == primaryLocale then
+                return true
+            end
+            -- Different place: hide unless this sticky is why the primary waits.
+            return stickyGatesPrimary(step, blockedPrimary)
+        end
         if not stickyIsNearby(step) then
             -- Concurrent sticky for this primary (e.g. lion blood along the way
             -- to the fields) must stay listed even when pins differ by >750 yd.
@@ -3846,7 +4079,7 @@ function ns.GuideObjectives()
             end
             -- Far stickies that gate the current step still show so the block
             -- reason is visible.
-            if not (blockedPrimary and questStepBlocks(step, primary)) then
+            if not stickyGatesPrimary(step, blockedPrimary) then
                 return false
             end
         end
@@ -5169,6 +5402,7 @@ watcher:RegisterEvent("QUEST_LOG_UPDATE")
 watcher:RegisterEvent("UNIT_QUEST_LOG_CHANGED")
 watcher:RegisterEvent("BAG_UPDATE_DELAYED")
 watcher:RegisterEvent("PLAYER_LEVEL_UP")
+watcher:RegisterEvent("PLAYER_XP_UPDATE")
 watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 local function objectiveParts(id)
@@ -5827,8 +6061,16 @@ watcher:SetScript("OnEvent", function(_, event, name)
         end
         return
     end
-    if event == "PLAYER_LEVEL_UP" then
+    if event == "PLAYER_LEVEL_UP" or event == "PLAYER_XP_UPDATE" then
         markStepsDirty(false)
+        if ns.UsingStandalone and ns.UsingStandalone() then
+            local guide = activeGuide()
+            local entry = guide and progress(guide.id)
+            local step = entry and guide.steps[entry.step]
+            if step and step.when == "grind" then
+                queueCatchUp(CATCH_UP_DELAY, false)
+            end
+        end
         return
     end
     if event == "BAG_UPDATE_DELAYED" then

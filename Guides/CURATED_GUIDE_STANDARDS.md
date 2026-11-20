@@ -82,16 +82,20 @@ ns.RegisterGuide({
 | `text` | string | The headline the player reads. Required in practice. See section 7 for wording rules. |
 | `quest` | number | One quest id that gates this step. |
 | `quests` | list of numbers | Several quest ids that gate this step together. Use instead of `quest` when a step accepts or turns in more than one quest. |
-| `when` | string | How the step completes. One of `"accepted"`, `"complete"`, `"objectives"`, `"travel"`. See section 4. |
+| `when` | string | How the step completes. One of `"accepted"`, `"complete"`, `"objectives"`, `"travel"`, `"grind"`. See section 4. |
 | `objective` | number | 1-based quest log objective index. With `when = "objectives"`, the step completes once only that objective is done. |
+| `level` | number | Target character level for `when = "grind"`. |
+| `xp` | number | Optional XP into `level` for grind steps. Values in `(0, 1)` are a fraction of the bar (`0.5` = mid-level). Values `>= 1` are absolute XP. |
 | `map`, `x`, `y` | number | Pin. `map` is a UiMap id, `x` and `y` are 0 to 100 map percentages. See section 5. |
 | `pins` | list of tables | Several pins for one step. See section 5. |
 | `details` | list of strings | Sub-lines under the headline: objective counts and extra turn-ins. See section 7.3. |
 | `note` | string | One extra hint shown behind the "more notes" control. See section 7.4. |
 | `sticky` | boolean | Keep this step on screen while later steps proceed. See section 6. |
+| `locale` | string | Optional place name for sticky grouping, for example `"Razor Hill"` or `"Tiragarde Keep"`. See section 6. |
 | `faction` | `"Horde"` or `"Alliance"` | Show the step only to that faction. |
 | `races`, `excludeRaces` | list of strings | Show or hide the step by race. |
 | `classes`, `excludeClasses` | list of strings | Show or hide the step by class. |
+| `minLevel`, `maxLevel` | number | Show the step only within this character level range. Below `minLevel` or above `maxLevel`, the step is skipped. |
 | `mode` | `"softcore"` or `"hardcore"` | Show the step only in that guide mode. |
 | `guide` | string | Points at another guide id (side guide or hand-off). The step completes once that guide's quest steps are finished. |
 | `fpath` | string | Flight path pickup. Names the flight hub, for example `"Crossroads"`. The step completes once that node is learned. |
@@ -230,7 +234,42 @@ travel = { map = 1456, x = 45.0, y = 55.0, name = "Thunder Bluff" },
 
 Steps whose text starts with "Travel", "Fly", "Hearth", "Run to", or "Take the flight path" are also treated as travel steps for routing, but they only auto-complete when `when = "travel"` is set.
 
-### 4.5 Flight path pickup
+### 4.5 `when = "grind"`
+
+Completes once the player reaches `level`, optionally with experience into that level. Use for camps where the guide needs a level or XP gate and there is no quest objective. The tracker shows live XP progress. The pin uses the enemy NEAR radius (override with `nearYards`).
+
+```lua
+{
+    text = "Keep killing [ENEMY]Felmusk[/] satyrs at Night Run until you are close to level 27.",
+    when = "grind",
+    level = 26,
+    xp = 0.8,
+    map = 1440,
+    x = 66.98,
+    y = 54.97,
+},
+```
+
+```lua
+{
+    text = "Grind mobs around Mystral Lake until you are mid level 27 before heading back.",
+    when = "grind",
+    level = 27,
+    xp = 0.5,
+    map = 1440,
+    x = 52.4,
+    y = 62.8,
+},
+```
+
+- `level = 27` alone finishes at character level 27.
+- `level = 27, xp = 300` finishes at level 27 with at least 300 XP into the bar.
+- `level = 27, xp = 0.5` finishes at mid level 27 (half the bar).
+- Already at or above the target (including XP) skips the step during catch-up.
+
+Do not use a manual "grind to level N" step when a grind check would work.
+
+### 4.6 Flight path pickup
 
 Text that says "Get the `<Hub>` flight path" completes automatically once the node is learned, including when the player already had it. Add `fpath` when the hub name is not in the text.
 
@@ -243,7 +282,7 @@ Text that says "Get the `<Hub>` flight path" completes automatically once the no
 },
 ```
 
-### 4.6 Guide link (side guide or hand-off)
+### 4.7 Guide link (side guide or hand-off)
 
 Set `guide` to another guide id. The step completes once every quest step in that guide is done. Use it for class side guides and for the final hand-off to the next zone.
 
@@ -255,7 +294,7 @@ Set `guide` to another guide id. The step completes once every quest step in tha
 },
 ```
 
-### 4.7 Manual step (no `when`, no quest)
+### 4.8 Manual step (no `when`, no quest)
 
 Waits for the player to press the next arrow. Use only for actions the game cannot detect: setting a hearthstone, training, buying, or a one-time warning.
 
@@ -268,7 +307,7 @@ Waits for the player to press the next arrow. Use only for actions the game cann
 },
 ```
 
-Do not use a manual step when a quest id or travel check would work.
+Do not use a manual step when a quest id, travel check, or grind check would work.
 
 ---
 
@@ -347,6 +386,15 @@ Rules:
 - **Must** be placed immediately before the steps it overlaps, not at the start of the zone.
 - Do not chain more than about three active stickies at once; the tracker becomes unreadable.
 
+Optional `locale` tags a place (camp, keep, hold). Matching is trim + case-insensitive. Accept and turn-in steps may carry `locale` even though they are not sticky, so the current step has a place identity.
+
+| Sticky `locale` | Primary `locale` | Behavior |
+| --- | --- | --- |
+| unset | any | Distance / contiguous / gating rules only |
+| set | same place | Show (same camp; no 750-yard hide) |
+| set | different place | Hide, unless the sticky gates the primary |
+| set | unset | Distance / contiguous / gating fallback |
+
 Good: a sticky loot objective followed by a kill objective in the same camp.
 
 ```lua
@@ -364,6 +412,27 @@ Good: a sticky loot objective followed by a kill objective in the same camp.
     when = "objectives",
     map = 1442, x = 66.4, y = 55.9,
     details = { "[ENEMY]Venture Co. Logger[/] (15)" },
+},
+```
+
+Good: hub accepts and field stickies use different locales so Tiragarde stickies do not ride along during Razor Hill turns.
+
+```lua
+{
+    text = "Talk to [FRIENDLY]Gar'Thok[/]. Accept [QUEST]Vanquish the Betrayers[/].",
+    quest = 784,
+    when = "accepted",
+    locale = "Razor Hill",
+    map = 1411, x = 52.0, y = 43.5,
+},
+{
+    sticky = true,
+    text = "Loot [LOOT]Canvas Scraps[/] from Kul Tiras at Tiragarde.",
+    quest = 791,
+    when = "objectives",
+    locale = "Tiragarde Keep",
+    map = 1411, x = 58.1, y = 55.8,
+    details = { "[LOOT]Canvas Scraps[/] (8)" },
 },
 ```
 
@@ -529,10 +598,19 @@ Use filters so each player sees only their own steps.
     text = "Follow the road into Feralas. Talk to [FRIENDLY]Shyn[/]. Get the Camp Mojache flight path.",
     map = 1444, x = 75.5, y = 44.3,
 },
+{
+    minLevel = 8,
+    text = "Talk to [FRIENDLY]Orgnil Soulscar[/]. Accept [QUEST]A Missing Hand[/].",
+    quest = 99048,
+    when = "accepted",
+    map = 1411, x = 52.2, y = 43.2,
+},
 ```
 
 - `classes` and `races` show the step only to those players.
 - `excludeClasses` and `excludeRaces` hide the step from those players.
+- `minLevel` / `maxLevel` skip the step outside that character level. Put the same gate on every step in an optional chain so underleveled players are not parked on the follow-ups.
+- Do not write "Optional at level 8+" or "At level 10+" in `text` when `minLevel` already gates the step.
 - Do not start text with "Warriors:" or "Orcs and Trolls:" when the filter already limits it. The filter does the targeting.
 - Do not use `mode = "hardcore"` for steps that are only less safe. Use it for steps that hardcore players must not do (deathskips, risky elites).
 
@@ -571,6 +649,7 @@ Run through every item. Agents should report any failed item instead of silently
 - [ ] Every objective step has a count line per objective in `details`.
 - [ ] No step is gated on a quest that is only accepted by a later step. The guide cannot advance past such a step on its own.
 - [ ] Zone transitions and "go here" steps use `when = "travel"` with no quest.
+- [ ] Level / XP grind camps use `when = "grind"` with `level` (and `xp` when not a clean ding).
 - [ ] Manual steps are only for actions the game cannot detect.
 - [ ] Sticky steps are `objectives` steps and sit within about 750 yards of the steps that follow them.
 - [ ] `pins` entries use `note` or `label`, never `text`.
