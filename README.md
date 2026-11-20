@@ -4,12 +4,16 @@ Waynotes is a World of Warcraft addon for **WoW Forever**. It provides a WoW-sty
 
 ## Install
 
-1. Download the latest release zip.
+1. Download the latest release zip (`Waynotes-<version>-forever.zip`).
 2. Extract it into your Forever `Interface\AddOns` folder so you have:
 
    `World of Warcraft\_forever_\Interface\AddOns\Waynotes\`
 
 3. Restart the client (or `/reload`) and enable **Waynotes** in the AddOns list.
+
+### WowUp
+
+Install from the GitHub repo URL with the Forever client selected. Release assets must end in `-forever.zip` so WowUp can verify Forever compatibility.
 
 ## Optional addons
 

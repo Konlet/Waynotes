@@ -1,6 +1,11 @@
-﻿
-_questiedb/
+﻿_questiedb/
 scripts/deploy.path
 Guides/REFERENCE/
 
 *.zip
+
+# Temporary / local / testing scripts
+_tmp_*
+__pycache__/
+*.py
+*.pyc

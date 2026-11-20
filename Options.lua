@@ -214,7 +214,7 @@ local function createPageHeader(parent)
     subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -2)
     subtitle:SetPoint("RIGHT", holder, "RIGHT", -16, 0)
     subtitle:SetJustifyH("LEFT")
-    subtitle:SetText("Tracker style, guides, and display options.")
+    subtitle:SetText("Guides, tracker, and appearance.")
     subtitle:SetTextColor(0.78, 0.78, 0.82)
 
     return holder
@@ -640,7 +640,7 @@ local function createColors(parent)
 
     local fields = {
         { key = "accent", label = "Accent", tip = "Header, border, and guide name." },
-        { key = "background", label = "Background", tip = "Panel color. The background slider controls how solid it is." },
+        { key = "background", label = "Background", tip = "Panel color. Tracker background, under Tracker style, controls how solid it is." },
         { key = "text", label = "Current objective", tip = "Color of the main objective." },
         { key = "secondary", label = "Other objectives", tip = "Color of the objectives listed under the current one." },
         { key = "detail", label = "Details", tip = "Progress lines and extra notes." },
@@ -857,30 +857,9 @@ local function build(parent)
     layoutParent = parent
     layoutFooter = nil
 
-    local appearance = createSection(parent, "appearance", "Appearance", false)
-    local body = appearance.body
+    local guideSection = createSection(parent, "guides", "Guides", false)
+    local body = guideSection.body
     local y = -SECTION_PAD
-
-    local autoProgress = createCheck(body, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
-    placeCheck(autoProgress, body, y)
-    y = y - 30
-
-    local themes = createThemes(body)
-    placeIn(themes, body, y)
-    y = y - 52
-
-    local colors = createColors(body)
-    placeIn(colors, body, y)
-    y = y - 204
-
-    local profiles = createProfiles(body)
-    placeIn(profiles, body, y)
-    y = y - 104
-    finishSection(appearance, y)
-
-    local replaceSection = createSection(parent, "replace", "Replace RestedXP", false)
-    body = replaceSection.body
-    y = -SECTION_PAD
 
     local standalone = createCheck(body, "Replace RestedXP", "Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", "standaloneGuide")
     placeCheck(standalone, body, y)
@@ -927,16 +906,8 @@ local function build(parent)
     end)
     y = y - 28
 
-    local hardcore = createCheck(body, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
-    placeCheck(hardcore, body, y)
-    y = y - 28
-
-    local offStep = createCheck(body, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
-    placeCheck(offStep, body, y)
-    y = y - 28
-
-    local dungeonGuide = createCheck(body, "Suggest dungeon guide on enter", "When you enter a dungeon, asks if you want to load the matching dungeon guide. Turn this back on after choosing Don't Ask Again.", "promptDungeonGuide")
-    placeCheck(dungeonGuide, body, y)
+    local replace = createCheck(body, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Replace RestedXP is on, this stays paused and RestedXP stays hidden.", "replaceGuide")
+    placeCheck(replace, body, y)
     y = y - 28
 
     local guideStatus = body:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -993,19 +964,37 @@ local function build(parent)
     end
     addRefresher(guideStatus)
     y = y - 40
-    finishSection(replaceSection, y)
+
+    local autoProgress = createCheck(body, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
+    placeCheck(autoProgress, body, y)
+    y = y - 28
+
+    local hardcore = createCheck(body, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
+    placeCheck(hardcore, body, y)
+    y = y - 28
+
+    local offStep = createCheck(body, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
+    placeCheck(offStep, body, y)
+    y = y - 28
+
+    local dungeonGuide = createCheck(body, "Suggest dungeon guide on enter", "When you enter a dungeon, asks if you want to load the matching dungeon guide. Turn this back on after choosing Don't Ask Again.", "promptDungeonGuide")
+    placeCheck(dungeonGuide, body, y)
+    y = y - 28
+    finishSection(guideSection, y)
 
     local trackerSection = createSection(parent, "tracker", "Tracker", false)
     body = trackerSection.body
     y = -SECTION_PAD
 
-    local replace = createCheck(body, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Replace RestedXP is on, this stays paused and RestedXP stays hidden.", "replaceGuide")
-    placeCheck(replace, body, y)
-    y = y - 30
-
     local simple = createCheck(body, "Simple mode", "Shows only one step at a time: the earliest incomplete active step, including sticky steps.", "simpleMode")
     placeCheck(simple, body, y)
     y = y - 30
+
+    local maxSteps = createSlider(body, "Max steps displayed", "Limits how many steps the tracker shows at once (current step plus stickies). Simple mode always shows one step.", "maxTrackerSteps", function()
+        return trackerOn() and not (ns.db and ns.db.simpleMode)
+    end, { min = 1, max = 15, step = 1, percent = false, decimals = 0 })
+    placeIn(maxSteps, body, y)
+    y = y - 52
 
     local guidePercent = createCheck(body, "Show guide progress", "Shows how far you are through the current guide as a percentage in the tracker header.", "showGuidePercent")
     placeCheck(guidePercent, body, y)
@@ -1014,29 +1003,6 @@ local function build(parent)
     local stepList = createCheck(body, "Show step list", "Shows a slim scrollable list of every step under the guide. The current step stays highlighted at the top. Hover a row for details.", "showStepList")
     placeCheck(stepList, body, y)
     y = y - 30
-
-    local flightTimer = createCheck(body, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. Uses Forever flight-time data by default, then updates your local times after each flight.", "showFlightTimer")
-    placeCheck(flightTimer, body, y)
-    y = y - 30
-
-    local flightRecommend = createCheck(body, "Flight path recommendations", "When a travel destination is far enough that flying saves ground distance, shows a closable tip at the bottom of the guide. Click it to navigate to the departure flight master, or right-click to dismiss.", "showFlightRecommend")
-    placeCheck(flightRecommend, body, y)
-    y = y - 36
-
-    local flyYardRange = { min = 50, max = 5000, step = 50, percent = false, decimals = 0, suffix = " yd" }
-    local flyMin = createSlider(body, "Flight recommend savings", "Minimum ground distance a flight path must save before the guide recommends flying. Default 500 yards.", "flightRecommendMinYards", function()
-        return ns.db and ns.db.showFlightRecommend
-    end, flyYardRange)
-    placeIn(flyMin, body, y)
-    y = y - 52
-
-    local trainReminders = createCheck(body, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or right-click (or the x) to dismiss. Uses What's Training when installed.", "showTrainReminders")
-    placeCheck(trainReminders, body, y)
-    y = y - 30
-
-    local corpseTracker = createCheck(body, "Corpse tracker", "While you are dead, shows distance and a direction arrow to your corpse at the bottom of the guide.", "showCorpseTracker")
-    placeCheck(corpseTracker, body, y)
-    y = y - 36
 
     local trackerScale = createSlider(body, "Tracker scale", "Zooms the whole tracker, including the text. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
         return trackerOn()
@@ -1059,13 +1025,35 @@ local function build(parent)
     end, { min = 120, max = 800, step = 10, percent = false, decimals = 0, suffix = " px" })
     placeIn(trackerHeight, body, y)
     y = y - 52
-
-    local trackerBackground = createSlider(body, "Tracker background", "Darkness of the panel behind the objectives. The text stays solid.", "trackerBackground", function()
-        return trackerOn()
-    end)
-    placeIn(trackerBackground, body, y)
-    y = y - 52
     finishSection(trackerSection, y)
+
+    local noticeSection = createSection(parent, "notices", "Notices", false)
+    body = noticeSection.body
+    y = -SECTION_PAD
+
+    local flightTimer = createCheck(body, "Show flight timer", "While you are on a flight path, shows the destination and remaining time at the bottom of the tracker. Uses Forever flight-time data by default, then updates your local times after each flight.", "showFlightTimer")
+    placeCheck(flightTimer, body, y)
+    y = y - 30
+
+    local flightRecommend = createCheck(body, "Flight path recommendations", "When a travel destination is far enough that flying saves ground distance, shows a closable tip at the bottom of the guide. Click it to navigate to the departure flight master, or right-click to dismiss.", "showFlightRecommend")
+    placeCheck(flightRecommend, body, y)
+    y = y - 36
+
+    local flyYardRange = { min = 50, max = 5000, step = 50, percent = false, decimals = 0, suffix = " yd" }
+    local flyMin = createSlider(body, "Flight recommend savings", "Minimum ground distance a flight path must save before the guide recommends flying. Default 500 yards.", "flightRecommendMinYards", function()
+        return ns.db and ns.db.showFlightRecommend
+    end, flyYardRange)
+    placeIn(flyMin, body, y)
+    y = y - 52
+
+    local trainReminders = createCheck(body, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or right-click (or the x) to dismiss. Uses What's Training when installed.", "showTrainReminders")
+    placeCheck(trainReminders, body, y)
+    y = y - 30
+
+    local corpseTracker = createCheck(body, "Corpse tracker", "While you are dead, shows distance and a direction arrow to your corpse at the bottom of the guide.", "showCorpseTracker")
+    placeCheck(corpseTracker, body, y)
+    y = y - 30
+    finishSection(noticeSection, y)
 
     local nearSection = createSection(parent, "near", "Near distance", true)
     body = nearSection.body
@@ -1093,9 +1081,36 @@ local function build(parent)
     y = y - 52
     finishSection(nearSection, y)
 
-    local styleSection = createSection(parent, "style", "Style", true)
+    local appearance = createSection(parent, "appearance", "Appearance", false)
+    body = appearance.body
+    y = -SECTION_PAD
+
+    local themes = createThemes(body)
+    placeIn(themes, body, y)
+    y = y - 52
+
+    local colors = createColors(body)
+    placeIn(colors, body, y)
+    y = y - 204
+
+    local profiles = createProfiles(body)
+    placeIn(profiles, body, y)
+    y = y - 104
+    finishSection(appearance, y)
+
+    local styleSection = createSection(parent, "style", "Tracker style", true)
     body = styleSection.body
     y = -SECTION_PAD
+
+    local trackerBackground = createSlider(body, "Tracker background", "Darkness of the panel behind the objectives. The text stays solid.", "trackerBackground", function()
+        return trackerOn()
+    end)
+    placeIn(trackerBackground, body, y)
+    y = y - 52
+
+    local outline = createCheck(body, "Outline guide text", "Draws a dark outline on guide text so it stays readable when the background is faint.", "textOutline")
+    placeCheck(outline, body, y)
+    y = y - 32
 
     local darkHeader = createCheck(body, "Darkened header", "Draws a darker bar behind the guide name and the step buttons.", "darkHeader")
     placeCheck(darkHeader, body, y)
@@ -1129,7 +1144,7 @@ local function build(parent)
     placeCheck(trackerShadow, body, y)
     y = y - 30
 
-    local menuGlow = createCheck(body, "Border glow", "Draws a soft glow around the tracker and the guide/travel menus. Color is under Theme colors as Menu glow.", "menuBorderGlow")
+    local menuGlow = createCheck(body, "Border glow", "Draws a soft glow around the tracker and the guide/travel menus. The color is the Border glow swatch in Appearance.", "menuBorderGlow")
     placeCheck(menuGlow, body, y)
     y = y - 30
 
@@ -1140,34 +1155,26 @@ local function build(parent)
     y = y - 52
     finishSection(styleSection, y)
 
-    local guideSection = createSection(parent, "guideWindow", "Guide window", true)
-    body = guideSection.body
+    local windowSection = createSection(parent, "guideWindow", "RestedXP window", true)
+    body = windowSection.body
     y = -SECTION_PAD
 
-    local background = createSlider(body, "Background", "Fades the dark fill behind the guide. Text, icons, and the logo stay solid.", "backgroundAlpha")
+    local background = createSlider(body, "Background", "Fades the dark fill behind the RestedXP guide. Text, icons, and the logo stay solid.", "backgroundAlpha")
     placeIn(background, body, y)
     y = y - 52
 
-    local banner = createSlider(body, "Banner", "Fades the header and footer artwork. The logo and buttons stay solid.", "bannerAlpha")
+    local banner = createSlider(body, "Banner", "Fades the RestedXP header and footer artwork. The logo and buttons stay solid.", "bannerAlpha")
     placeIn(banner, body, y)
     y = y - 52
 
-    local border = createSlider(body, "Border", "Fades the frame edges and the step list scrollbar.", "borderAlpha")
+    local border = createSlider(body, "Border", "Fades the RestedXP frame edges and the step list scrollbar.", "borderAlpha")
     placeIn(border, body, y)
     y = y - 52
 
-    local steps = createSlider(body, "Faded steps", "How visible completed, skipped, and past steps are in the step list. Current and upcoming steps stay solid.", "stepListAlpha")
+    local steps = createSlider(body, "Faded steps", "How visible completed, skipped, and past steps are in the RestedXP step list. Current and upcoming steps stay solid.", "stepListAlpha")
     placeIn(steps, body, y)
-    y = y - 50
-
-    local outline = createCheck(body, "Outline guide text", "Draws a dark outline on guide text so it stays readable when the background is faint.", "textOutline")
-    placeCheck(outline, body, y)
-    y = y - 32
-
-    local layers = createLayers(body)
-    placeIn(layers, body, y)
     y = y - 52
-    finishSection(guideSection, y)
+    finishSection(windowSection, y)
 
     local fadeSection = createSection(parent, "fade", "Fade", true)
     body = fadeSection.body
@@ -1197,6 +1204,10 @@ local function build(parent)
     local otherSection = createSection(parent, "other", "Other frames", true)
     body = otherSection.body
     y = -SECTION_PAD
+
+    local layers = createLayers(body)
+    placeIn(layers, body, y)
+    y = y - 52
 
     local arrow = createSlider(body, "Waypoint arrow", "Opacity of the arrow and its distance text. RestedXP still hides the arrow when it has no destination.", "arrowAlpha")
     placeIn(arrow, body, y)

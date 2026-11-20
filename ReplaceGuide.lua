@@ -1068,6 +1068,10 @@ local function collectObjectives()
                 order[#order + 1] = index
             end
         end
+        local cap = ns.MaxTrackerSteps and ns.MaxTrackerSteps() or 10
+        while #order > cap do
+            order[#order] = nil
+        end
     end
 
     local targetButtons = shownTargetButtons()
