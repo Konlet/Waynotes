@@ -205,6 +205,42 @@ local function playerClassName()
     return token:sub(1, 1):upper() .. token:sub(2):lower()
 end
 
+-- Classic Forever: professions live on the skill sheet (GetNumSkillLines).
+-- Returns a set keyed by PROFESSION_NAMES entries the player has learned.
+local function playerLearnedProfessionSet()
+    local known = {}
+    local valid = {}
+    for index = 1, #PROFESSION_NAMES do
+        valid[PROFESSION_NAMES[index]] = true
+    end
+
+    if type(GetNumSkillLines) == "function" and type(GetSkillLineInfo) == "function" then
+        local count = GetNumSkillLines() or 0
+        for index = 1, count do
+            local name, isHeader = GetSkillLineInfo(index)
+            if not isHeader and type(name) == "string" and valid[name] then
+                known[name] = true
+            end
+        end
+        return known
+    end
+
+    -- Fallback for clients that expose the retail profession helpers.
+    if type(GetProfessions) == "function" and type(GetProfessionInfo) == "function" then
+        local indices = { GetProfessions() }
+        for index = 1, #indices do
+            local skillIndex = indices[index]
+            if skillIndex then
+                local name = GetProfessionInfo(skillIndex)
+                if type(name) == "string" and valid[name] then
+                    known[name] = true
+                end
+            end
+        end
+    end
+    return known
+end
+
 local hbdCache
 
 local function getHBD()
@@ -1597,21 +1633,39 @@ local function presentClassSubMenu()
 end
 
 local function presentProfessionSubMenu()
-    for index, profession in ipairs(PROFESSION_NAMES) do
+    local learned = playerLearnedProfessionSet()
+    local entries = {}
+    for _, profession in ipairs(PROFESSION_NAMES) do
+        if learned[profession] then
+            entries[#entries + 1] = { text = profession, filter = profession, mine = true }
+        end
+    end
+    for _, profession in ipairs(PROFESSION_NAMES) do
+        if not learned[profession] then
+            entries[#entries + 1] = { text = profession, filter = profession }
+        end
+    end
+
+    for index, entry in ipairs(entries) do
         local row = acquireRow(subMenu, subRows, index)
-        row.label:SetText(profession)
-        row.label:SetTextColor(1, 1, 1)
-        row.filter = profession
+        row.label:SetText(entry.text)
+        if entry.mine and ns.Color then
+            local r, g, b = ns.Color("accent")
+            row.label:SetTextColor(r, g, b)
+        else
+            row.label:SetTextColor(1, 1, 1)
+        end
+        row.filter = entry.filter
         row:SetScript("OnClick", function(self)
             chooseAndClose("profession", self.filter)
         end)
         placeRow(row, subMenu, (index - 1) * ROW_HEIGHT)
     end
-    for extra = #PROFESSION_NAMES + 1, #subRows do
+    for extra = #entries + 1, #subRows do
         subRows[extra]:Hide()
         subRows[extra].filter = nil
     end
-    subMenu:SetHeight(#PROFESSION_NAMES * ROW_HEIGHT + PAD * 2)
+    subMenu:SetHeight(#entries * ROW_HEIGHT + PAD * 2)
     styleNavFrame(subMenu)
 end
 

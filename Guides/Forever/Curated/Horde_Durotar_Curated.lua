@@ -666,6 +666,7 @@ ns.RegisterGuide({
             y = 43.2,
             quest = 806,
             when = "accepted",
+            locale = "Razor Hill",
             details = {
                 "Turn in [QUEST]Report to Orgnil[/]",
             },
@@ -677,6 +678,7 @@ ns.RegisterGuide({
             y = 43.5,
             quests = { 784, 837 },
             when = "accepted",
+            locale = "Razor Hill",
         },
         {
             text = "Talk to [FRIENDLY]Cook Torka[/]. Accept [QUEST]Break a Few Eggs[/] and [QUEST]This Fruit Could Bite Back[/]. Train Cooking and turn in [QUEST]Camping 101: Cooking[/].",
@@ -685,6 +687,7 @@ ns.RegisterGuide({
             y = 42.5,
             quests = { 815, 96825 },
             when = "accepted",
+            locale = "Razor Hill",
             note = "Camping 101: Cooking is optional.",
         },
         {
@@ -694,6 +697,7 @@ ns.RegisterGuide({
             y = 40.4,
             quest = 791,
             when = "accepted",
+            locale = "Razor Hill",
         },
         {
             text = "Talk to [FRIENDLY]Turroc[/] in the barracks. Accept [QUEST]For Honor[/].",
@@ -702,6 +706,7 @@ ns.RegisterGuide({
             y = 42.6,
             quest = 96822,
             when = "accepted",
+            locale = "Razor Hill",
         },
         {
             text = "Talk to [FRIENDLY]Innkeeper Grosk[/]. Turn in [QUEST]A Peon's Burden[/]. Set your hearth to Razor Hill.",
@@ -710,6 +715,7 @@ ns.RegisterGuide({
             y = 41.6,
             quest = 2161,
             when = "complete",
+            locale = "Razor Hill",
         },
         {
             classes = { "Priest" },
@@ -725,6 +731,7 @@ ns.RegisterGuide({
             y = 55.8,
             quest = 791,
             when = "objectives",
+            locale = "Tiragarde Keep",
             details = {
                 "[LOOT]Canvas Scraps[/] (8)",
             },
@@ -737,6 +744,7 @@ ns.RegisterGuide({
             y = 56.5,
             quest = 96822,
             when = "objectives",
+            locale = "Tiragarde Keep",
             details = {
                 "[LOOT]Raider's Bow[/] (1)",
                 "[LOOT]Raider's Battleaxe[/] (1)",
@@ -750,6 +758,7 @@ ns.RegisterGuide({
             y = 55.8,
             quest = 784,
             when = "objectives",
+            locale = "Tiragarde Keep",
             details = {
                 "[ENEMY]Kul Tiras Sailor[/] (10)",
                 "[ENEMY]Kul Tiras Marine[/] (8)",
@@ -797,7 +806,8 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Optional at level 8+: talk to [FRIENDLY]Orgnil Soulscar[/]. Accept [QUEST]A Missing Hand[/].",
+            minLevel = 8,
+            text = "Talk to [FRIENDLY]Orgnil Soulscar[/]. Accept [QUEST]A Missing Hand[/].",
             map = 1411,
             x = 52.2,
             y = 43.2,
@@ -805,7 +815,8 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Optional: talk to [FRIENDLY]Heglan Shadeeye[/]. Turn in [QUEST]A Missing Hand[/]. Accept [QUEST]Threat from Below[/].",
+            minLevel = 8,
+            text = "Talk to [FRIENDLY]Heglan Shadeeye[/]. Turn in [QUEST]A Missing Hand[/]. Accept [QUEST]Threat from Below[/].",
             map = 1411,
             x = 58.6,
             y = 45.6,
@@ -817,6 +828,7 @@ ns.RegisterGuide({
             },
         },
         {
+            minLevel = 8,
             text = "Loot the [PICK]Abandoned Dagger[/] on the ground.",
             map = 1411,
             x = 58.85,
@@ -828,6 +840,7 @@ ns.RegisterGuide({
             },
         },
         {
+            minLevel = 8,
             text = "Loot the [PICK]Weapon Piece[/] on the ground for the [LOOT]Broken Bone Trident[/].",
             map = 1411,
             x = 60.1,
@@ -839,6 +852,7 @@ ns.RegisterGuide({
             },
         },
         {
+            minLevel = 8,
             text = "Loot the [PICK]Strange Debris[/] on the ground for the [LOOT]Banner Scrap[/].",
             map = 1411,
             x = 60.08,
@@ -1032,7 +1046,8 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Optional: talk to [FRIENDLY]Orgnil Soulscar[/]. Turn in [QUEST]Threat from Below[/].",
+            minLevel = 8,
+            text = "Talk to [FRIENDLY]Orgnil Soulscar[/]. Turn in [QUEST]Threat from Below[/].",
             map = 1411,
             x = 52.2,
             y = 43.2,
@@ -1119,7 +1134,8 @@ ns.RegisterGuide({
             guide = "horde-durotar-shaman-fire",
         },
         {
-            text = "At level 10+, talk to [FRIENDLY]Takrin Pathseeker[/] outside Razor Hill. Accept [QUEST]Conscript of the Horde[/].",
+            minLevel = 10,
+            text = "Talk to [FRIENDLY]Takrin Pathseeker[/] outside Razor Hill. Accept [QUEST]Conscript of the Horde[/].",
             map = 1411,
             x = 50.9,
             y = 43.6,

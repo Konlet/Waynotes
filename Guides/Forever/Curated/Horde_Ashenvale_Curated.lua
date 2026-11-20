@@ -339,7 +339,10 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Keep killing Felmusk satyrs at Night Run until you are close to level 27.",
+            text = "Keep killing [ENEMY]Felmusk[/] satyrs at Night Run until you are close to level 27.",
+            when = "grind",
+            level = 26,
+            xp = 0.8,
             map = 1440,
             x = 66.98,
             y = 54.97,
@@ -452,6 +455,9 @@ ns.RegisterGuide({
         },
         {
             text = "Grind mobs around Mystral Lake until you are mid level 27 before heading back.",
+            when = "grind",
+            level = 27,
+            xp = 0.5,
             map = 1440,
             x = 52.4,
             y = 62.8,
