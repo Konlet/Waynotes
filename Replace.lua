@@ -6147,6 +6147,10 @@ local function isObjectiveDetail(text)
         return false
     end
     local lower = plain:lower()
+    -- Named kill checklist lines from curated details.
+    if lower:match("^kill%s") then
+        return true
+    end
     if lower:match("^accept%s") or lower:match("^turn%s+in%s") or lower:match("^complete%s") then
         return true
     end
@@ -6168,6 +6172,9 @@ local function objectiveRank(text)
     end
     local plain = RG.plainText(text)
     local lower = plain and plain:lower() or ""
+    if lower:match("^kill%s") then
+        return 1
+    end
     if lower:match("^accept%s") or lower:match("^turn%s+in%s") or lower:match("^complete%s") then
         return 2
     end
