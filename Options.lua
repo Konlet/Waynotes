@@ -859,16 +859,18 @@ local function build(parent)
 
     local guideSection = createSection(parent, "guides", "Guides", false)
     local body = guideSection.body
-    local y = -SECTION_PAD
+
+    local function rxpOptionsVisible()
+        return ns.RestedXPActive and ns.RestedXPActive() and true or false
+    end
 
     local standalone = createCheck(body, "Replace RestedXP", "Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", "standaloneGuide")
-    placeCheck(standalone, body, y)
     local standaloneRefresh = standalone.Refresh
     function standalone:Refresh()
         if standaloneRefresh then
             standaloneRefresh(self)
         end
-        local locked = ns.RestedXPActive and ns.RestedXPActive()
+        local locked = rxpOptionsVisible()
         local label = _G[self:GetName() .. "Text"]
         if locked then
             self:SetChecked(false)
@@ -886,7 +888,7 @@ local function build(parent)
     standalone:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("Replace RestedXP", 1, 1, 1)
-        if ns.RestedXPActive and ns.RestedXPActive() then
+        if rxpOptionsVisible() then
             GameTooltip:AddLine("RestedXP is loaded, so this stays off. Right-click the tracker to open its guides in this window.", 0.9, 0.9, 0.9, true)
         else
             GameTooltip:AddLine("Uses guides from the Guides folder in this tracker and hides RestedXP. Quest names, givers, and pins come from QuestieDB when it is installed.", 0.9, 0.9, 0.9, true)
@@ -894,7 +896,7 @@ local function build(parent)
         ns.FinishTooltip()
     end)
     standalone:SetScript("OnClick", function(self)
-        if not ns.db or (ns.RestedXPActive and ns.RestedXPActive()) then
+        if not ns.db or rxpOptionsVisible() then
             self:SetChecked(false)
             return
         end
@@ -904,11 +906,8 @@ local function build(parent)
             ns.RefreshOptions()
         end
     end)
-    y = y - 28
 
     local replace = createCheck(body, "Replace the guide window", "Shows the current objective in a WoW-style tracker and keeps RestedXP running behind it. Right-click the tracker to open the guide list. While Replace RestedXP is on, this stays paused and RestedXP stays hidden.", "replaceGuide")
-    placeCheck(replace, body, y)
-    y = y - 28
 
     local guideStatus = body:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     guideStatus:SetJustifyH("LEFT")
@@ -917,9 +916,8 @@ local function build(parent)
         guideStatus:SetWordWrap(true)
     end
     guideStatus:SetHeight(32)
-    placeIn(guideStatus, body, y)
     function guideStatus:Refresh()
-        if ns.RestedXPActive and ns.RestedXPActive() then
+        if rxpOptionsVisible() then
             local title = "RestedXP"
             local rxp = ns.RestedXP and ns.RestedXP()
             local current = rxp and rxp.currentGuide
@@ -938,7 +936,7 @@ local function build(parent)
             return
         end
         if not ns.db or not ns.db.standaloneGuide then
-            self:SetText("Replace RestedXP is off. The tracker follows RestedXP while Replace the guide window is on.")
+            self:SetText("Right-click the tracker to choose a guide once one is loaded.")
             self:SetTextColor(0.7, 0.7, 0.7)
             return
         end
@@ -963,28 +961,58 @@ local function build(parent)
         self:SetTextColor(0.9, 0.9, 0.9)
     end
     addRefresher(guideStatus)
-    y = y - 40
 
     local autoProgress = createCheck(body, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
-    placeCheck(autoProgress, body, y)
-    y = y - 28
-
     local hardcore = createCheck(body, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
-    placeCheck(hardcore, body, y)
-    y = y - 28
-
     local offStep = createCheck(body, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
-    placeCheck(offStep, body, y)
-    y = y - 28
-
     local dungeonGuide = createCheck(body, "Suggest dungeon guide on enter", "When you enter a dungeon, asks if you want to load the matching dungeon guide. Turn this back on after choosing Don't Ask Again.", "promptDungeonGuide")
-    placeCheck(dungeonGuide, body, y)
-    y = y - 28
-    finishSection(guideSection, y)
+
+    local lastRxpOptionsVisible
+    local function layoutGuideSection(force)
+        local showRxp = rxpOptionsVisible()
+        if not force and lastRxpOptionsVisible == showRxp then
+            return
+        end
+        lastRxpOptionsVisible = showRxp
+        local y = -SECTION_PAD
+        if showRxp then
+            standalone:Show()
+            placeCheck(standalone, body, y)
+            y = y - 28
+            replace:Show()
+            placeCheck(replace, body, y)
+            y = y - 28
+        else
+            standalone:Hide()
+            replace:Hide()
+        end
+        guideStatus:Show()
+        placeIn(guideStatus, body, y)
+        y = y - 40
+        placeCheck(autoProgress, body, y)
+        y = y - 28
+        placeCheck(hardcore, body, y)
+        y = y - 28
+        placeCheck(offStep, body, y)
+        y = y - 28
+        placeCheck(dungeonGuide, body, y)
+        y = y - 28
+        finishSection(guideSection, y)
+        if relayoutSections then
+            relayoutSections()
+        end
+    end
+
+    local guideLayout = {}
+    function guideLayout:Refresh()
+        layoutGuideSection(false)
+    end
+    addRefresher(guideLayout)
+    layoutGuideSection(true)
 
     local trackerSection = createSection(parent, "tracker", "Tracker", false)
     body = trackerSection.body
-    y = -SECTION_PAD
+    local y = -SECTION_PAD
 
     local simple = createCheck(body, "Simple mode", "Shows only one step at a time: the earliest incomplete active step, including sticky steps.", "simpleMode")
     placeCheck(simple, body, y)
