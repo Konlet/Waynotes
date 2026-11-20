@@ -3038,23 +3038,74 @@ end
 
 -- Quest-log titles for filtering authored "Turn in [QUEST]…[/]" detail lines.
 -- Rebuilt once per presentation pass (buildItem / step list).
+-- `reliable` is false when the log has rows but no titles could be resolved, so
+-- callers can fail open instead of blanking every turn-in line.
 local questLogTitleCache
+local questLogTitleReliable
 
 local function resetQuestLogTitleCache()
     questLogTitleCache = nil
+    questLogTitleReliable = nil
+end
+
+local function normalizeQuestTitle(title)
+    if type(title) ~= "string" or title == "" then
+        return nil
+    end
+    title = title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    -- Curly / typographic apostrophes → ASCII so authored tags match the log.
+    title = title:gsub("\226\128[\152-\155]", "'")
+    title = strtrim(title)
+    if title == "" then
+        return nil
+    end
+    return title:lower()
+end
+
+local function addQuestLogTitle(titles, title)
+    local key = normalizeQuestTitle(title)
+    if key then
+        titles[key] = true
+    end
 end
 
 local function questLogTitleSet()
     if questLogTitleCache then
-        return questLogTitleCache
+        return questLogTitleCache, questLogTitleReliable
     end
     local titles = {}
+    local questRows = 0
+    local expectedQuests = 0
     if GetNumQuestLogEntries and GetQuestLogTitle then
-        local count = GetNumQuestLogEntries() or 0
+        local count, numQuests = GetNumQuestLogEntries()
+        count = count or 0
+        expectedQuests = tonumber(numQuests) or 0
         for index = 1, count do
-            local title, _, _, isHeader = GetQuestLogTitle(index)
-            if not isHeader and type(title) == "string" and title ~= "" then
-                titles[title:lower()] = true
+            local title, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(index)
+            local qid = questID
+            if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+                local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+                if ok and type(value) == "number" then
+                    qid = value
+                end
+            end
+            local hasId = type(qid) == "number" and qid > 0
+            -- Some Classic / Forever builds mis-flag rows; trust a quest id
+            -- even when isHeader looks set.
+            if not isHeader or hasId then
+                if hasId or (type(title) == "string" and title ~= "") then
+                    questRows = questRows + 1
+                end
+                addQuestLogTitle(titles, title)
+                -- Prefer the same resolved name the rest of the guide uses
+                -- (C_QuestLog / Questie). Raw GetQuestLogTitle can be empty or
+                -- differently punctuated on Classic / Forever clients.
+                if hasId then
+                    local resolved = questName(qid)
+                    if type(resolved) == "string" and not resolved:match("^Quest%s+%d+$") then
+                        addQuestLogTitle(titles, resolved)
+                    end
+                end
             end
         end
     end
@@ -3065,16 +3116,42 @@ local function questLogTitleSet()
             for _, id in ipairs(ids) do
                 local remote = syncQuest(id)
                 if remote and remote.on then
+                    questRows = questRows + 1
+                    expectedQuests = expectedQuests + 1
                     local name = questName(id)
                     if type(name) == "string" and name ~= "" and not name:match("^Quest%s+%d+$") then
-                        titles[name:lower()] = true
+                        addQuestLogTitle(titles, name)
                     end
                 end
             end
         end
     end
     questLogTitleCache = titles
-    return titles
+    -- Reliable when we resolved at least one title, or the log is genuinely
+    -- empty. If the client reports quests but we got no titles, fail open.
+    local expect = math.max(expectedQuests, questRows)
+    questLogTitleReliable = expect == 0 or next(titles) ~= nil
+    return questLogTitleCache, questLogTitleReliable
+end
+
+-- True when this authored quest name is currently in the (local or leader) log.
+local function turnInQuestInLog(name)
+    if type(name) ~= "string" or name == "" then
+        return false
+    end
+    local titles = questLogTitleSet()
+    local key = normalizeQuestTitle(name)
+    if key and titles[key] then
+        return true
+    end
+    -- Fallback: Questie name → id → same questOn path as step gating.
+    if ns.EntityIdByName then
+        local id = ns.EntityIdByName("quest", name)
+        if id and questOn(id) then
+            return true
+        end
+    end
+    return false
 end
 
 local function formatTurnInQuests(names)
@@ -3116,10 +3193,14 @@ local function filterTurnInDetail(text)
     if #names == 0 then
         return text
     end
-    local titles = questLogTitleSet()
+    local _, reliable = questLogTitleSet()
+    if not reliable then
+        -- Log scan could not resolve titles; keep authored turn-ins visible.
+        return text
+    end
     local kept = {}
     for _, name in ipairs(names) do
-        if titles[name:lower()] then
+        if turnInQuestInLog(name) then
             kept[#kept + 1] = name
         end
     end
