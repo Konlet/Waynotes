@@ -1007,11 +1007,22 @@ local function authoredObjectiveNames(step)
         return names
     end
     for _, line in ipairs(step.details) do
-        local name = objectivePlain(line):match("^(.-)%s*%(%d+%)%s*$")
-        if name then
-            name = strtrim(name)
-            if name ~= "" then
-                names[#names + 1] = name
+        if type(line) == "string" then
+            local plain = objectivePlain(line)
+            -- Count lines: "[ENEMY]Hillsbrad Farmer[/] (6)" / "[LOOT]Item[/] (3)".
+            local name = plain:match("^(.-)%s*%(%d+%)%s*$")
+            if not name then
+                -- Named kills / rescues without a count still track against the
+                -- quest log ("Kill Farmer Getz" ↔ "Farmer Getz slain: 0/1").
+                name = plain:match("^[Kk]ill%s+(.+)$")
+                    or plain:match("^[Ss]lay%s+(.+)$")
+                    or plain:match("^[Rr]escue%s+(.+)$")
+            end
+            if name then
+                name = strtrim(name)
+                if name ~= "" then
+                    names[#names + 1] = name
+                end
             end
         end
     end
@@ -3244,11 +3255,18 @@ local function addDetail(details, seen, text, headlineKey)
         local plain = progressPlain(line)
         return plain:match("%d+%s*/%s*%d+") ~= nil or plain:match("%S.+%(%d+%)%s*$") ~= nil
     end
+    -- Authored checklist kills: "Kill [ENEMY]Farmer Getz[/]".
+    local function looksNamedKill(line)
+        return progressPlain(line):match("^[Kk]ill%s+%S") ~= nil
+    end
     -- Headlines often name the same item ("Kill grellkin for Fel Moss"), but the
     -- count line still carries the amount. Never drop progress/count details as
-    -- redundant with the headline.
+    -- redundant with the headline. Named kills stay unless they restate the
+    -- whole headline (simple "Kill X" step with a matching detail).
     if headlineKey and detailCovers(headlineKey, key) and not looksCount(text) then
-        return
+        if not looksNamedKill(text) or detailCovers(key, headlineKey) then
+            return
+        end
     end
     for index, existing in ipairs(details) do
         local existingKey = detailKey(existing)

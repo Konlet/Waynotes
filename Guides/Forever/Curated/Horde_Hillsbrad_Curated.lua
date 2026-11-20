@@ -1,8 +1,9 @@
 local _, ns = ...
 
 -- Curated Horde Hillsbrad Foothills.
--- First pass: Tarren Mill opener, Durnholde, farms, and Battle of Hillsbrad through the forge.
--- Second pass: town hall, Azurelode, yetis, Alterac Syndicate/Dalaran, then Arathi / Undercity hand-offs.
+-- First pass (22-24): Tarren Mill opener, Durnholde, farms, and Battle of Hillsbrad through the forge.
+-- Pick up Dangerous! early; finish its named kills on the 30-32 return.
+-- Second pass (30-32): Dangerous! targets, town hall, Azurelode, yetis, Alterac Syndicate/Dalaran, then Arathi / Undercity hand-offs.
 -- Assumes Journey to Hillsbrad Foothills (Silverpine) and/or Journey to Tarren Mill (Thunder Bluff).
 
 ns.RegisterGuide({
@@ -84,6 +85,7 @@ ns.RegisterGuide({
             y = 19.7,
             quest = 567,
             when = "accepted",
+            note = "Level 28 bounty. Kill the named targets on the 30-32 Hillsbrad return.",
         },
         {
             text = "Click the [PICK]WANTED[/] poster. Accept [QUEST]WANTED: Syndicate Personnel[/].",
@@ -224,7 +226,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "In the Hillsbrad Fields, kill [ENEMY]Farmer Getz[/], [ENEMY]Farmer Ray[/], and [ENEMY]Hillsbrad Farmers[/] and Farmhands.",
+            text = "Kill [ENEMY]Farmer Getz[/], [ENEMY]Farmer Ray[/], and [ENEMY]Hillsbrad Farmers[/] and [ENEMY]Hillsbrad Farmhands[/].",
             map = 1424,
             x = 35.0,
             y = 39.0,
@@ -283,31 +285,6 @@ ns.RegisterGuide({
             },
         },
         {
-            sticky = true,
-            text = "Kill [ENEMY]Citizen Wilkes[/].",
-            map = 1424,
-            x = 32.62,
-            y = 39.79,
-            quest = 567,
-            objective = 2,
-            when = "objectives",
-            details = {
-                "Kill [ENEMY]Citizen Wilkes[/]",
-            },
-        },
-        {
-            text = "Kill [ENEMY]Farmer Kalaba[/].",
-            map = 1424,
-            x = 35.88,
-            y = 46.57,
-            quest = 567,
-            objective = 4,
-            when = "objectives",
-            details = {
-                "Kill [ENEMY]Farmer Kalaba[/]",
-            },
-        },
-        {
             text = "Kill [ENEMY]Hillsbrad Peasants[/].",
             map = 1424,
             x = 32.7,
@@ -355,7 +332,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "First Hillsbrad pass done. Leave with [QUEST]Battle of Hillsbrad[/] (forge) ready to turn in, and [QUEST]Return to Thunder Bluff[/] for Zamah when convenient. Open 30-32 Hillsbrad when you return.",
+            text = "First Hillsbrad pass done. Leave with [QUEST]Battle of Hillsbrad[/] (forge) and [QUEST]Dangerous![/] ready for the 30-32 return, and [QUEST]Return to Thunder Bluff[/] for Zamah when convenient. Open 30-32 Hillsbrad when you return.",
             guide = "horde-hillsbrad-30-32",
         },
     },
@@ -458,6 +435,32 @@ ns.RegisterGuide({
             when = "objectives",
             details = {
                 "[LOOT]Helcular's Rod[/] (1)",
+            },
+        },
+        {
+            sticky = true,
+            text = "Kill [ENEMY]Citizen Wilkes[/] on the roads around the fields.",
+            map = 1424,
+            x = 32.62,
+            y = 39.79,
+            quest = 567,
+            objective = 2,
+            when = "objectives",
+            details = {
+                "Kill [ENEMY]Citizen Wilkes[/]",
+            },
+        },
+        {
+            sticky = true,
+            text = "Kill [ENEMY]Farmer Kalaba[/] in the orchard south of the forge.",
+            map = 1424,
+            x = 35.88,
+            y = 46.57,
+            quest = 567,
+            objective = 4,
+            when = "objectives",
+            details = {
+                "Kill [ENEMY]Farmer Kalaba[/]",
             },
         },
         {
