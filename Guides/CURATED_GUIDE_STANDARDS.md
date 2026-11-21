@@ -487,6 +487,8 @@ Use these sentence shapes, in this order when combined: location, NPC, turn-ins,
 | Hearth | `Set your Hearthstone to Town.` |
 | Optional | `[WARN]Optional group:[/] Accept [QUEST]Quest[/] ...` |
 
+The tracker adds an item button on a step that tells the player to use an item. Write `Use the [LOOT]Item[/]`, `Equip the [LOOT]Item[/]`, `Drink the [LOOT]Item[/]`, or `Plant [LOOT]Item[/]`, with the real item name in the tag. `use it` also counts when that `[LOOT]` or `[BUY]` item is named earlier in the same sentence. Clicking the button uses the item in the player's bags. Do not add a step field for the button.
+
 Do not write "until [QUEST]… is finished" (or "done" / "complete"). The step already advances when the objectives are done. Name the mobs and, if useful, the place.
 
 Do not write "for [QUEST]Quest[/]" (or "for QuestName" without the tag). The player already sees the quest by mousing over or clicking the step. Name the action, target, and place; leave the quest name to Accept/Turn in lines and to the step's quest link.

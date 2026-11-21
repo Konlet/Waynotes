@@ -6646,11 +6646,18 @@ local function layout(items, resetScroll)
         empty:SetText(waiting and "Waiting for the next step" or "Right-click to choose a guide")
         applyTrackerBox(20, resetScroll)
         restoreAllActions()
+        if ns.BeginUseItemButtons then
+            ns.BeginUseItemButtons()
+            ns.FinishUseItemButtons()
+        end
         return true
     end
 
     empty:Hide()
     local seenActions = {}
+    if ns.BeginUseItemButtons then
+        ns.BeginUseItemButtons()
+    end
 
     for index, item in ipairs(items) do
         local row = acquireRow(index)
@@ -6853,6 +6860,9 @@ local function layout(items, resetScroll)
 
         local contentHeight = textHeight + detailHeight + moreHeight + loadHeight
         local actions = item.actions or {}
+        if ns.AppendUseItemButtons then
+            actions = ns.AppendUseItemButtons(actions, item.useItems)
+        end
         local actionHeight = 0
         local stride = 26
         local perRow = 1
@@ -6896,6 +6906,9 @@ local function layout(items, resetScroll)
     end
     for _, button in ipairs(stale) do
         restoreAction(button)
+    end
+    if ns.FinishUseItemButtons then
+        ns.FinishUseItemButtons()
     end
 
     if count > 1 then
@@ -7455,6 +7468,11 @@ State.refreshTracker = function(force)
             local label = button.targetData and button.targetData.name or button.name or button.itemId or "?"
             actionNames[#actionNames + 1] = tostring(label)
         end
+        if type(item.useItems) == "table" then
+            for _, entry in ipairs(item.useItems) do
+                actionNames[#actionNames + 1] = tostring(entry.name) .. "#" .. tostring(entry.id or 0) .. "x" .. tostring(entry.count or 0)
+            end
+        end
         local wp = item.waypoint
         local wpText = wp and string.format("%.0f,%.0f", wp.wx, wp.wy) or "-"
         parts[index] = tostring(item.number) .. "\t" .. item.headline .. "\t" .. table.concat(item.details or {}, "|") .. "\t" .. table.concat(item.names or {}, ",") .. "\t" .. table.concat(item.quests or {}, ",") .. "\t" .. table.concat(actionNames, ",") .. "\t" .. wpText
@@ -7515,6 +7533,9 @@ State.refreshTracker = function(force)
         if force and ns.RefreshStepList then
             ns.RefreshStepList(true)
         end
+        if ns.RefreshUseItemButtons then
+            ns.RefreshUseItemButtons()
+        end
         State.notePrimaryRouteStep()
         rememberPulsePosition()
         return
@@ -7558,6 +7579,9 @@ State.refreshTracker = function(force)
     if ns.RefreshStepList then
         ns.RefreshStepList(force)
     end
+    if ns.RefreshUseItemButtons then
+        ns.RefreshUseItemButtons()
+    end
     State.notePrimaryRouteStep()
     rememberPulsePosition()
 end
@@ -7587,7 +7611,7 @@ local function isGuideAction(frame)
     if not frame then
         return false
     end
-    if frame.targetData or frame.itemId or frame.macro then
+    if frame.targetData or frame.itemId or frame.macro or frame.waynotesUseItem then
         return true
     end
     local name = frame.GetName and frame:GetName()

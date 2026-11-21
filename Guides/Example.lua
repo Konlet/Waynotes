@@ -47,6 +47,8 @@ local _, ns = ...
 -- Legacy |cRB_FRIENDLY_Name|r tags still expand the same way.
 -- Hover FRIENDLY/ENEMY/LOOT/BUY/PICK names to see QuestieDB tooltips
 -- (item icon via the client; NPC/object name, level, and location).
+-- "Use the [LOOT]Item[/]" (also equip, drink, plant, or "use it" after the
+-- item) shows an item button on that tracker row. Click it to use the item.
 
 ns.RegisterGuide({
     id = "example-northshire",

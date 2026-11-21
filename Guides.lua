@@ -2203,6 +2203,9 @@ neighbor = function(guide, index, direction)
 end
 
 local reviewKey
+-- Session-only: Previous step pauses auto-progress without changing ns.db.autoProgress.
+-- Cleared on Next step or when another guide is loaded.
+local autoProgressHeld = false
 
 local function rememberReview(guide, step)
     local entry = guide.steps[step]
@@ -2211,6 +2214,13 @@ local function rememberReview(guide, step)
     else
         reviewKey = nil
     end
+end
+
+local function autoProgressEnabled()
+    if autoProgressHeld then
+        return false
+    end
+    return not ns.db or ns.db.autoProgress ~= false
 end
 
 local function partySyncBroadcast()
@@ -2244,6 +2254,7 @@ function ns.GuideApplySync(guideId, stepIndex)
         stepIndex = count
     end
     reviewKey = nil
+    autoProgressHeld = false
     declinedOffStep = {}
     charDB().guide = guide.id
     progress(guide.id).step = stepIndex
@@ -2261,6 +2272,7 @@ local function advanceToNextGuide(fromGuide)
         return false
     end
     reviewKey = nil
+    autoProgressHeld = false
     charDB().guide = nxt.id
     local entry = progress(nxt.id)
     if entry.step < 1 then
@@ -2298,7 +2310,7 @@ function ns.GuideCatchUp()
     if partySyncBlocksAuto() then
         return false
     end
-    local auto = not ns.db or ns.db.autoProgress ~= false
+    local auto = autoProgressEnabled()
     local entry = progress(guide.id)
     local beforeGuide = guide.id
     local before = entry.step
@@ -2650,6 +2662,7 @@ function ns.GuideEnsure()
         return false
     end
     reviewKey = nil
+    autoProgressHeld = false
     charDB().guide = guide.id
     local entry = progress(guide.id)
     if entry.step > #guide.steps then
@@ -2669,6 +2682,7 @@ function ns.GuideSelect(id)
         return
     end
     reviewKey = nil
+    autoProgressHeld = false
     declinedOffStep = {}
     local db = charDB()
     db.guide = guide.id
@@ -2771,9 +2785,11 @@ function ns.GuideStep(direction)
     end
     entry.step = nextStep
     if direction < 0 then
+        autoProgressHeld = true
         rememberReview(guide, entry.step)
     else
         reviewKey = nil
+        autoProgressHeld = false
         ns.GuideCatchUp()
     end
     refresh()
@@ -3941,6 +3957,12 @@ local function buildItem(step, full)
             item = ns.TravelApplyToItem(item, step) or item
         end
     end
+    if ns.CollectUseItems then
+        item.useItems = ns.CollectUseItems(step)
+        if item.useItems then
+            lastSyncNeedsBag = true
+        end
+    end
     return item
 end
 
@@ -4313,7 +4335,7 @@ function ns.GuideObjectives()
         lastSyncProgress = progress
     end
     if #items == 0 then
-        local auto = (not ns.db or ns.db.autoProgress ~= false) and not partySyncBlocksAuto()
+        local auto = autoProgressEnabled() and not partySyncBlocksAuto()
         if auto and advanceToNextGuide(guide) then
             return ns.GuideObjectives()
         end
