@@ -543,7 +543,7 @@ ns.RegisterGuide({
             quest = 99134,
             when = "objectives",
             details = {
-                "Motivate Deathguards (5)",
+                "Deathguards motivated (5)",
             },
             note = "Guards stand near Zygand, the inn, the mailbox, and the cook.",
         },
@@ -590,8 +590,6 @@ ns.RegisterGuide({
             map = 1420,
             x = 61.86,
             y = 52.54,
-            quest = 99141,
-            when = "objectives",
         },
         {
             classes = { "Mage" },
@@ -599,8 +597,6 @@ ns.RegisterGuide({
             map = 1420,
             x = 61.97,
             y = 52.47,
-            quest = 99141,
-            when = "objectives",
         },
         {
             classes = { "Warlock" },
@@ -608,8 +604,6 @@ ns.RegisterGuide({
             map = 1420,
             x = 61.59,
             y = 52.4,
-            quest = 99141,
-            when = "objectives",
         },
         {
             classes = { "Priest" },
@@ -617,8 +611,6 @@ ns.RegisterGuide({
             map = 1420,
             x = 61.57,
             y = 52.2,
-            quest = 99141,
-            when = "objectives",
         },
         {
             classes = { "Rogue" },
@@ -626,8 +618,6 @@ ns.RegisterGuide({
             map = 1420,
             x = 61.75,
             y = 52.0,
-            quest = 99141,
-            when = "objectives",
         },
         {
             classes = { "Paladin" },
@@ -635,8 +625,6 @@ ns.RegisterGuide({
             map = 1420,
             x = 60.23,
             y = 52.68,
-            quest = 99141,
-            when = "objectives",
         },
         {
             text = "Talk to [FRIENDLY]Deathguard Kristof[/]. Collect [LOOT]Kristof's Report[/].",

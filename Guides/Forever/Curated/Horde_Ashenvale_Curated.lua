@@ -352,8 +352,8 @@ ns.RegisterGuide({
             quest = 24,
             when = "accepted",
             map = 1440,
-            x = 62.35,
-            y = 50.04,
+            x = 57.4,
+            y = 55.6,
             details = {
                 "[LOOT]Shadumbra's Head[/] (1)",
             },
