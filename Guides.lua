@@ -1001,32 +1001,84 @@ local function tokensCover(have, need)
     return true
 end
 
-local function authoredObjectiveNames(step)
-    local names = {}
-    if type(step.details) ~= "table" then
-        return names
-    end
-    for _, line in ipairs(step.details) do
-        if type(line) == "string" then
-            local plain = objectivePlain(line)
-            -- Count lines: "[ENEMY]Hillsbrad Farmer[/] (6)" / "[LOOT]Item[/] (3)".
-            local name = plain:match("^(.-)%s*%(%d+%)%s*$")
-            if not name then
-                -- Named kills / rescues without a count still track against the
-                -- quest log ("Kill Farmer Getz" ↔ "Farmer Getz slain: 0/1").
-                name = plain:match("^[Kk]ill%s+(.+)$")
-                    or plain:match("^[Ss]lay%s+(.+)$")
-                    or plain:match("^[Rr]escue%s+(.+)$")
-            end
-            if name then
-                name = strtrim(name)
-                if name ~= "" then
-                    names[#names + 1] = name
+-- Instruction-start lookup is an upvalue (not a main-chunk local) so Guides.lua
+-- stays under Lua's 200-local limit. Forever cannot index function values.
+local authoredObjectiveNames
+do
+    local instructionStart = {
+        use = true,
+        equip = true,
+        talk = true,
+        turn = true,
+        accept = true,
+        buy = true,
+        sell = true,
+        go = true,
+        travel = true,
+        run = true,
+        fly = true,
+        hearth = true,
+        learn = true,
+        train = true,
+        open = true,
+        click = true,
+        right = true,
+        skip = true,
+        optional = true,
+        grind = true,
+        die = true,
+        spirit = true,
+        ["return"] = true,
+        make = true,
+        craft = true,
+        cook = true,
+        enter = true,
+        gain = true,
+        set = true,
+        speak = true,
+        get = true,
+        stable = true,
+        teach = true,
+        wait = true,
+        avoid = true,
+        keep = true,
+        this = true,
+    }
+    authoredObjectiveNames = function(step)
+        local names = {}
+        if type(step.details) ~= "table" then
+            return names
+        end
+        for _, line in ipairs(step.details) do
+            if type(line) == "string" then
+                local plain = objectivePlain(line)
+                -- Count lines: "[ENEMY]Hillsbrad Farmer[/] (6)" / "[LOOT]Item[/] (3)".
+                local name = plain:match("^(.-)%s*%(%d+%)%s*$")
+                if not name then
+                    -- Named kills / rescues without a count still track against the
+                    -- quest log ("Kill Farmer Getz" ↔ "Farmer Getz slain: 0/1").
+                    name = plain:match("^[Kk]ill%s+(.+)$")
+                        or plain:match("^[Ss]lay%s+(.+)$")
+                        or plain:match("^[Rr]escue%s+(.+)$")
+                end
+                if not name and plain ~= "" then
+                    local first = plain:lower():match("^(%a+)")
+                    if not (first and instructionStart[first]) then
+                        -- Freeform objective text owned by this step, e.g.
+                        -- "Attack Plan: Valley of Trials destroyed".
+                        name = plain
+                    end
+                end
+                if name then
+                    name = strtrim(name)
+                    if name ~= "" then
+                        names[#names + 1] = name
+                    end
                 end
             end
         end
+        return names
     end
-    return names
 end
 
 -- Bag count for authored collect lines that are not quest-log objectives
@@ -1185,9 +1237,44 @@ local function authoredObjectivesDone(step, questId)
     if not questOn(questId) then
         return nil
     end
+    -- LOOT "(N)" lines: bags finish the step when Forever leaves the log
+    -- unfinished until turn-in. Only when every authored name is a LOOT count.
+    local bags
+    if type(step.details) == "table" then
+        local lootNeed = {}
+        for _, line in ipairs(step.details) do
+            if type(line) == "string" and (
+                line:find("[LOOT]", 1, true) or line:find("RB_LOOT_", 1, true)
+            ) then
+                local plain = objectivePlain(line)
+                local name, need = plain:match("^(.-)%s*%((%d+)%)%s*$")
+                need = tonumber(need)
+                if name and need and need > 0 then
+                    lootNeed[strtrim(name):lower()] = need
+                end
+            end
+        end
+        if next(lootNeed) then
+            bags = true
+            for _, name in ipairs(names) do
+                local need = lootNeed[name:lower()]
+                if not need then
+                    bags = nil
+                    break
+                end
+                if itemCountByName(name) < need then
+                    bags = false
+                    break
+                end
+            end
+        end
+    end
+    if bags == true then
+        return true
+    end
     local states = logObjectiveStates(questId)
     if not states then
-        return nil
+        return bags
     end
     local matched = 0
     for _, name in ipairs(names) do
@@ -1210,10 +1297,10 @@ local function authoredObjectivesDone(step, questId)
         end
     end
     if matched == 0 then
-        return nil
+        return bags
     end
     if #(step.quests or {}) <= 1 and matched < #names then
-        return nil
+        return bags
     end
     return true
 end
@@ -2204,8 +2291,9 @@ end
 
 local reviewKey
 -- Session-only: Previous step pauses auto-progress without changing ns.db.autoProgress.
--- Cleared on Next step or when another guide is loaded.
-local autoProgressHeld = false
+-- Cleared on Next step or when another guide is loaded. Stored on a table so
+-- Guides.lua stays under Lua's 200-local limit.
+local guideHold = { autoProgress = false }
 
 local function rememberReview(guide, step)
     local entry = guide.steps[step]
@@ -2214,13 +2302,6 @@ local function rememberReview(guide, step)
     else
         reviewKey = nil
     end
-end
-
-local function autoProgressEnabled()
-    if autoProgressHeld then
-        return false
-    end
-    return not ns.db or ns.db.autoProgress ~= false
 end
 
 local function partySyncBroadcast()
@@ -2254,7 +2335,7 @@ function ns.GuideApplySync(guideId, stepIndex)
         stepIndex = count
     end
     reviewKey = nil
-    autoProgressHeld = false
+    guideHold.autoProgress = false
     declinedOffStep = {}
     charDB().guide = guide.id
     progress(guide.id).step = stepIndex
@@ -2272,7 +2353,7 @@ local function advanceToNextGuide(fromGuide)
         return false
     end
     reviewKey = nil
-    autoProgressHeld = false
+    guideHold.autoProgress = false
     charDB().guide = nxt.id
     local entry = progress(nxt.id)
     if entry.step < 1 then
@@ -2310,7 +2391,7 @@ function ns.GuideCatchUp()
     if partySyncBlocksAuto() then
         return false
     end
-    local auto = autoProgressEnabled()
+    local auto = (not guideHold.autoProgress) and (not ns.db or ns.db.autoProgress ~= false)
     local entry = progress(guide.id)
     local beforeGuide = guide.id
     local before = entry.step
@@ -2662,7 +2743,7 @@ function ns.GuideEnsure()
         return false
     end
     reviewKey = nil
-    autoProgressHeld = false
+    guideHold.autoProgress = false
     charDB().guide = guide.id
     local entry = progress(guide.id)
     if entry.step > #guide.steps then
@@ -2682,7 +2763,7 @@ function ns.GuideSelect(id)
         return
     end
     reviewKey = nil
-    autoProgressHeld = false
+    guideHold.autoProgress = false
     declinedOffStep = {}
     local db = charDB()
     db.guide = guide.id
@@ -2785,11 +2866,11 @@ function ns.GuideStep(direction)
     end
     entry.step = nextStep
     if direction < 0 then
-        autoProgressHeld = true
+        guideHold.autoProgress = true
         rememberReview(guide, entry.step)
     else
         reviewKey = nil
-        autoProgressHeld = false
+        guideHold.autoProgress = false
         ns.GuideCatchUp()
     end
     refresh()
@@ -4335,7 +4416,7 @@ function ns.GuideObjectives()
         lastSyncProgress = progress
     end
     if #items == 0 then
-        local auto = autoProgressEnabled() and not partySyncBlocksAuto()
+        local auto = (not guideHold.autoProgress) and (not ns.db or ns.db.autoProgress ~= false) and not partySyncBlocksAuto()
         if auto and advanceToNextGuide(guide) then
             return ns.GuideObjectives()
         end
@@ -6079,6 +6160,14 @@ local function runCatchUp()
         markStepsDirty(true)
     elseif changed or force then
         markStepsDirty(false)
+    elseif checkOffStep and lastSyncNeedsBag and not force then
+        -- Forever often fires QUEST_LOG before use-item / loot counts settle
+        -- (Lazy Peons blackjack, bag collects). Snap looks unchanged, so the
+        -- rebuild is skipped until an unrelated bag event. One forced re-read.
+        -- queueCatchUp is declared below this function. Call the ns alias
+        -- so this is not a nil global (Lua locals are not visible above
+        -- their declaration).
+        ns.QueueGuideCatchUp(0.35, false, true)
     end
     if checkOffStep and progressed and #progressed > 0 then
         considerOffStepJump(progressed)
@@ -6140,6 +6229,7 @@ local function queueCatchUp(delay, checkOffStep, force)
     end
     pumpWatcher()
 end
+ns.QueueGuideCatchUp = queueCatchUp
 
 local function queueDungeonCheck(delay)
     local when = GetTime() + (delay or 0.5)

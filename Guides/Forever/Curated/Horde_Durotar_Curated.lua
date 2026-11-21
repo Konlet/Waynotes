@@ -60,14 +60,14 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Loot [PICK]Abandoned Training Weapons[/] on the ground.",
+            text = "Loot [LOOT]Abandoned Training Weapons[/] on the ground.",
             map = 1411,
             x = 44.4,
             y = 64.9,
             quest = 97279,
             when = "objectives",
             details = {
-                "[PICK]Abandoned Training Weapon[/] (6)",
+                "[LOOT]Abandoned Training Weapon[/] (6)",
             },
             note = "They are stone hatchets flat on the ground and stuck into cactuses.",
         },
@@ -378,6 +378,16 @@ ns.RegisterGuide({
             },
         },
         {
+            text = "Enter the Burning Blade Coven.",
+            map = 1411,
+            x = 45.4,
+            y = 56.4,
+            when = "travel",
+            details = {
+                "Enter the Burning Blade Coven",
+            },
+        },
+        {
             sticky = true,
             text = "Inside the Burning Blade Coven, loot [LOOT]Thazz'ril's Pick[/].",
             map = 1411,
@@ -580,7 +590,7 @@ ns.RegisterGuide({
         {
             text = "Destroy Attack Plan: Sen'jin Village.",
             map = 1411,
-            x = 47,7,
+            x = 47.7,
             y = 77.3,
             quest = 786,
             when = "objectives",
@@ -600,10 +610,34 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Optional: talk to [FRIENDLY]Pal'juh[/] for Lost in the Shadows and escort him out.",
+            text = "Optional: talk to [FRIENDLY]Pal'juh[/]. Accept [QUEST]Lost in the Shadows[/].",
             map = 1411,
             x = 46.3,
             y = 78.6,
+            quest = 99123,
+            when = "accepted",
+        },
+        {
+            text = "Escort [FRIENDLY]Pal'juh[/] out of Kolkar Crag.",
+            map = 1411,
+            x = 46.3,
+            y = 78.6,
+            quest = 99123,
+            when = "objectives",
+            details = {
+                "Escort Pal'juh out of Kolkar Crag",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Master Vornal[/]. Turn in [QUEST]Lost in the Shadows[/].",
+            map = 1411,
+            x = 55.9,
+            y = 74.4,
+            quest = 99123,
+            when = "complete",
+            details = {
+                "Turn in [QUEST]Lost in the Shadows[/]",
+            },
         },
         {
             text = "Return to Sen'jin. Talk to [FRIENDLY]Lar[/]. Turn in [QUEST]Thwarting Kolkar Aggression[/].",

@@ -234,6 +234,15 @@ local function playerPoint()
         local ok, wx, wy, instance = pcall(hbd.GetPlayerWorldPosition, hbd)
         if ok and isNumber(wx) and isNumber(wy) then
             wx, wy = alignToFlightWorld(wx, wy)
+            -- Forever flight JSON uses UnitPosition continent ids (0/1). HBD's
+            -- instance often disagrees; prefer UnitPosition so same-continent
+            -- FP filters do not skip every Kalimdor pad (or tip EK ones).
+            if type(UnitPosition) == "function" then
+                local uok, _, _, _, unitInstance = pcall(UnitPosition, "player")
+                if uok and isNumber(unitInstance) then
+                    instance = unitInstance
+                end
+            end
             return remember(wx, wy, instance)
         end
     end
@@ -791,19 +800,10 @@ function ns.TravelRememberNearestFlight()
     if not px then
         return
     end
-    local faction = playerFaction()
-    local bestId, bestDist
-    for nodeId, node in pairs(nodesById) do
-        if factionUsable(node.faction, faction) then
-            local dist = nodeDistance(px, py, instance, node)
-            if dist and (not bestDist or dist < bestDist) then
-                bestDist = dist
-                bestId = nodeId
-            end
-        end
-    end
-    if bestId and bestDist and bestDist <= 200 then
-        markFlightUnlocked(bestId, nodesById[bestId].hub)
+    -- Strict same-continent: Sen'jin (Kalimdor) is euclidean-near Revantusk (EK).
+    local node, dist = nearestFlightNode(px, py, instance, false, false, true)
+    if node and dist and dist <= 200 then
+        markFlightUnlocked(node.nodeId, node.hub)
     end
 end
 
@@ -1343,7 +1343,10 @@ local function flightNodePlace(node)
     }
 end
 
-local function nearestFlightNode(wx, wy, instance, unlockedOnly, unlearnedOnly)
+-- EK/Kalimdor share overlapping numeric UnitPosition ranges (e.g. Sen'jin
+-- Village sits ~40 yd from Revantusk Village's XY). Always prefer same
+-- instance; when sameContinentOnly, never fall back across continents.
+local function nearestFlightNode(wx, wy, instance, unlockedOnly, unlearnedOnly, sameContinentOnly)
     ensureGraph()
     if not isNumber(wx) or not isNumber(wy) then
         return nil
@@ -1351,17 +1354,34 @@ local function nearestFlightNode(wx, wy, instance, unlockedOnly, unlearnedOnly)
     local unlocked = unlockedFlightPaths()
     local faction = playerFaction()
     local bestId, bestDist
+    local bestSameId, bestSameDist
     for nodeId, node in pairs(nodesById) do
         if factionUsable(node.faction, faction) then
             local known = unlocked[nodeId] and true or false
             if (not unlockedOnly or known) and (not unlearnedOnly or not known) then
                 local dist = nodeDistance(wx, wy, instance, node)
-                if dist and (not bestDist or dist < bestDist) then
-                    bestDist = dist
-                    bestId = nodeId
+                if dist then
+                    if not bestDist or dist < bestDist then
+                        bestDist = dist
+                        bestId = nodeId
+                    end
+                    if isNumber(instance)
+                        and isNumber(node.instance)
+                        and node.instance == instance
+                        and (not bestSameDist or dist < bestSameDist)
+                    then
+                        bestSameDist = dist
+                        bestSameId = nodeId
+                    end
                 end
             end
         end
+    end
+    if bestSameId then
+        return nodesById[bestSameId], bestSameDist
+    end
+    if sameContinentOnly then
+        return nil
     end
     if bestId then
         return nodesById[bestId], bestDist
@@ -1448,7 +1468,7 @@ local function flightPathTargetFromStep(step)
     end
     if isNumber(step.map) and isNumber(step.x) and isNumber(step.y) then
         local wx, wy, instance = absoluteZoneWorld(step.map, step.x, step.y)
-        local node = nearestFlightNode(wx, wy, instance, false, false)
+        local node = nearestFlightNode(wx, wy, instance, false, false, true)
         if node then
             return flightNodePlace(node)
         end
@@ -1544,7 +1564,8 @@ function ns.TravelNearbyUnlearnedFlight(maxYards)
         nearbyHintCache = { maxYards = maxYards, place = nil }
         return nil
     end
-    local node, dist = nearestFlightNode(px, py, instance, false, true)
+    -- Strict same-continent so Durotar never tips Revantusk Village (EK).
+    local node, dist = nearestFlightNode(px, py, instance, false, true, true)
     local place
     if node and dist and dist <= maxYards then
         place = flightNodePlace(node)
@@ -1863,7 +1884,8 @@ local function routeFly(dest, fromWx, fromWy, fromInstance, unlocked, faction)
 
     -- Nearby flight master: record it even if the taxi UI never wrote it to
     -- WaynotesCharDB (common when catch-up skipped the "get FP" step).
-    local nearNode, nearDist = nearestFlightNode(fromWx, fromWy, fromInstance, false, false)
+    -- Same-continent only: Sen'jin XY overlaps Revantusk across continents.
+    local nearNode, nearDist = nearestFlightNode(fromWx, fromWy, fromInstance, false, false, true)
     local localPadYards = 300
     if nearNode and nearDist and nearDist <= localPadYards then
         markFlightUnlocked(nearNode.nodeId, nearNode.hub)
@@ -2508,9 +2530,10 @@ function ns.TravelDebugFlight()
     ))
     if px then
         say(string.format(
-            "dist to Taurajo(77)=%s Crossroads(25)=%s",
+            "dist to Taurajo(77)=%s Crossroads(25)=%s Revantusk(76)=%s",
             fmt(nodesById[77] and nodeDistance(px, py, pinstance, nodesById[77])),
-            fmt(nodesById[25] and nodeDistance(px, py, pinstance, nodesById[25]))
+            fmt(nodesById[25] and nodeDistance(px, py, pinstance, nodesById[25])),
+            fmt(nodesById[76] and nodeDistance(px, py, pinstance, nodesById[76]))
         ))
     end
 
@@ -2614,13 +2637,27 @@ function ns.TravelDebugFlight()
 
     if px then
         local faction = playerFaction()
-        local nearAny, nearAnyDist = nearestFlightNode(px, py, pinstance, false, false)
+        local nearAny, nearAnyDist = nearestFlightNode(px, py, pinstance, false, false, false)
+        local nearSame, nearSameDist = nearestFlightNode(px, py, pinstance, false, false, true)
+        local nearUnlearned, nearUnlearnedDist = nearestFlightNode(px, py, pinstance, false, true, true)
         local nearUn, nearUnDist = nearestUnlockedFlight(px, py, pinstance, unlocked, faction, true)
         say(string.format(
             "nearestAny id=%s hub=%s dist=%s",
             tostring(nearAny and nearAny.nodeId),
             tostring(nearAny and nearAny.hub),
             fmt(nearAnyDist)
+        ))
+        say(string.format(
+            "nearestSameContinent id=%s hub=%s dist=%s",
+            tostring(nearSame and nearSame.nodeId),
+            tostring(nearSame and nearSame.hub),
+            fmt(nearSameDist)
+        ))
+        say(string.format(
+            "nearestUnlearnedSame id=%s hub=%s dist=%s",
+            tostring(nearUnlearned and nearUnlearned.nodeId),
+            tostring(nearUnlearned and nearUnlearned.hub),
+            fmt(nearUnlearnedDist)
         ))
         say(string.format(
             "nearestUnlocked id=%s hub=%s dist=%s",

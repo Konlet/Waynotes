@@ -532,7 +532,11 @@ end
 local function createButton(index)
     local button = CreateFrame("Button", "WaynotesUseItem" .. index, UIParent, "SecureActionButtonTemplate")
     button:SetSize(22, 22)
-    button:RegisterForClicks("LeftButtonUp")
+    -- Secure item use follows ActionButtonUseKeyDown; register both so the
+    -- click fires whether that CVar wants down or up (same as hearth button).
+    if button.RegisterForClicks then
+        pcall(button.RegisterForClicks, button, "AnyUp", "AnyDown")
+    end
     button:SetAttribute("type", "item")
     button:Hide()
     button.waynotesUseItem = true
@@ -666,13 +670,37 @@ function ns.AppendUseItemButtons(actions, entries)
     return out
 end
 
-function ns.FinishUseItemButtons()
+local hideDeferred = false
+
+local function hideUnused()
     for index = shown + 1, #pool do
         local button = pool[index]
-        if button then
+        if button and button:IsShown() then
             button:Hide()
         end
     end
+end
+
+function ns.FinishUseItemButtons()
+    -- Secure buttons cannot Hide during combat. Defer until regen.
+    if inCombat() then
+        hideDeferred = true
+        return
+    end
+    hideDeferred = false
+    hideUnused()
+end
+
+if CreateFrame then
+    local regen = CreateFrame("Frame")
+    regen:RegisterEvent("PLAYER_REGEN_ENABLED")
+    regen:SetScript("OnEvent", function()
+        if not hideDeferred or inCombat() then
+            return
+        end
+        hideDeferred = false
+        hideUnused()
+    end)
 end
 
 function ns.RefreshUseItemButtons()
