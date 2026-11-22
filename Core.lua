@@ -78,7 +78,7 @@ ns.defaults = {
     targetAlpha = 1,
     replaceGuide = true,
     simpleMode = false,
-    maxTrackerSteps = 10,
+    maxTrackerSteps = 4,
     trackerScale = 1.2,
     trackerWidth = 300,
     trackerFitHeight = true,
@@ -1222,7 +1222,7 @@ ns.visualKeys = {
 function ns.MaxTrackerSteps()
     local n = tonumber(ns.db and ns.db.maxTrackerSteps)
     if not n then
-        n = ns.defaults.maxTrackerSteps or 10
+        n = ns.defaults.maxTrackerSteps or 4
     end
     n = math.floor(n + 0.5)
     if n < 1 then

@@ -14,6 +14,8 @@ local lastDungeonPromptKey
 local lastSyncStickies = {}
 local lastSyncProgress = {}
 local lastSyncNeedsBag = false
+local pendingOffStepOffer
+local clearOffStepOffer
 
 local stepApplies
 local progressCounts
@@ -2337,6 +2339,7 @@ function ns.GuideApplySync(guideId, stepIndex)
     reviewKey = nil
     guideHold.autoProgress = false
     declinedOffStep = {}
+    clearOffStepOffer()
     charDB().guide = guide.id
     progress(guide.id).step = stepIndex
     -- Coalesced dirty instead of a synchronous RefreshTracker(true) hitch.
@@ -2765,6 +2768,7 @@ function ns.GuideSelect(id)
     reviewKey = nil
     guideHold.autoProgress = false
     declinedOffStep = {}
+    clearOffStepOffer()
     local db = charDB()
     db.guide = guide.id
     local entry = progress(guide.id)
@@ -2905,6 +2909,7 @@ function ns.GuideJump(index)
     end
     progress(guide.id).step = index
     rememberReview(guide, index)
+    clearOffStepOffer()
     refresh()
     partySyncBroadcast()
 end
@@ -4379,11 +4384,26 @@ function ns.GuideObjectives()
                 addStep(primary, false)
             end
         end
-        local cap = ns.MaxTrackerSteps and ns.MaxTrackerSteps() or 10
+        local cap = ns.MaxTrackerSteps and ns.MaxTrackerSteps() or 4
         if #items > cap then
-            for index = #items, cap + 1, -1 do
-                items[index] = nil
+            local expanded = ns.IsMoreStepsExpanded and ns.IsMoreStepsExpanded()
+            if not expanded then
+                for index = #items, cap + 1, -1 do
+                    items[index] = nil
+                end
             end
+            -- Cap hides concurrent stickies; click to show or hide the rest.
+            items[#items + 1] = {
+                number = 0,
+                headline = expanded and "Show less" or "More steps...",
+                details = {},
+                actions = {},
+                names = {},
+                quests = {},
+                stepQuests = {},
+                moreSteps = true,
+                moreStepsExpanded = expanded and true or false,
+            }
         end
     end
     -- Host caches visible sticky indexes and kill/loot progress for followers.
@@ -5596,35 +5616,39 @@ function ns.ToggleGuideMenu()
     menu:Show()
 end
 
-local watcher = CreateFrame("Frame")
-local catchUpAt = 0
-local catchUpFirstAt = 0
-local objectiveSnap
-local objectiveSnapReady = false
-local pendingOffStepCheck = false
-local pendingCatchUpForce = false
-local promptedOffStepAt = 0
-local promptedDungeonAt = 0
-local dungeonCheckAt = 0
--- Coalesce QUEST_LOG spam without sliding forever past a turn-in/accept.
-local CATCH_UP_DELAY = 0.15
-local CATCH_UP_MAX_WAIT = 0.35
+-- One table on purpose. A Lua chunk allows only 200 locals, and this file
+-- sits near that cap. Do not split these back into chunk-level locals.
+local catchUp = {
+    watcher = CreateFrame("Frame"),
+    at = 0,
+    firstAt = 0,
+    snap = nil,
+    snapReady = false,
+    pendingOffStep = false,
+    pendingForce = false,
+    promptedOffStepAt = 0,
+    promptedDungeonAt = 0,
+    dungeonAt = 0,
+    -- Coalesce QUEST_LOG spam without sliding forever past a turn-in/accept.
+    delay = 0.15,
+    maxWait = 0.35,
+}
 
-watcher:RegisterEvent("ADDON_LOADED")
-watcher:RegisterEvent("PLAYER_LOGIN")
-watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
-watcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-watcher:RegisterEvent("ZONE_CHANGED")
-watcher:RegisterEvent("ZONE_CHANGED_INDOORS")
-watcher:RegisterEvent("QUEST_ACCEPTED")
-watcher:RegisterEvent("QUEST_TURNED_IN")
-watcher:RegisterEvent("QUEST_REMOVED")
-watcher:RegisterEvent("QUEST_LOG_UPDATE")
-watcher:RegisterEvent("UNIT_QUEST_LOG_CHANGED")
-watcher:RegisterEvent("BAG_UPDATE_DELAYED")
-watcher:RegisterEvent("PLAYER_LEVEL_UP")
-watcher:RegisterEvent("PLAYER_XP_UPDATE")
-watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
+catchUp.watcher:RegisterEvent("ADDON_LOADED")
+catchUp.watcher:RegisterEvent("PLAYER_LOGIN")
+catchUp.watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+catchUp.watcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+catchUp.watcher:RegisterEvent("ZONE_CHANGED")
+catchUp.watcher:RegisterEvent("ZONE_CHANGED_INDOORS")
+catchUp.watcher:RegisterEvent("QUEST_ACCEPTED")
+catchUp.watcher:RegisterEvent("QUEST_TURNED_IN")
+catchUp.watcher:RegisterEvent("QUEST_REMOVED")
+catchUp.watcher:RegisterEvent("QUEST_LOG_UPDATE")
+catchUp.watcher:RegisterEvent("UNIT_QUEST_LOG_CHANGED")
+catchUp.watcher:RegisterEvent("BAG_UPDATE_DELAYED")
+catchUp.watcher:RegisterEvent("PLAYER_LEVEL_UP")
+catchUp.watcher:RegisterEvent("PLAYER_XP_UPDATE")
+catchUp.watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 local function objectiveParts(id)
     local parts = {}
@@ -5951,40 +5975,61 @@ local function findOffStepForQuest(guide, currentIndex, questId)
     return bestIndex
 end
 
-if not StaticPopupDialogs["WaynotesOffStepJump"] then
-    StaticPopupDialogs["WaynotesOffStepJump"] = {
-        text = "It seems like you're on another section, jump to step %s?",
-        button1 = "Yes",
-        button2 = "No",
-        button3 = "Don't Ask Again",
-        OnAccept = function(self, data)
-            local index = data or (self and self.data)
-            if type(index) == "number" then
-                ns.GuideJump(index)
-            end
-        end,
-        OnCancel = function(self, data)
-            local guide = activeGuide()
-            local index = data or (self and self.data)
-            if guide and type(index) == "number" then
-                declinedOffStep[guide.id .. ":" .. index] = true
-            end
-        end,
-        OnAlt = function(self)
-            if ns.db then
-                ns.db.promptOffStepJump = false
-            end
-            if ns.RefreshOptions then
-                ns.RefreshOptions()
-            end
-            say("Jump suggestions off. Re-enable them in options.")
-        end,
-        timeout = 0,
-        whileDead = true,
-        hideOnEscape = true,
-        preferredIndex = 3,
-        exclusive = true,
-    }
+clearOffStepOffer = function(silent)
+    if not pendingOffStepOffer then
+        return
+    end
+    pendingOffStepOffer = nil
+    if not silent and ns.UpdateOffStepNotice then
+        ns.UpdateOffStepNotice()
+    end
+end
+
+function ns.OffStepJumpOffer()
+    return pendingOffStepOffer
+end
+
+function ns.OffStepJumpPreview(index)
+    index = tonumber(index)
+    local guide = activeGuide()
+    if not guide or not index or not guide.steps[index] then
+        return nil
+    end
+    local step = guide.steps[index]
+    local text = scrubPlayerText(type(step.text) == "string" and step.text or "") or ""
+    return plainStepListText(text)
+end
+
+function ns.AcceptOffStepJump()
+    local offer = pendingOffStepOffer
+    if offer and type(offer.index) == "number" then
+        ns.GuideJump(offer.index)
+        return
+    end
+    clearOffStepOffer()
+end
+
+function ns.DismissOffStepJump(permanent)
+    local offer = pendingOffStepOffer
+    pendingOffStepOffer = nil
+    if permanent then
+        if ns.db then
+            ns.db.promptOffStepJump = false
+        end
+        if ns.RefreshOptions then
+            ns.RefreshOptions()
+        end
+        say("Jump suggestions off. Re-enable them in options.")
+    elseif offer and type(offer.guideId) == "string" and type(offer.index) == "number" then
+        declinedOffStep[offer.guideId .. ":" .. offer.index] = true
+    end
+    if ns.UpdateOffStepNotice then
+        ns.UpdateOffStepNotice()
+    end
+end
+
+function ns.ClearOffStepJump(silent)
+    clearOffStepOffer(silent and true or false)
 end
 
 if not StaticPopupDialogs["WaynotesDungeonGuide"] then
@@ -6031,10 +6076,10 @@ local function promptDungeonGuide(guide, instanceName)
         return
     end
     local now = GetTime()
-    if now - promptedDungeonAt < 2 then
+    if now - catchUp.promptedDungeonAt < 2 then
         return
     end
-    promptedDungeonAt = now
+    catchUp.promptedDungeonAt = now
     lastDungeonPromptKey = instanceName
     StaticPopup_Show("WaynotesDungeonGuide", guide.name, nil, {
         guideId = guide.id,
@@ -6083,25 +6128,44 @@ local function considerDungeonGuide()
 end
 
 local function promptOffStepJump(index)
-    if type(index) ~= "number" or not StaticPopup_Show then
+    if type(index) ~= "number" then
         return
     end
-    if StaticPopup_Visible and StaticPopup_Visible("WaynotesOffStepJump") then
+    local guide = activeGuide()
+    if not guide then
+        return
+    end
+    if pendingOffStepOffer
+        and pendingOffStepOffer.guideId == guide.id
+        and pendingOffStepOffer.index == index
+    then
         return
     end
     local now = GetTime()
-    if now - promptedOffStepAt < 2 then
+    if now - catchUp.promptedOffStepAt < 2 then
         return
     end
-    promptedOffStepAt = now
-    StaticPopup_Show("WaynotesOffStepJump", tostring(index), nil, index)
+    catchUp.promptedOffStepAt = now
+    -- Hide the old modal if a previous build left it registered.
+    if StaticPopup_Hide then
+        StaticPopup_Hide("WaynotesOffStepJump")
+    end
+    pendingOffStepOffer = {
+        guideId = guide.id,
+        index = index,
+    }
+    if ns.UpdateOffStepNotice then
+        ns.UpdateOffStepNotice()
+    end
 end
 
 local function considerOffStepJump(questIds)
     if not ns.db or not ns.db.promptOffStepJump then
+        clearOffStepOffer()
         return
     end
     if not ns.UsingStandalone or not ns.UsingStandalone() then
+        clearOffStepOffer()
         return
     end
     local guide = activeGuide()
@@ -6109,6 +6173,9 @@ local function considerOffStepJump(questIds)
         return
     end
     local current = progress(guide.id).step
+    if pendingOffStepOffer and pendingOffStepOffer.guideId == guide.id and pendingOffStepOffer.index == current then
+        clearOffStepOffer()
+    end
     local bestIndex
     local bestDistance
     for _, questId in ipairs(questIds) do
@@ -6132,23 +6199,23 @@ end
 
 local function runCatchUp()
     if not ns.UsingStandalone or not ns.UsingStandalone() then
-        pendingOffStepCheck = false
-        pendingCatchUpForce = false
+        catchUp.pendingOffStep = false
+        catchUp.pendingForce = false
         return false
     end
-    local beforeSnap = objectiveSnap
-    local checkOffStep = pendingOffStepCheck and objectiveSnapReady
-    local force = pendingCatchUpForce
-    pendingOffStepCheck = false
-    pendingCatchUpForce = false
+    local beforeSnap = catchUp.snap
+    local checkOffStep = catchUp.pendingOffStep and catchUp.snapReady
+    local force = catchUp.pendingForce
+    catchUp.pendingOffStep = false
+    catchUp.pendingForce = false
     local afterSnap = takeObjectiveSnap()
-    local changed = not objectiveSnapReady or not snapsEqual(beforeSnap, afterSnap)
+    local changed = not catchUp.snapReady or not snapsEqual(beforeSnap, afterSnap)
     local progressed
     if checkOffStep and changed then
         progressed = progressedQuestIds(beforeSnap, afterSnap)
     end
-    objectiveSnap = afterSnap
-    objectiveSnapReady = true
+    catchUp.snap = afterSnap
+    catchUp.snapReady = true
     -- Always advance steps. QUEST_LOG can fire before the log API reflects a
     -- turn-in; skipping CatchUp on "unchanged" snap left the guide stuck.
     -- Quest progress always wins over a manual review pause.
@@ -6176,21 +6243,21 @@ local function runCatchUp()
 end
 
 local function pumpWatcher()
-    watcher:SetScript("OnUpdate", function(self)
+    catchUp.watcher:SetScript("OnUpdate", function(self)
         local now = GetTime()
-        local dueCatchUp = catchUpAt > 0 and now >= catchUpAt
-        local dueDungeon = dungeonCheckAt > 0 and now >= dungeonCheckAt
+        local dueCatchUp = catchUp.at > 0 and now >= catchUp.at
+        local dueDungeon = catchUp.dungeonAt > 0 and now >= catchUp.dungeonAt
         if not dueCatchUp and not dueDungeon then
             return
         end
         if dueCatchUp then
-            catchUpAt = 0
-            catchUpFirstAt = 0
+            catchUp.at = 0
+            catchUp.firstAt = 0
         end
         if dueDungeon then
-            dungeonCheckAt = 0
+            catchUp.dungeonAt = 0
         end
-        if catchUpAt <= 0 and dungeonCheckAt <= 0 then
+        if catchUp.at <= 0 and catchUp.dungeonAt <= 0 then
             self:SetScript("OnUpdate", nil)
         end
         if dueCatchUp then
@@ -6204,27 +6271,27 @@ end
 
 local function queueCatchUp(delay, checkOffStep, force)
     if checkOffStep then
-        pendingOffStepCheck = true
+        catchUp.pendingOffStep = true
     end
     if force then
-        pendingCatchUpForce = true
+        catchUp.pendingForce = true
     end
-    delay = tonumber(delay) or CATCH_UP_DELAY
+    delay = tonumber(delay) or catchUp.delay
     local now = GetTime()
-    if catchUpAt <= 0 then
-        catchUpFirstAt = now
-        catchUpAt = now + delay
+    if catchUp.at <= 0 then
+        catchUp.firstAt = now
+        catchUp.at = now + delay
     else
         -- Trailing coalesce, but never slide past first-event + max wait.
         -- The old "always extend" timer never fired during loot QUEST_LOG spam.
         local trailing = now + delay
-        local capped = (catchUpFirstAt > 0 and catchUpFirstAt or now) + CATCH_UP_MAX_WAIT
+        local capped = (catchUp.firstAt > 0 and catchUp.firstAt or now) + catchUp.maxWait
         local when = trailing
         if when > capped then
             when = capped
         end
-        if when < catchUpAt then
-            catchUpAt = when
+        if when < catchUp.at then
+            catchUp.at = when
         end
     end
     pumpWatcher()
@@ -6233,13 +6300,13 @@ ns.QueueGuideCatchUp = queueCatchUp
 
 local function queueDungeonCheck(delay)
     local when = GetTime() + (delay or 0.5)
-    if when > dungeonCheckAt then
-        dungeonCheckAt = when
+    if when > catchUp.dungeonAt then
+        catchUp.dungeonAt = when
     end
     pumpWatcher()
 end
 
-watcher:SetScript("OnEvent", function(_, event, name)
+catchUp.watcher:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" then
         if name ~= addonName then
             return
@@ -6252,10 +6319,11 @@ watcher:SetScript("OnEvent", function(_, event, name)
         if ns.InitDB then
             ns.InitDB()
         end
-        objectiveSnapReady = false
+        catchUp.snapReady = false
         declinedOffStep = {}
         declinedDungeon = {}
         lastDungeonPromptKey = nil
+        clearOffStepOffer()
         if ns.UsingStandalone and ns.UsingStandalone() then
             ns.GuideEnsure()
         end
@@ -6266,8 +6334,9 @@ watcher:SetScript("OnEvent", function(_, event, name)
     if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
         charDB()
         if event == "PLAYER_ENTERING_WORLD" then
-            objectiveSnapReady = false
+            catchUp.snapReady = false
             declinedOffStep = {}
+            clearOffStepOffer()
             if ns.InitDB then
                 ns.InitDB()
             end
@@ -6298,7 +6367,7 @@ watcher:SetScript("OnEvent", function(_, event, name)
             local entry = guide and progress(guide.id)
             local step = entry and guide.steps[entry.step]
             if step and step.when == "grind" then
-                queueCatchUp(CATCH_UP_DELAY, false)
+                queueCatchUp(catchUp.delay, false)
             end
         end
         return
@@ -6315,7 +6384,7 @@ watcher:SetScript("OnEvent", function(_, event, name)
             return
         end
         if ns.UsingStandalone and ns.UsingStandalone() then
-            queueCatchUp(CATCH_UP_DELAY, false, true)
+            queueCatchUp(catchUp.delay, false, true)
         else
             markStepsDirty(false)
         end
@@ -6334,5 +6403,5 @@ watcher:SetScript("OnEvent", function(_, event, name)
         return
     end
     local checkOffStep = event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED"
-    queueCatchUp(CATCH_UP_DELAY, checkOffStep)
+    queueCatchUp(catchUp.delay, checkOffStep)
 end)

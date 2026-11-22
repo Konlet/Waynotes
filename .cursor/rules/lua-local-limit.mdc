@@ -1,0 +1,31 @@
+---
+description: Lua 5.1 allows only 200 locals per function, including each addon file's main chunk. Guides.lua is already near the cap.
+globs: "**/*.lua"
+alwaysApply: false
+---
+
+# Lua 200-local limit
+
+WoW Lua (including Forever) errors with `main function has more than 200 local variables` when a file's main chunk has more than 200 locals in scope at once. `Guides.lua` is already near that cap. This has broken the addon repeatedly.
+
+- Do not add a chunk-level `local` or `local function` to `Guides.lua` unless you remove one in the same change.
+- Leave several free slots. One new local is enough to break the file.
+- A `local` inside a `do ... end` or inside a function does not count toward the chunk after that block ends. Prefer that over a new file-level local.
+- Hang extra state on an existing table (`catchUp`, `guideHold`) instead of new locals.
+- `local function name` counts as one chunk local. `local a, b` counts as two.
+- A local is not visible above its declaration. Calling it earlier resolves to a nil global (`attempt to call a nil value`). Forward-declare, or call an `ns` alias assigned after the function exists.
+- Forever cannot index function values (`fn.field = ...` throws). Do not stash state on a function.
+
+```lua
+-- Bad: two new chunk locals in a file already near 200
+local pending = false
+local function flush()
+end
+
+-- Good: locals die at end, and the function is stored on a table that already exists
+do
+    local pending = false
+    ns.Flush = function()
+    end
+end
+```

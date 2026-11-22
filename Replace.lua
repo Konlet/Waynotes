@@ -65,10 +65,12 @@ State.flyRec = { chrome = 0 }
 State.hearthRec = { chrome = 0 }
 State.nav = { chrome = 0 }
 State.train = { chrome = 0 }
+State.offStep = { chrome = 0 }
 State.corpse = { chrome = 0 }
 State.mapPins = { frames = {}, signature = nil }
 State.stickyShown = {}
 State.completing = {}
+State.moreStepsExpanded = false
 State.pinVisits = {}
 State.pinCycle = {}
 State.guideConcealed = false
@@ -1338,6 +1340,7 @@ local updateFlyRecStrip
 local updateHearthRecStrip
 local updateNavStrip
 local updateTrainStrip
+local updateOffStepStrip
 local placeBottomChrome
 
 do
@@ -1423,6 +1426,7 @@ do
             + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
             + (State.train.chrome or 0)
+            + (State.offStep.chrome or 0)
             + (State.corpse.chrome or 0)
         placeScroller(bottom)
         if State.flyRec.layout then
@@ -1436,6 +1440,9 @@ do
         end
         if State.train.layout then
             State.train.layout()
+        end
+        if State.offStep.layout then
+            State.offStep.layout()
         end
         if State.corpse.layout then
             State.corpse.layout()
@@ -2631,6 +2638,9 @@ do
             if updateTrainStrip then
                 updateTrainStrip()
             end
+            if updateOffStepStrip then
+                updateOffStepStrip()
+            end
         end
     end
 end
@@ -2892,8 +2902,15 @@ do
             + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
             + (State.corpse.chrome or 0)
+        local offset = -4
+        if State.offStep.strip and State.offStep.strip:IsShown() then
+            offset = offset - (size + 10)
+        end
         strip:ClearAllPoints()
-        strip:SetPoint("BOTTOMRIGHT", -4, 4 + lift)
+        strip:SetPoint("BOTTOMRIGHT", offset, 4 + lift)
+        if State.offStep.layout then
+            State.offStep.layout()
+        end
     end
 
     local function showTrain(on)
@@ -3159,6 +3176,220 @@ do
         pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.SPELLS_CHANGED or "SpellsChanged", onWtEvent)
         pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.LEVEL_CHANGED or "LevelChanged", onWtEvent)
         pcall(WT_API.RegisterCallback, owner, WT_API.Event and WT_API.Event.IGNORED_CHANGED or "IgnoredChanged", onWtEvent)
+    end
+end
+
+do
+    local size = UI.TRAIN_NOTICE
+    local strip = CreateFrame("Frame", nil, tracker)
+    strip:SetSize(size + 12, size + 10)
+    strip:SetPoint("BOTTOMRIGHT", -4, 4)
+    strip:Hide()
+    strip:SetFrameLevel((tracker:GetFrameLevel() or 0) + 21)
+    strip:EnableMouse(false)
+
+    local notice = CreateFrame("Button", nil, strip)
+    notice:SetSize(size, size)
+    notice:SetPoint("BOTTOMRIGHT", strip, "BOTTOMRIGHT", 0, 0)
+    notice:RegisterForClicks("LeftButtonUp")
+    notice:EnableMouse(true)
+
+    local icon = notice:CreateTexture(nil, "ARTWORK")
+    icon:SetAllPoints()
+    icon:SetTexture(UI.GPS_CYCLE)
+
+    local close = CreateFrame("Button", nil, strip)
+    close:SetSize(14, 14)
+    close:SetPoint("TOPRIGHT", notice, "TOPRIGHT", 5, 6)
+    close:SetFrameLevel(notice:GetFrameLevel() + 5)
+    close:RegisterForClicks("LeftButtonUp")
+    close.text = close:CreateFontString(nil, "OVERLAY")
+    close.text:SetPoint("CENTER", 0, 1)
+    RG.applyFont(close.text, 11, "OUTLINE")
+    close.text:SetText("x")
+
+    State.offStep.strip = strip
+    State.offStep.notice = notice
+    State.offStep.icon = icon
+    State.offStep.close = close
+    State.offStep.offer = nil
+    State.offStep.chrome = 0
+
+    State.offStep.layout = function()
+        local lift = (State.flight.chrome or 0)
+            + (State.flyRec.chrome or 0)
+            + (State.hearthRec.chrome or 0)
+            + (State.nav.chrome or 0)
+            + (State.corpse.chrome or 0)
+        strip:ClearAllPoints()
+        strip:SetPoint("BOTTOMRIGHT", -4, 4 + lift)
+        if State.train.layout and State.train.strip and State.train.strip:IsShown() then
+            -- Train shifts left when this notice is shown; refresh its anchor.
+            local trainLift = lift
+            local trainOffset = -4 - (size + 10)
+            State.train.strip:ClearAllPoints()
+            State.train.strip:SetPoint("BOTTOMRIGHT", trainOffset, 4 + trainLift)
+        end
+    end
+
+    local function showOffStep(on)
+        if on then
+            strip:Show()
+            if State.offStep.layout then
+                State.offStep.layout()
+            end
+            if State.train.layout then
+                State.train.layout()
+            end
+        else
+            strip:Hide()
+            if State.train.layout then
+                State.train.layout()
+            end
+        end
+    end
+
+    local painted = false
+
+    local function paintOffStep(force)
+        if not ns.db then
+            return
+        end
+        if painted and not force then
+            return
+        end
+        painted = true
+        local edgeR, edgeG, edgeB = ns.Color("accent")
+        icon:SetVertexColor(edgeR, edgeG, edgeB, 1)
+        RG.applyFont(close.text, 11, "OUTLINE")
+        close.text:SetTextColor(edgeR, edgeG, edgeB)
+    end
+
+    State.offStep.paint = function()
+        painted = false
+        paintOffStep(true)
+    end
+
+    local function placeOffStepTip(owner)
+        if State.placeCursorTooltip then
+            State.placeCursorTooltip(owner)
+        end
+    end
+
+    local function showOffStepTip(owner)
+        local offer = State.offStep.offer
+        local index = offer and offer.index
+        local preview = index and ns.OffStepJumpPreview and ns.OffStepJumpPreview(index)
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(owner, "ANCHOR_NONE")
+        if index then
+            GameTooltip:SetText("Jump to step " .. index .. "?", r, g, b)
+        else
+            GameTooltip:SetText("Jump to another step?", r, g, b)
+        end
+        GameTooltip:AddLine("Progress looks like another section of this guide.", 1, 1, 1, true)
+        if preview then
+            GameTooltip:AddLine(preview, 0.9, 0.9, 0.86, true)
+        end
+        GameTooltip:AddLine("Left-click to jump there.", 1, 1, 1, true)
+        GameTooltip:AddLine("Right-click to dismiss. Shift-right-click to disable suggestions.", 0.75, 0.75, 0.75, true)
+        ns.FinishTooltip()
+        placeOffStepTip(owner)
+    end
+
+    local function dismissOffStepNotice(permanent)
+        if ns.DismissOffStepJump then
+            ns.DismissOffStepJump(permanent and true or false)
+        elseif updateOffStepStrip then
+            updateOffStepStrip()
+        end
+    end
+
+    close:SetScript("OnClick", function()
+        dismissOffStepNotice(IsShiftKeyDown and IsShiftKeyDown())
+    end)
+    close:SetScript("OnMouseUp", function(_, button)
+        if button == "RightButton" then
+            dismissOffStepNotice(IsShiftKeyDown and IsShiftKeyDown())
+        end
+    end)
+    close:SetScript("OnEnter", function(self)
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetText("Dismiss jump suggestion", r, g, b)
+        GameTooltip:AddLine("Shift-click to disable suggestions.", 0.75, 0.75, 0.75, true)
+        ns.FinishTooltip()
+        placeOffStepTip(self)
+    end)
+    close:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+        if notice:IsMouseOver() then
+            showOffStepTip(notice)
+        end
+    end)
+
+    notice:SetScript("OnClick", function()
+        if ns.AcceptOffStepJump then
+            ns.AcceptOffStepJump()
+        end
+    end)
+    notice:SetScript("OnMouseUp", function(_, button)
+        if button == "RightButton" then
+            dismissOffStepNotice(IsShiftKeyDown and IsShiftKeyDown())
+        end
+    end)
+    notice:SetScript("OnEnter", function(self)
+        if close:IsMouseOver() then
+            return
+        end
+        showOffStepTip(self)
+    end)
+    notice:SetScript("OnLeave", function()
+        if close:IsMouseOver() then
+            return
+        end
+        GameTooltip:Hide()
+    end)
+
+    function updateOffStepStrip()
+        local enabled = ns.db and ns.db.promptOffStepJump
+        local offer = enabled and ns.OffStepJumpOffer and ns.OffStepJumpOffer() or nil
+        if offer then
+            local current = ns.GuideStepListCurrent and ns.GuideStepListCurrent()
+            local guideId = ns.GuideId and ns.GuideId()
+            local stale = not tracker:IsShown()
+                or type(offer.index) ~= "number"
+                or (type(guideId) == "string" and offer.guideId ~= guideId)
+                or (type(current) == "number" and current == offer.index)
+            if stale then
+                if ns.ClearOffStepJump then
+                    ns.ClearOffStepJump(true)
+                end
+                offer = nil
+            end
+        end
+
+        if not offer then
+            State.offStep.offer = nil
+            if strip:IsShown() then
+                showOffStep(false)
+            end
+            return
+        end
+
+        State.offStep.offer = offer
+        if not strip:IsShown() then
+            showOffStep(true)
+            paintOffStep(true)
+        elseif State.offStep.layout then
+            State.offStep.layout()
+        end
+    end
+
+    ns.UpdateOffStepNotice = function()
+        if updateOffStepStrip then
+            updateOffStepStrip()
+        end
     end
 end
 
@@ -3569,6 +3800,9 @@ local function styleTracker()
     end
     if State.train.paint then
         State.train.paint()
+    end
+    if State.offStep.paint then
+        State.offStep.paint()
     end
     if State.corpse.paint then
         State.corpse.paint()
@@ -4145,8 +4379,13 @@ local function appendCompletingItems(items)
         return items
     end
     local out = {}
-    for index, item in ipairs(items) do
-        out[index] = item
+    local more
+    for _, item in ipairs(items) do
+        if item and item.moreSteps then
+            more = item
+        else
+            out[#out + 1] = item
+        end
     end
     for stepIndex, entry in pairs(State.completing) do
         local ghost = entry.item
@@ -4156,6 +4395,9 @@ local function appendCompletingItems(items)
             ghost.stepIndex = stepIndex
             out[#out + 1] = ghost
         end
+    end
+    if more then
+        out[#out + 1] = more
     end
     return out
 end
@@ -5376,6 +5618,22 @@ local function acquireRow(index)
         if self.__rxpbLinkTip then
             return
         end
+        local item = self.__rxpbItem
+        if item and item.moreSteps then
+            self.tipShown = true
+            local r, g, b = ns.Color("accent")
+            GameTooltip:SetOwner(self, "ANCHOR_NONE")
+            if item.moreStepsExpanded then
+                GameTooltip:SetText("Show less", r, g, b)
+                GameTooltip:AddLine("Hide sticky steps beyond your max steps setting.", 1, 1, 1, true)
+            else
+                GameTooltip:SetText("More steps...", r, g, b)
+                GameTooltip:AddLine("Show all sticky steps currently active.", 1, 1, 1, true)
+            end
+            ns.FinishTooltip()
+            placeCursorTooltip(self)
+            return
+        end
         self.tipShown = true
         showStepTooltip(self)
     end)
@@ -5419,6 +5677,13 @@ local function acquireRow(index)
             return
         end
         if button == "LeftButton" and not self.tipDragged then
+            local item = self.__rxpbItem
+            if item and item.moreSteps then
+                if ns.ToggleMoreStepsExpanded then
+                    ns.ToggleMoreStepsExpanded()
+                end
+                return
+            end
             openStepQuest(questIdForRow(self))
         end
     end)
@@ -5461,6 +5726,22 @@ local function acquireRow(index)
         if parent then
             parent.tipShown = false
         end
+        local item = parent and parent.__rxpbItem
+        if item and item.moreSteps then
+            self.tipShown = true
+            local r, g, b = ns.Color("accent")
+            GameTooltip:SetOwner(self, "ANCHOR_NONE")
+            if item.moreStepsExpanded then
+                GameTooltip:SetText("Show less", r, g, b)
+                GameTooltip:AddLine("Hide sticky steps beyond your max steps setting.", 1, 1, 1, true)
+            else
+                GameTooltip:SetText("More steps...", r, g, b)
+                GameTooltip:AddLine("Show all sticky steps currently active.", 1, 1, 1, true)
+            end
+            ns.FinishTooltip()
+            placeCursorTooltip(self)
+            return
+        end
         if not self.stepIndex then
             return
         end
@@ -5477,8 +5758,13 @@ local function acquireRow(index)
         local parent = self:GetParent()
         if rowStillHovered(parent) then
             if parent then
-                parent.tipShown = true
-                showStepTooltip(parent)
+                local onEnter = parent.GetScript and parent:GetScript("OnEnter")
+                if onEnter then
+                    onEnter(parent)
+                else
+                    parent.tipShown = true
+                    showStepTooltip(parent)
+                end
             end
             return
         end
@@ -5503,7 +5789,19 @@ local function acquireRow(index)
             ns.OpenGuideMenu()
             return
         end
-        if button ~= "LeftButton" or not self.stepIndex then
+        if button ~= "LeftButton" then
+            return
+        end
+        local parent = self:GetParent()
+        local item = parent and parent.__rxpbItem
+        if item and item.moreSteps then
+            GameTooltip:Hide()
+            if ns.ToggleMoreStepsExpanded then
+                ns.ToggleMoreStepsExpanded()
+            end
+            return
+        end
+        if not self.stepIndex then
             return
         end
         GameTooltip:Hide()
@@ -6295,8 +6593,13 @@ end
 local function applyRowText(row, item, index)
     row.__rxpbItem = item
     local main = index == 1
-    local textR, textG, textB = ns.Color(main and "text" or "secondary")
-    RG.paint(row.text, main and 16 or 13, textR, textG, textB)
+    if item and item.moreSteps then
+        local accentR, accentG, accentB = ns.Color("accent")
+        RG.paint(row.text, main and 16 or 13, accentR, accentG, accentB)
+    else
+        local textR, textG, textB = ns.Color(main and "text" or "secondary")
+        RG.paint(row.text, main and 16 or 13, textR, textG, textB)
+    end
     row.text:SetText(presentHeadline(item))
     local _, tipLines = splitDetails(item and item.details)
     local note = item and item.note
@@ -6350,6 +6653,9 @@ local function applyRowText(row, item, index)
 end
 
 local function badgeLabel(item, index)
+    if item and item.moreSteps then
+        return 0, item.moreStepsExpanded and "-" or "+"
+    end
     local number = item.number > 0 and item.number or index
     return number, tostring(number)
 end
@@ -6662,7 +6968,12 @@ local function layout(items, resetScroll)
     for index, item in ipairs(items) do
         local row = acquireRow(index)
         local main = index == 1
-        local br, bg, bb = ns.BadgeColor(index)
+        local br, bg, bb
+        if item.moreSteps then
+            br, bg, bb = ns.Color("accent")
+        else
+            br, bg, bb = ns.BadgeColor(index)
+        end
         local badgeSize = main and 22 or 18
 
         row:Show()
@@ -6928,9 +7239,14 @@ end
 local function paintRowColors()
     for index, row in ipairs(State.rows) do
         if row:IsShown() and row.badge then
-            local r, g, b = ns.BadgeColor(index)
-            styleBadge(row.badge, r, g, b)
             local item = row.__rxpbItem
+            local r, g, b
+            if item and item.moreSteps then
+                r, g, b = ns.Color("accent")
+            else
+                r, g, b = ns.BadgeColor(index)
+            end
+            styleBadge(row.badge, r, g, b)
             if item then
                 applyRowText(row, item, index)
                 syncProgressBars(row, item)
@@ -7361,6 +7677,18 @@ function ns.RefreshTracker(force)
     ns.PerfAdd(key, debugprofilestop() - start)
 end
 
+function ns.IsMoreStepsExpanded()
+    return State.moreStepsExpanded and true or false
+end
+
+function ns.ToggleMoreStepsExpanded()
+    State.moreStepsExpanded = not State.moreStepsExpanded
+    State.lastSignature = nil
+    if ns.RefreshTracker then
+        ns.RefreshTracker(true)
+    end
+end
+
 local function rememberPulsePosition()
     local hbd = RG.hereBeDragons and RG.hereBeDragons()
     if not hbd or not hbd.GetPlayerWorldPosition then
@@ -7458,6 +7786,7 @@ State.refreshTracker = function(force)
         State.guideTitle = guideTitle
         State.completing = {}
         State.stickyShown = {}
+        State.moreStepsExpanded = false
     end
     beginStickyCompletions(items)
     local displayItems = appendCompletingItems(items)
@@ -8183,6 +8512,9 @@ State.trackerOnUpdate = function(self, delta)
     if State.trainElapsed >= UI.TRAIN_UPDATE_SECONDS then
         State.trainElapsed = 0
         State.timed("train", updateTrainStrip)
+        if updateOffStepStrip then
+            State.timed("offStep", updateOffStepStrip)
+        end
     end
     if not (ns.db and ns.db.standaloneGuide) then
         State.timed("review", RG.maintainReview)
@@ -8236,6 +8568,9 @@ tracker:SetScript("OnShow", function()
     pcall(updateFlightStrip)
     pcall(updateNavStrip)
     pcall(updateTrainStrip)
+    if updateOffStepStrip then
+        pcall(updateOffStepStrip)
+    end
     if State.corpse.update then
         pcall(State.corpse.update)
     end
@@ -8245,6 +8580,7 @@ tracker:SetScript("OnHide", function()
     clearGuideTips()
     State.completing = {}
     State.stickyShown = {}
+    State.moreStepsExpanded = false
     glowHost:Hide()
     shadowHost:Hide()
     if State.flight.strip then
@@ -8266,6 +8602,10 @@ tracker:SetScript("OnHide", function()
     if State.train.strip then
         State.train.strip:Hide()
     end
+    if State.offStep.strip then
+        State.offStep.strip:Hide()
+    end
+    State.offStep.offer = nil
     if State.corpse.strip then
         State.corpse.strip:Hide()
     end

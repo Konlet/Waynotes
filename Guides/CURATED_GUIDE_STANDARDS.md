@@ -601,7 +601,7 @@ Use filters so each player sees only their own steps.
     map = 1444, x = 75.5, y = 44.3,
 },
 {
-    minLevel = 8,
+    minLevel = 9,
     text = "Talk to [FRIENDLY]Orgnil Soulscar[/]. Accept [QUEST]A Missing Hand[/].",
     quest = 99048,
     when = "accepted",
@@ -612,7 +612,7 @@ Use filters so each player sees only their own steps.
 - `classes` and `races` show the step only to those players.
 - `excludeClasses` and `excludeRaces` hide the step from those players.
 - `minLevel` / `maxLevel` skip the step outside that character level. Put the same gate on every step in an optional chain so underleveled players are not parked on the follow-ups.
-- Do not write "Optional at level 8+" or "At level 10+" in `text` when `minLevel` already gates the step.
+- Do not write "Optional at level 9+" or "At level 10+" in `text` when `minLevel` already gates the step.
 - Do not start text with "Warriors:" or "Orcs and Trolls:" when the filter already limits it. The filter does the targeting.
 - Do not use `mode = "hardcore"` for steps that are only less safe. Use it for steps that hardcore players must not do (deathskips, risky elites).
 

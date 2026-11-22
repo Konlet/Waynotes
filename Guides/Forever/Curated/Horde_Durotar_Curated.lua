@@ -840,7 +840,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            minLevel = 8,
+            minLevel = 9,
             text = "Talk to [FRIENDLY]Orgnil Soulscar[/]. Accept [QUEST]A Missing Hand[/].",
             map = 1411,
             x = 52.2,
@@ -849,7 +849,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            minLevel = 8,
+            minLevel = 9,
             text = "Talk to [FRIENDLY]Heglan Shadeeye[/]. Turn in [QUEST]A Missing Hand[/]. Accept [QUEST]Threat from Below[/].",
             map = 1411,
             x = 58.6,
@@ -862,7 +862,7 @@ ns.RegisterGuide({
             },
         },
         {
-            minLevel = 8,
+            minLevel = 9,
             text = "Loot the [PICK]Abandoned Dagger[/] on the ground.",
             map = 1411,
             x = 58.85,
@@ -874,7 +874,7 @@ ns.RegisterGuide({
             },
         },
         {
-            minLevel = 8,
+            minLevel = 9,
             text = "Loot the [PICK]Weapon Piece[/] on the ground for the [LOOT]Broken Bone Trident[/].",
             map = 1411,
             x = 60.1,
@@ -886,7 +886,7 @@ ns.RegisterGuide({
             },
         },
         {
-            minLevel = 8,
+            minLevel = 9,
             text = "Loot the [PICK]Strange Debris[/] on the ground for the [LOOT]Banner Scrap[/].",
             map = 1411,
             x = 60.08,
@@ -1080,7 +1080,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            minLevel = 8,
+            minLevel = 9,
             text = "Talk to [FRIENDLY]Orgnil Soulscar[/]. Turn in [QUEST]Threat from Below[/].",
             map = 1411,
             x = 52.2,
@@ -1122,30 +1122,6 @@ ns.RegisterGuide({
             when = "accepted",
             details = {
                 "Turn in [QUEST]Winds in the Desert[/]",
-            },
-        },
-        {
-            text = "[WARN]Optional hard elite:[/] enter Thunder Ridge and kill [ENEMY]Fizzle Darkstorm[/]. Group up if needed.",
-            map = 1411,
-            x = 42.3,
-            y = 26.6,
-            quest = 806,
-            when = "objectives",
-            note = "[WARN]Dangerous[/]",
-            details = {
-                "[LOOT]Fizzle's Claw[/] (1)",
-                "Kill [ENEMY]Fizzle Darkstorm[/]",
-            },
-        },
-        {
-            text = "Return to Razor Hill. Talk to [FRIENDLY]Orgnil[/]. Turn in [QUEST]Dark Storms[/]. Accept [QUEST]Margoz[/].",
-            map = 1411,
-            x = 52.2,
-            y = 43.2,
-            quest = 828,
-            when = "accepted",
-            details = {
-                "Turn in [QUEST]Dark Storms[/]",
             },
         },
         {
@@ -1204,17 +1180,6 @@ ns.RegisterGuide({
     maxLevel = 12,
     steps = {
         {
-            text = "Talk to [FRIENDLY]Margoz[/]. Turn in [QUEST]Margoz[/]. Accept [QUEST]Skull Rock[/].",
-            map = 1411,
-            x = 56.4,
-            y = 20.0,
-            quest = 827,
-            when = "accepted",
-            details = {
-                "Turn in [QUEST]Margoz[/]",
-            },
-        },
-        {
             text = "Enter Drygulch Ravine. Kill [ENEMY]Dustwind Savages[/] and Storm Witches for Securing the Lines.",
             map = 1411,
             x = 53.1,
@@ -1265,6 +1230,19 @@ ns.RegisterGuide({
             },
         },
         {
+            text = "[WARN]Hard elite:[/] kill [ENEMY]Fizzle Darkstorm[/] in Thunder Ridge. Group up if needed.",
+            map = 1411,
+            x = 42.3,
+            y = 26.6,
+            quest = 806,
+            when = "objectives",
+            note = "[WARN]Dangerous[/]",
+            details = {
+                "[LOOT]Fizzle's Claw[/] (1)",
+                "Kill [ENEMY]Fizzle Darkstorm[/]",
+            },
+        },
+        {
             text = "[WARN]Optional:[/] Kill [ENEMY]Halikor[/]. Loot [LOOT]Halikor's Hoof[/]. Use it to accept [QUEST]Halikor's Hoof[/].",
             map = 1411,
             x = 40.4,
@@ -1279,6 +1257,28 @@ ns.RegisterGuide({
             y = 22.9,
             quest = 97282,
             when = "complete",
+        },
+        {
+            text = "Return to Razor Hill. Talk to [FRIENDLY]Orgnil[/]. Turn in [QUEST]Dark Storms[/]. Accept [QUEST]Margoz[/].",
+            map = 1411,
+            x = 52.2,
+            y = 43.2,
+            quest = 828,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]Dark Storms[/]",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Margoz[/]. Turn in [QUEST]Margoz[/]. Accept [QUEST]Skull Rock[/].",
+            map = 1411,
+            x = 56.4,
+            y = 20.0,
+            quest = 827,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]Margoz[/]",
+            },
         },
         {
             text = "Enter Skull Rock. Kill [ENEMY]Burning Blade Fanatics[/] and [ENEMY]Burning Blade Apprentices[/].",

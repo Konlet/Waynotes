@@ -964,7 +964,7 @@ local function build(parent)
 
     local autoProgress = createCheck(body, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
     local hardcore = createCheck(body, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
-    local offStep = createCheck(body, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, asks if you want to jump there. Turn this back on after choosing Don't Ask Again.", "promptOffStepJump")
+    local offStep = createCheck(body, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, shows a notice at the bottom-right of the guide. Click it to jump there, or right-click (or the x) to dismiss. Shift-right-click disables suggestions.", "promptOffStepJump")
     local dungeonGuide = createCheck(body, "Suggest dungeon guide on enter", "When you enter a dungeon, asks if you want to load the matching dungeon guide. Turn this back on after choosing Don't Ask Again.", "promptDungeonGuide")
 
     local lastRxpOptionsVisible

@@ -1041,6 +1041,8 @@ local function collectObjectives()
     end
 
     local order = {}
+    local overflow = false
+    local expanded = ns.IsMoreStepsExpanded and ns.IsMoreStepsExpanded()
     local primaryIndex
     for index, step in ipairs(steps) do
         if step and not step.tip and not step.sticky and not primaryIndex then
@@ -1068,9 +1070,14 @@ local function collectObjectives()
                 order[#order + 1] = index
             end
         end
-        local cap = ns.MaxTrackerSteps and ns.MaxTrackerSteps() or 10
-        while #order > cap do
-            order[#order] = nil
+        local cap = ns.MaxTrackerSteps and ns.MaxTrackerSteps() or 4
+        if #order > cap then
+            overflow = true
+            if not expanded then
+                while #order > cap do
+                    order[#order] = nil
+                end
+            end
         end
     end
 
@@ -1204,6 +1211,19 @@ local function collectObjectives()
 
     for _, objective in ipairs(list) do
         objective._step = nil
+    end
+    if overflow then
+        list[#list + 1] = {
+            number = 0,
+            headline = expanded and "Show less" or "More steps...",
+            details = {},
+            actions = {},
+            names = {},
+            quests = {},
+            stepQuests = {},
+            moreSteps = true,
+            moreStepsExpanded = expanded and true or false,
+        }
     end
     return list
 end

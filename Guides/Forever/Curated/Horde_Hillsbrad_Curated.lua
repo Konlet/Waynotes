@@ -68,7 +68,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Time To Strike[/]. Accept [QUEST]Battle of Hillsbrad[/].",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Time To Strike[/]. Accept [QUEST]Battle of Hillsbrad[/] (farms).",
             map = 1424,
             x = 62.3,
             y = 20.5,
@@ -251,14 +251,14 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/]. Accept [QUEST]Battle of Hillsbrad[/].",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (farms). Accept [QUEST]Battle of Hillsbrad[/] (peasants).",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 528,
             when = "accepted",
             details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/]",
+                "Turn in [QUEST]Battle of Hillsbrad[/] (farms)",
             },
         },
         {
@@ -296,14 +296,14 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/]. Accept [QUEST]Battle of Hillsbrad[/].",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (peasants). Accept [QUEST]Battle of Hillsbrad[/] (forge).",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 529,
             when = "accepted",
             details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/]",
+                "Turn in [QUEST]Battle of Hillsbrad[/] (peasants)",
             },
         },
         {
@@ -365,14 +365,14 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/]. Accept [QUEST]Battle of Hillsbrad[/].",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (forge). Accept [QUEST]Battle of Hillsbrad[/] (town hall).",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 532,
             when = "accepted",
             details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/]",
+                "Turn in [QUEST]Battle of Hillsbrad[/] (forge)",
             },
         },
         {
@@ -491,14 +491,14 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/]. Accept [QUEST]Battle of Hillsbrad[/].",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (town hall). Accept [QUEST]Battle of Hillsbrad[/] (mine).",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 539,
             when = "accepted",
             details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/]",
+                "Turn in [QUEST]Battle of Hillsbrad[/] (town hall)",
             },
         },
         {
@@ -656,14 +656,14 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] and [QUEST]Dangerous![/]. Accept [QUEST]Battle of Hillsbrad[/] (report to Undercity).",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (Dun Garok) and [QUEST]Dangerous![/]. Accept [QUEST]Battle of Hillsbrad[/] (report to Undercity).",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 550,
             when = "accepted",
             details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/]",
+                "Turn in [QUEST]Battle of Hillsbrad[/] (Dun Garok)",
                 "Turn in [QUEST]Dangerous![/]",
             },
         },
