@@ -663,44 +663,49 @@ local function questOn(id)
     if remote then
         return remote.on and true or false
     end
-    -- Trust a successful modern API result. Falling through to a full quest-log
-    -- scan on "not on quest" made every sticky poll O(steps * log size).
+    -- Positive client hits are fine. A false IsOnQuest is not trusted: Forever
+    -- can report false for quests that are in the log. Always confirm by id.
     if C_QuestLog and C_QuestLog.IsOnQuest then
         local ok, on = pcall(C_QuestLog.IsOnQuest, id)
-        if ok then
-            return on and true or false
+        if ok and on then
+            return true
         end
     end
     if IsOnQuest then
         local ok, on = pcall(IsOnQuest, id)
-        if ok then
-            return on and true or false
+        if ok and on then
+            return true
         end
     end
     if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
         local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, id)
-        if ok then
-            return type(index) == "number" and index > 0
-        end
-    end
-    if not GetNumQuestLogEntries or not GetQuestLogTitle then
-        return false
-    end
-    local count = GetNumQuestLogEntries()
-    for index = 1, count do
-        local _, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(index)
-        local qid = questID
-        if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
-            local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
-            if ok and type(value) == "number" then
-                qid = value
-            end
-        end
-        if not isHeader and qid == id then
+        if ok and type(index) == "number" and index > 0 then
             return true
         end
     end
-    return false
+    -- Cached id set from the quest log. Built once per dirty pass.
+    local cache = ns.__questLogIds
+    if type(cache) ~= "table" then
+        cache = {}
+        if GetNumQuestLogEntries and GetQuestLogTitle then
+            local count = GetNumQuestLogEntries() or 0
+            for index = 1, count do
+                local _, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(index)
+                local qid = questID
+                if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+                    local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+                    if ok and type(value) == "number" then
+                        qid = value
+                    end
+                end
+                if type(qid) == "number" and qid > 0 then
+                    cache[qid] = true
+                end
+            end
+        end
+        ns.__questLogIds = cache
+    end
+    return cache[id] and true or false
 end
 
 local function questCompleted(id)
@@ -2202,7 +2207,9 @@ local function questLive(step, questId)
         return false
     end
     if step.when == "accepted" then
-        return true
+        -- Match stepDone: once the quest is in the log the accept is finished
+        -- and must not keep blocking later objectives for the same id.
+        return not questOn(questId)
     end
     return questOn(questId)
 end
@@ -3159,6 +3166,7 @@ local questLogTitleReliable
 local function resetQuestLogTitleCache()
     questLogTitleCache = nil
     questLogTitleReliable = nil
+    ns.__questLogIds = nil
 end
 
 local function normalizeQuestTitle(title)
@@ -3248,21 +3256,31 @@ local function questLogTitleSet()
 end
 
 -- True when this authored quest name is currently in the (local or leader) log.
+-- Same-named chains (Battle of Hillsbrad) must resolve every Questie id, not
+-- only the first name hit, then check the log by id.
 local function turnInQuestInLog(name)
     if type(name) ~= "string" or name == "" then
         return false
+    end
+    if ns.EntityIdsByName then
+        local ids = ns.EntityIdsByName("quest", name)
+        if type(ids) == "table" then
+            for _, id in ipairs(ids) do
+                if questOn(id) then
+                    return true
+                end
+            end
+        end
+    elseif ns.EntityIdByName then
+        local id = ns.EntityIdByName("quest", name)
+        if id and questOn(id) then
+            return true
+        end
     end
     local titles = questLogTitleSet()
     local key = normalizeQuestTitle(name)
     if key and titles[key] then
         return true
-    end
-    -- Fallback: Questie name → id → same questOn path as step gating.
-    if ns.EntityIdByName then
-        local id = ns.EntityIdByName("quest", name)
-        if id and questOn(id) then
-            return true
-        end
     end
     return false
 end
@@ -6203,6 +6221,8 @@ local function runCatchUp()
         catchUp.pendingForce = false
         return false
     end
+    -- Quest accept/turn-in can fire before IsOnQuest updates; rebuild id set.
+    ns.__questLogIds = nil
     local beforeSnap = catchUp.snap
     local checkOffStep = catchUp.pendingOffStep and catchUp.snapReady
     local force = catchUp.pendingForce

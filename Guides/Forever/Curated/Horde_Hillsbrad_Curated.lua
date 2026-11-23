@@ -3,7 +3,7 @@ local _, ns = ...
 -- Curated Horde Hillsbrad Foothills.
 -- First pass (22-24): Tarren Mill opener, Durnholde, farms, and Battle of Hillsbrad through the forge.
 -- Pick up Dangerous! early; finish its named kills on the 30-32 return.
--- Second pass (30-32): Dangerous! targets, town hall, Azurelode, yetis, Alterac Syndicate/Dalaran, then Arathi / Undercity hand-offs.
+-- Second pass (30-32): Dangerous! field targets, town hall, yetis, Alterac Syndicate/Dalaran, then Azurelode mine (level 30), then Arathi / Undercity hand-offs.
 -- Assumes Journey to Hillsbrad Foothills (Silverpine) and/or Journey to Tarren Mill (Thunder Bluff).
 
 ns.RegisterGuide({
@@ -68,7 +68,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Time To Strike[/]. Accept [QUEST]Battle of Hillsbrad[/] (farms).",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Time To Strike[/]. Accept [QUEST]Battle of Hillsbrad[/].",
             map = 1424,
             x = 62.3,
             y = 20.5,
@@ -251,15 +251,20 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (farms). Accept [QUEST]Battle of Hillsbrad[/] (peasants).",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/].",
+            map = 1424,
+            x = 62.3,
+            y = 20.5,
+            quest = 527,
+            when = "complete",
+        },
+        {
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Accept [QUEST]Battle of Hillsbrad[/].",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 528,
             when = "accepted",
-            details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/] (farms)",
-            },
         },
         {
             text = "Talk to [FRIENDLY]Deathguard Samsa[/]. Accept [QUEST]Souvenirs of Death[/]. Collect [LOOT]Hillsbrad Human Skulls[/] while you quest.",
@@ -296,15 +301,20 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (peasants). Accept [QUEST]Battle of Hillsbrad[/] (forge).",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/].",
+            map = 1424,
+            x = 62.3,
+            y = 20.5,
+            quest = 528,
+            when = "complete",
+        },
+        {
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Accept [QUEST]Battle of Hillsbrad[/].",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 529,
             when = "accepted",
-            details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/] (peasants)",
-            },
         },
         {
             sticky = true,
@@ -321,7 +331,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Keep grinding Hillsbrad humans for skulls until you have 30, or bank unfinished skulls and the Shipment of Iron for the 30-32 return.",
+            text = "Kill [ENEMY]Hillsbrad Humans[/].",
             map = 1424,
             x = 35.0,
             y = 42.0,
@@ -330,6 +340,7 @@ ns.RegisterGuide({
             details = {
                 "[LOOT]Hillsbrad Human Skull[/] (30)",
             },
+            note = "Keep grinding for skulls until you have 30, or bank unfinished skulls and the Shipment of Iron for the 30-32 return.",
         },
         {
             text = "First Hillsbrad pass done. Leave with [QUEST]Battle of Hillsbrad[/] (forge) and [QUEST]Dangerous![/] ready for the 30-32 return, and [QUEST]Return to Thunder Bluff[/] for Zamah when convenient. Open 30-32 Hillsbrad when you return.",
@@ -365,15 +376,20 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (forge). Accept [QUEST]Battle of Hillsbrad[/] (town hall).",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/].",
+            map = 1424,
+            x = 62.3,
+            y = 20.5,
+            quest = 529,
+            when = "complete",
+        },
+        {
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Accept [QUEST]Battle of Hillsbrad[/].",
             map = 1424,
             x = 62.3,
             y = 20.5,
             quest = 532,
             when = "accepted",
-            details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/] (forge)",
-            },
         },
         {
             text = "Talk to [FRIENDLY]Christoph Jeffcoat[/]. Accept [QUEST]Soothing Turtle Bisque[/] if you have Cooking trained.",
@@ -491,15 +507,12 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (town hall). Accept [QUEST]Battle of Hillsbrad[/] (mine).",
+            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (town hall).",
             map = 1424,
             x = 62.3,
             y = 20.5,
-            quest = 539,
-            when = "accepted",
-            details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/] (town hall)",
-            },
+            quest = 532,
+            when = "complete",
         },
         {
             text = "Talk to [FRIENDLY]Novice Thaivand[/]. Turn in [QUEST]Helcular's Revenge[/]. Accept [QUEST]Helcular's Revenge[/].",
@@ -534,43 +547,6 @@ ns.RegisterGuide({
             when = "objectives",
             details = {
                 "Charge Flame of Azel",
-            },
-        },
-        {
-            sticky = true,
-            text = "Finish [LOOT]Hillsbrad Human Skulls[/].",
-            map = 1424,
-            x = 31.2,
-            y = 56.0,
-            quest = 546,
-            when = "objectives",
-            details = {
-                "[LOOT]Hillsbrad Human Skull[/] (30)",
-            },
-        },
-        {
-            sticky = true,
-            text = "In Azurelode Mine, kill [ENEMY]Miner Hackett[/].",
-            map = 1424,
-            x = 31.12,
-            y = 58.63,
-            quest = 567,
-            objective = 3,
-            when = "objectives",
-            details = {
-                "Kill [ENEMY]Miner Hackett[/]",
-            },
-        },
-        {
-            text = "Enter Azurelode Mine. Kill [ENEMY]Foreman Bonds[/] and [ENEMY]Hillsbrad Miners[/].",
-            map = 1424,
-            x = 31.2,
-            y = 56.0,
-            quest = 539,
-            when = "objectives",
-            details = {
-                "Kill [ENEMY]Foreman Bonds[/]",
-                "[ENEMY]Hillsbrad Miner[/] (10)",
             },
         },
         {
@@ -621,6 +597,59 @@ ns.RegisterGuide({
             when = "objectives",
             details = {
                 "Charge Flame of Uzel",
+            },
+        },
+        {
+            text = "Return to Tarren Mill. Talk to [FRIENDLY]High Executor Darthalia[/]. Accept [QUEST]Battle of Hillsbrad[/] (mine).",
+            map = 1424,
+            x = 62.3,
+            y = 20.5,
+            quest = 539,
+            when = "accepted",
+            note = "Azurelode is level 30 content. Pick this up after Alterac, then clear the mine.",
+        },
+        {
+            sticky = true,
+            text = "Finish [LOOT]Hillsbrad Human Skulls[/] around the fields and mine.",
+            map = 1424,
+            x = 31.2,
+            y = 56.0,
+            quest = 546,
+            when = "objectives",
+            details = {
+                "[LOOT]Hillsbrad Human Skull[/] (30)",
+            },
+        },
+        {
+            text = "Travel to Azurelode Mine.",
+            map = 1424,
+            x = 27.5,
+            y = 59.4,
+            when = "travel",
+        },
+        {
+            sticky = true,
+            text = "In Azurelode Mine, kill [ENEMY]Miner Hackett[/].",
+            map = 1424,
+            x = 31.12,
+            y = 58.63,
+            quest = 567,
+            objective = 3,
+            when = "objectives",
+            details = {
+                "Kill [ENEMY]Miner Hackett[/]",
+            },
+        },
+        {
+            text = "In Azurelode Mine, kill [ENEMY]Foreman Bonds[/] and [ENEMY]Hillsbrad Miners[/].",
+            map = 1424,
+            x = 31.2,
+            y = 56.0,
+            quest = 539,
+            when = "objectives",
+            details = {
+                "Kill [ENEMY]Foreman Bonds[/]",
+                "[ENEMY]Hillsbrad Miner[/] (10)",
             },
         },
         {

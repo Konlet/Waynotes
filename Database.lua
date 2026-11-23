@@ -411,15 +411,46 @@ local function nameLookupForms(name)
     return forms
 end
 
-local function firstNameId(db, name)
+local function collectNameIds(db, name)
     if type(db) ~= "table" or type(db.IdsByName) ~= "function" or type(name) ~= "string" or name == "" then
         return nil
     end
     local ids = call(db.IdsByName, name)
-    if type(ids) == "table" then
-        for _, id in ipairs(ids) do
-            if type(id) == "number" and id > 0 then
-                return id
+    if type(ids) ~= "table" then
+        return nil
+    end
+    local list = {}
+    local seen = {}
+    for _, id in ipairs(ids) do
+        if type(id) == "number" and id > 0 and not seen[id] then
+            seen[id] = true
+            list[#list + 1] = id
+        end
+    end
+    if #list == 0 then
+        return nil
+    end
+    return list
+end
+
+-- Resolve a guide-tag name to every QuestieDB id (same-named chains included).
+function ns.EntityIdsByName(kind, name)
+    kind = kind and tostring(kind):lower() or ""
+    name = textOrNil(name)
+    local getDb = entityDb[kind]
+    if not getDb or not name or not ns.QuestieReady() then
+        return nil
+    end
+    local db = getDb()
+    local list = collectNameIds(db, name)
+    if list then
+        return list
+    end
+    for _, form in ipairs(nameLookupForms(name)) do
+        if form ~= name then
+            list = collectNameIds(db, form)
+            if list then
+                return list
             end
         end
     end
@@ -445,18 +476,8 @@ function ns.EntityIdByName(kind, name)
     if not ns.QuestieReady() then
         return nil
     end
-    local db = getDb()
-    local id = firstNameId(db, name)
-    if not id then
-        for _, form in ipairs(nameLookupForms(name)) do
-            if form ~= name then
-                id = firstNameId(db, form)
-                if id then
-                    break
-                end
-            end
-        end
-    end
+    local ids = ns.EntityIdsByName(kind, name)
+    local id = ids and ids[1] or nil
     cache[name] = id or false
     if id then
         return id

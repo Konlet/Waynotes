@@ -2319,7 +2319,7 @@ do
 
     local title = strip:CreateFontString(nil, "OVERLAY")
     title:SetPoint("TOPLEFT", 8, -3)
-    title:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
+    title:SetPoint("RIGHT", strip, "RIGHT", -122, 0)
     title:SetHeight(12)
     title:SetJustifyH("LEFT")
     title:SetJustifyV("MIDDLE")
@@ -2331,7 +2331,7 @@ do
 
     local detail = strip:CreateFontString(nil, "OVERLAY")
     detail:SetPoint("TOPLEFT", 8, -14)
-    detail:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
+    detail:SetPoint("RIGHT", strip, "RIGHT", -122, 0)
     detail:SetHeight(11)
     detail:SetJustifyH("LEFT")
     detail:SetJustifyV("MIDDLE")
@@ -2343,7 +2343,7 @@ do
 
     local distText = strip:CreateFontString(nil, "OVERLAY")
     distText:SetPoint("TOPRIGHT", -46, -4)
-    distText:SetWidth(52)
+    distText:SetWidth(72)
     distText:SetHeight(12)
     distText:SetJustifyH("RIGHT")
     distText:SetJustifyV("MIDDLE")
@@ -3415,7 +3415,7 @@ do
 
     local title = strip:CreateFontString(nil, "OVERLAY")
     title:SetPoint("TOPLEFT", 8, -3)
-    title:SetPoint("RIGHT", strip, "RIGHT", -78, 0)
+    title:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
     title:SetHeight(12)
     title:SetJustifyH("LEFT")
     title:SetJustifyV("MIDDLE")
@@ -3428,7 +3428,7 @@ do
 
     local detail = strip:CreateFontString(nil, "OVERLAY")
     detail:SetPoint("TOPLEFT", 8, -14)
-    detail:SetPoint("RIGHT", strip, "RIGHT", -78, 0)
+    detail:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
     detail:SetHeight(11)
     detail:SetJustifyH("LEFT")
     detail:SetJustifyV("MIDDLE")
@@ -3440,7 +3440,7 @@ do
 
     local distText = strip:CreateFontString(nil, "OVERLAY")
     distText:SetPoint("TOPRIGHT", -28, -4)
-    distText:SetWidth(48)
+    distText:SetWidth(72)
     distText:SetHeight(12)
     distText:SetJustifyH("RIGHT")
     distText:SetJustifyV("MIDDLE")
