@@ -1265,7 +1265,7 @@ chrome.nav:SetScript("OnEnter", function(self)
     local r, g, b = ns.Color("accent")
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:SetText("Navigate", r, g, b)
-    GameTooltip:AddLine("Find the nearest inn, bank, repair, class or profession trainer, and more.", 1, 1, 1, true)
+    GameTooltip:AddLine("Find the nearest inn, bank, repair, trainer, library book, and more.", 1, 1, 1, true)
     ns.FinishTooltip()
 end)
 chrome.nav:SetScript("OnLeave", function(self)
@@ -1770,6 +1770,11 @@ do
             state.duration = savedDuration(route, nodeIds)
             state.armed = GetTime()
             watcher:Show()
+            -- Taking a flight consumes the fly tip when one was showing.
+            if State.flyRec and State.flyRec.dismiss
+                and ((State.flyRec.chrome or 0) > 0 or State.flyRec.route) then
+                State.flyRec.dismiss()
+            end
         end)
     end
 end
@@ -1924,11 +1929,18 @@ do
     end
 
     local function dismissFlyRec()
-        State.flyRec.dismissed = routeKey(State.flyRec.route)
+        local key = routeKey(State.flyRec.route)
+        if not key and State.flyRec.chrome and State.flyRec.chrome > 0 then
+            key = routeKey(ns.TravelActiveFlightRecommendation and ns.TravelActiveFlightRecommendation())
+        end
+        if key then
+            State.flyRec.dismissed = key
+        end
         State.flyRec.route = nil
         lastTitle, lastDetail = nil, nil
         updateFlyRecStrip()
     end
+    State.flyRec.dismiss = dismissFlyRec
 
     close:SetScript("OnClick", function()
         dismissFlyRec()
@@ -1956,7 +1968,10 @@ do
         if button ~= "LeftButton" or close:IsMouseOver() then
             return
         end
-        goToDepart(State.flyRec.route)
+        local route = State.flyRec.route
+        goToDepart(route)
+        -- Following the tip clears it; arrow still points at the flight master.
+        dismissFlyRec()
     end)
     strip:SetScript("OnEnter", function(self)
         if close:IsMouseOver() then
@@ -2191,12 +2206,47 @@ do
     end
 
     local function dismissHearthRec()
-        State.hearthRec.dismissed = routeKey(State.hearthRec.route)
+        local key = routeKey(State.hearthRec.route)
+        if not key and State.hearthRec.chrome and State.hearthRec.chrome > 0 then
+            key = routeKey(ns.TravelActiveHearthRecommendation and ns.TravelActiveHearthRecommendation())
+        end
+        if key then
+            State.hearthRec.dismissed = key
+        end
         State.hearthRec.route = nil
         lastTitle, lastDetail = nil, nil
         detachHearthButton()
         updateHearthRecStrip()
     end
+    State.hearthRec.dismiss = dismissHearthRec
+
+    -- Hearth cast (strip button or bags) consumes the tip once it starts.
+    -- Classic payloads vary: (unit, spellName, rank) or (unit, castGUID, spellId).
+    local HEARTH_SPELL = 8690
+    local hearthWatch = CreateFrame("Frame")
+    hearthWatch:RegisterEvent("UNIT_SPELLCAST_START")
+    hearthWatch:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+    hearthWatch:SetScript("OnEvent", function(_, _, unit, a, b, c)
+        if unit ~= "player" then
+            return
+        end
+        if not State.hearthRec.route and not (State.hearthRec.chrome and State.hearthRec.chrome > 0) then
+            return
+        end
+        local spellId = (type(c) == "number" and c)
+            or (type(a) == "number" and a)
+            or (type(b) == "number" and b)
+            or nil
+        local spellName = type(a) == "string" and a or nil
+        local isHearth = spellId == HEARTH_SPELL
+        if not isHearth and spellName then
+            local lower = spellName:lower()
+            isHearth = lower == "hearthstone" or lower:find("hearthstone", 1, true) ~= nil
+        end
+        if isHearth then
+            dismissHearthRec()
+        end
+    end)
 
     close:SetScript("OnClick", function()
         dismissHearthRec()
@@ -2466,6 +2516,9 @@ do
         end
         if dest.kind == "profession" and dest.profession then
             return dest.profession .. " Trainer"
+        end
+        if dest.kind == "book" then
+            return "Library Book"
         end
         if ns.NavKindLabel and dest.kind and ns.NavKindLabel[dest.kind] then
             return ns.NavKindLabel[dest.kind]
@@ -2913,14 +2966,37 @@ do
         end
     end
 
+    -- Corner notice. Reserve the icon plus 8px so the last step's yardage
+    -- sits just above it. The scroller already keeps 10px, and the icon
+    -- starts 4px off the tracker bottom, so size + 2 lands on an 8px gap.
+    local TRAIN_PAD = size + 2
+
+    local function setTrainChrome(want)
+        want = want or 0
+        if State.train.chrome == want then
+            return
+        end
+        State.train.chrome = want
+        if placeBottomChrome then
+            placeBottomChrome()
+        end
+        State.remeasure = true
+        State.lastSignature = nil
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
+        end
+    end
+
     local function showTrain(on)
         if on then
             strip:Show()
+            setTrainChrome(TRAIN_PAD)
             if State.train.layout then
                 State.train.layout()
             end
         else
             strip:Hide()
+            setTrainChrome(0)
         end
     end
 

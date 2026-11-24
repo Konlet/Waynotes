@@ -1,7 +1,7 @@
 ﻿local _, ns = ...
 
 -- Nav.lua: quick navigation to the nearest inn, bank, repair NPC, auction house,
--- mailbox, flight master, class trainer or profession trainer.
+-- mailbox, flight master, class trainer, profession trainer or library book.
 --
 -- All destination lists come from Data/*.lua (generated from Forever JSON).
 -- Nearest search scores every candidate in player-space HereBeDragons yards.
@@ -120,6 +120,19 @@ do
             end
         end
     end
+
+    local books = ns.NavLibraryBooks
+    if type(books) == "table" then
+        for index = 1, #books do
+            local entry = books[index]
+            if type(entry) == "table" then
+                pushZone("book", entry, {
+                    quest = entry.quest,
+                    availability = entry.availability,
+                })
+            end
+        end
+    end
 end
 
 local KIND_LABEL = {
@@ -131,6 +144,7 @@ local KIND_LABEL = {
     flight = "Flight Master",
     trainer = "Class Trainer",
     profession = "Profession Trainer",
+    book = "Library Book",
     boat = "Boat",
     zeppelin = "Zeppelin",
     skycutter = "Skycutter",
@@ -239,6 +253,29 @@ local function playerLearnedProfessionSet()
         end
     end
     return known
+end
+
+local function questFlaggedCompleted(questId)
+    if type(questId) ~= "number" then
+        return false
+    end
+    if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then
+        local ok, done = pcall(C_QuestLog.IsQuestFlaggedCompleted, questId)
+        if ok and done then
+            return true
+        end
+    end
+    if IsQuestFlaggedCompleted then
+        local ok, done = pcall(IsQuestFlaggedCompleted, questId)
+        if ok and done then
+            return true
+        end
+    end
+    return false
+end
+
+local function libraryBookCompleted(entry)
+    return type(entry) == "table" and questFlaggedCompleted(entry.quest)
 end
 
 local hbdCache
@@ -1372,8 +1409,15 @@ function ns.NavFindNearest(kind, filter)
     local pzx, pzy, pmap = playerZonePos()
     local pzone = playerZoneName()
     local hbd = getHBD()
+    -- Library "Nearest": prefer books whose turn-in quest is still incomplete.
+    local bookPreferIncomplete = kind == "book" and (filter == nil or filter == "")
+    local bookNameFilter = nil
+    if kind == "book" and type(filter) == "string" and filter ~= "" then
+        bookNameFilter = filter
+    end
 
     local best, bestScore
+    local bestIncomplete, bestIncompleteScore
     for index, entry in ipairs(PRESETS) do
         local matches = entry.kind == kind
         -- nil faction means usable by both (neutral inns / flight hubs).
@@ -1387,13 +1431,21 @@ function ns.NavFindNearest(kind, filter)
         if matches and kind == "profession" and entry.profession ~= filter then
             matches = false
         end
+        if matches and bookNameFilter and entry.name ~= bookNameFilter then
+            matches = false
+        end
         if matches then
+            local incomplete = bookPreferIncomplete and not libraryBookCompleted(entry)
             local pins = candidatePins(entry, pinstance)
             if #pins == 0 then
                 local score = FAR_AWAY + index
                 if not bestScore or score < bestScore then
                     bestScore = score
                     best = copyResolved(entry, nil, nil, nil, nil)
+                end
+                if incomplete and (not bestIncompleteScore or score < bestIncompleteScore) then
+                    bestIncompleteScore = score
+                    bestIncomplete = copyResolved(entry, nil, nil, nil, nil)
                 end
             else
                 for pinIndex = 1, #pins do
@@ -1409,9 +1461,16 @@ function ns.NavFindNearest(kind, filter)
                         bestScore = score
                         best = copyResolved(entry, pin, wx, wy, instance or pinstance)
                     end
+                    if incomplete and (not bestIncompleteScore or score < bestIncompleteScore) then
+                        bestIncompleteScore = score
+                        bestIncomplete = copyResolved(entry, pin, wx, wy, instance or pinstance)
+                    end
                 end
             end
         end
+    end
+    if bookPreferIncomplete and bestIncomplete then
+        return bestIncomplete
     end
     return best
 end
@@ -1424,6 +1483,8 @@ function ns.NavChoose(kind, filter)
             label = filter .. " Trainer"
         elseif kind == "profession" and filter and filter ~= "" then
             label = filter .. " Trainer"
+        elseif kind == "book" and filter and filter ~= "" then
+            label = filter
         end
         if UIErrorsFrame and UIErrorsFrame.AddMessage then
             UIErrorsFrame:AddMessage("No " .. label .. " found for your faction.", 1, 0.1, 0.1, 1)
@@ -1628,6 +1689,7 @@ local function presentClassSubMenu()
         subRows[extra]:Hide()
         subRows[extra].filter = nil
     end
+    subMenu:SetWidth(SUB_WIDTH)
     subMenu:SetHeight(#entries * ROW_HEIGHT + PAD * 2)
     styleNavFrame(subMenu)
 end
@@ -1665,6 +1727,65 @@ local function presentProfessionSubMenu()
         subRows[extra]:Hide()
         subRows[extra].filter = nil
     end
+    subMenu:SetWidth(SUB_WIDTH)
+    subMenu:SetHeight(#entries * ROW_HEIGHT + PAD * 2)
+    styleNavFrame(subMenu)
+end
+
+local function presentBookSubMenu()
+    local seen = {}
+    local pending = {}
+    local done = {}
+    local books = ns.NavLibraryBooks
+    if type(books) == "table" then
+        for index = 1, #books do
+            local entry = books[index]
+            if type(entry) == "table" and type(entry.name) == "string" and entry.name ~= "" and not seen[entry.name] then
+                seen[entry.name] = true
+                local row = { text = entry.name, filter = entry.name }
+                if libraryBookCompleted(entry) then
+                    row.done = true
+                    done[#done + 1] = row
+                else
+                    pending[#pending + 1] = row
+                end
+            end
+        end
+    end
+
+    local entries = {
+        { text = "Nearest", filter = nil, nearest = true },
+    }
+    for index = 1, #pending do
+        entries[#entries + 1] = pending[index]
+    end
+    for index = 1, #done do
+        entries[#entries + 1] = done[index]
+    end
+
+    for index, entry in ipairs(entries) do
+        local row = acquireRow(subMenu, subRows, index)
+        row.label:SetText(entry.text)
+        if entry.nearest and ns.Color then
+            local r, g, b = ns.Color("accent")
+            row.label:SetTextColor(r, g, b)
+        elseif entry.done then
+            row.label:SetTextColor(0.55, 0.55, 0.55)
+        else
+            row.label:SetTextColor(1, 1, 1)
+        end
+        row.filter = entry.filter
+        row:SetScript("OnClick", function(self)
+            chooseAndClose("book", self.filter)
+        end)
+        placeRow(row, subMenu, (index - 1) * ROW_HEIGHT)
+    end
+    for extra = #entries + 1, #subRows do
+        subRows[extra]:Hide()
+        subRows[extra].filter = nil
+    end
+    -- Book titles are long; keep the submenu readable.
+    subMenu:SetWidth(280)
     subMenu:SetHeight(#entries * ROW_HEIGHT + PAD * 2)
     styleNavFrame(subMenu)
 end
@@ -1676,8 +1797,11 @@ local function openSubMenu(kind)
     activeSubmenu = kind
     if kind == "profession" then
         presentProfessionSubMenu()
+    elseif kind == "book" then
+        presentBookSubMenu()
     else
         presentClassSubMenu()
+        subMenu:SetWidth(SUB_WIDTH)
     end
     subMenu:ClearAllPoints()
     subMenu:SetPoint("TOPLEFT", submenuAnchor, "TOPRIGHT", PAD + 2, PAD)
@@ -1696,6 +1820,7 @@ local function presentMenu()
         { text = KIND_LABEL.zeppelin, kind = "zeppelin" },
         { text = "Class Trainers  >", submenu = "trainer" },
         { text = "Profession Trainers  >", submenu = "profession" },
+        { text = "Library Books  >", submenu = "book" },
     }
     if target then
         items[#items + 1] = { text = "Clear destination", clear = true }

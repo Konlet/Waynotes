@@ -703,7 +703,12 @@ local function questOn(id)
                 end
             end
         end
-        ns.__questLogIds = cache
+        -- An empty scan during login is not the player's log. Keep it for this
+        -- call, but do not cache it or the next pass still thinks every quest
+        -- is missing.
+        if ns.__questDataReady then
+            ns.__questLogIds = cache
+        end
     end
     return cache[id] and true or false
 end
@@ -715,6 +720,12 @@ local function questCompleted(id)
     local remote = syncQuest(id)
     if remote then
         return remote.completed and true or false
+    end
+    -- Completed-quest flags can read true for everything until the log has
+    -- loaded. Trust them only after that settle, or login catch-up marks
+    -- open steps finished.
+    if not ns.__questDataReady then
+        return false
     end
     if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then
         local ok, done = pcall(C_QuestLog.IsQuestFlaggedCompleted, id)
@@ -1754,7 +1765,7 @@ local function questObjectivesDone(id)
     return false
 end
 
-local function questSatisfied(id, when, objectiveIndex, step)
+local function questSatisfied(id, when, objectiveIndex, step, strict)
     if when == "accepted" then
         -- Accept steps stay until the quest is taken (or was already finished).
         return questOn(id) or questCompleted(id)
@@ -1766,6 +1777,13 @@ local function questSatisfied(id, when, objectiveIndex, step)
         return true
     end
     if not questOn(id) then
+        -- The log is empty for a while after login and loading screens.
+        -- "Not in the log" during that window is not abandoned. `strict` is
+        -- the pre-Questie multi-quest fallback: a sibling id for another
+        -- class is simply absent, and that must not finish the open step.
+        if strict or not ns.__questDataReady then
+            return false
+        end
         return true
     end
     if when == "complete" then
@@ -1904,7 +1922,7 @@ local function linkedGuideFinished(id)
                 if useAny then
                     local any = false
                     for _, questId in ipairs(ids) do
-                        if questSatisfied(questId, when, step.objective, step) then
+                        if questSatisfied(questId, when, step.objective, step, true) then
                             any = true
                             break
                         end
@@ -1989,7 +2007,7 @@ local function stepDone(step)
     local useAny = not (ns.QuestieReady and ns.QuestieReady()) and #listedQuests > 1
     if useAny then
         for _, id in ipairs(ids) do
-            if questSatisfied(id, when, objectiveIndex, step) then
+            if questSatisfied(id, when, objectiveIndex, step, true) then
                 return true
             end
         end
@@ -2323,6 +2341,325 @@ local function partySyncBlocksAuto()
     return ns.PartySyncFollowing and ns.PartySyncFollowing()
 end
 
+-- Step identity for party sync. Locals stay inside this block so Guides.lua
+-- does not grow its chunk-level local count. Wire format:
+--   I<quest>+<quest>,<map>,<x10>,<y10>,<title>
+-- A follower confirms the advertised index when at least one of quest, location,
+-- or title still matches. Fields the other copy does not have are ignored.
+do
+    local LOC_TOL = 2
+
+    local function syncTitle(step)
+        local text = step and step.text
+        if type(text) ~= "string" or text == "" then
+            text = step and step.note
+        end
+        if type(text) ~= "string" or text == "" then
+            return nil
+        end
+        text = text:gsub("%[%a+%]([^%[%]]-)%[%/%a*%]", "%1")
+        text = text:gsub("|cRB_[A-Z]+_", "")
+        text = text:gsub("|cRXP_[A-Z]+_", "")
+        text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
+        text = text:gsub("|r", "")
+        text = text:lower():gsub("[^a-z0-9]", "")
+        if text == "" then
+            return nil
+        end
+        if #text > 32 then
+            text = text:sub(1, 32)
+        end
+        return text
+    end
+
+    local function parseIdentity(identity)
+        if type(identity) ~= "string" or identity == "" then
+            return nil
+        end
+        local body = identity
+        if body:sub(1, 1) == "I" then
+            body = body:sub(2)
+        end
+        local questText, mapText, xText, yText, title = body:match("^([^,]*),([^,]*),([^,]*),([^,]*),(.*)$")
+        if not questText then
+            return nil
+        end
+        local quests = {}
+        local seen = {}
+        for idText in questText:gmatch("%d+") do
+            local id = tonumber(idText)
+            if id and id > 0 and not seen[id] then
+                seen[id] = true
+                quests[#quests + 1] = id
+                if #quests >= 3 then
+                    break
+                end
+            end
+        end
+        local map = tonumber(mapText)
+        local x = tonumber(xText)
+        local y = tonumber(yText)
+        if x then
+            x = x / 10
+        end
+        if y then
+            y = y / 10
+        end
+        if title == "" then
+            title = nil
+        end
+        if #quests == 0 and not (map and x and y) and not title then
+            return nil
+        end
+        return {
+            quests = quests,
+            map = map,
+            x = x,
+            y = y,
+            title = title,
+        }
+    end
+
+    local function scoreSyncStep(step, ident)
+        if type(step) ~= "table" or type(ident) ~= "table" then
+            return 0
+        end
+        local score = 0
+        if ident.quests and #ident.quests > 0 and type(step.quests) == "table" and #step.quests > 0 then
+            local have = {}
+            for _, id in ipairs(step.quests) do
+                id = tonumber(id)
+                if id then
+                    have[id] = true
+                end
+            end
+            for _, id in ipairs(ident.quests) do
+                if have[id] then
+                    score = score + 1
+                    break
+                end
+            end
+        end
+        local stepMap = tonumber(step.map)
+        local stepX = tonumber(step.x)
+        local stepY = tonumber(step.y)
+        if ident.map and ident.x and ident.y and stepMap and stepX and stepY then
+            if math.floor(stepMap) == math.floor(ident.map)
+                and math.abs(stepX - ident.x) <= LOC_TOL
+                and math.abs(stepY - ident.y) <= LOC_TOL then
+                score = score + 1
+            end
+        end
+        local title = syncTitle(step)
+        if ident.title and title and title == ident.title then
+            score = score + 1
+        end
+        return score
+    end
+
+    function ns.GuideSyncIdentity(step)
+        if type(step) ~= "table" then
+            local guide = activeGuide()
+            if not guide then
+                return ""
+            end
+            step = guide.steps[progress(guide.id).step]
+        end
+        if type(step) ~= "table" then
+            return ""
+        end
+        local quests = {}
+        local seen = {}
+        if type(step.quests) == "table" then
+            for _, id in ipairs(step.quests) do
+                id = tonumber(id)
+                if id and id > 0 and not seen[id] then
+                    seen[id] = true
+                    quests[#quests + 1] = tostring(math.floor(id))
+                    if #quests >= 3 then
+                        break
+                    end
+                end
+            end
+        end
+        local map = tonumber(step.map)
+        local x = tonumber(step.x)
+        local y = tonumber(step.y)
+        local mapText, xText, yText = "", "", ""
+        if map and x and y then
+            mapText = tostring(math.floor(map))
+            xText = tostring(math.floor(x * 10 + 0.5))
+            yText = tostring(math.floor(y * 10 + 0.5))
+        end
+        local title = syncTitle(step) or ""
+        if #quests == 0 and mapText == "" and title == "" then
+            return ""
+        end
+        return "I" .. table.concat(quests, "+") .. "," .. mapText .. "," .. xText .. "," .. yText .. "," .. title
+    end
+
+    -- Returns the local step index to follow, or nil when identity was present
+    -- and no step shares a quest, location, or title with it. Missing identity
+    -- keeps the old clamped index.
+    function ns.GuideResolveSyncStep(guideId, stepIndex, identity)
+        local guide = findGuide(guideId)
+        if not guide then
+            return nil
+        end
+        local count = #guide.steps
+        if count < 1 then
+            return nil
+        end
+        stepIndex = math.floor(tonumber(stepIndex) or 0)
+        local ident = parseIdentity(identity)
+        if not ident then
+            if stepIndex < 1 then
+                return 1
+            end
+            if stepIndex > count then
+                return count
+            end
+            return stepIndex
+        end
+        if stepIndex >= 1 and stepIndex <= count and scoreSyncStep(guide.steps[stepIndex], ident) >= 1 then
+            return stepIndex
+        end
+        local bestIndex, bestScore, bestDist, bestApplies
+        for i = 1, count do
+            local score = scoreSyncStep(guide.steps[i], ident)
+            if score >= 1 then
+                local dist = math.abs(i - stepIndex)
+                local applies = (stepApplies and stepApplies(guide.steps[i])) and 1 or 0
+                if not bestIndex
+                    or score > bestScore
+                    or (score == bestScore and dist < bestDist)
+                    or (score == bestScore and dist == bestDist and applies > bestApplies) then
+                    bestIndex = i
+                    bestScore = score
+                    bestDist = dist
+                    bestApplies = applies
+                end
+            end
+        end
+        return bestIndex
+    end
+
+    local function resolveStickyIndex(guide, remoteIndex, quest)
+        if not guide or not quest or quest <= 0 then
+            return nil
+        end
+        local ident = parseIdentity("I" .. tostring(math.floor(quest)) .. ",,,,")
+        if not ident then
+            return nil
+        end
+        local function questSticky(step)
+            return step and step.sticky and scoreSyncStep(step, ident) >= 1
+        end
+        if remoteIndex >= 1 and remoteIndex <= #guide.steps and questSticky(guide.steps[remoteIndex]) then
+            return remoteIndex
+        end
+        local best, bestDist, bestApplies
+        for i = 1, #guide.steps do
+            if questSticky(guide.steps[i]) then
+                local dist = math.abs(i - remoteIndex)
+                local applies = (stepApplies and stepApplies(guide.steps[i])) and 1 or 0
+                if not best or dist < bestDist or (dist == bestDist and applies > bestApplies) then
+                    best = i
+                    bestDist = dist
+                    bestApplies = applies
+                end
+            end
+        end
+        return best
+    end
+
+    -- Translate host step indexes onto this client's guide. Stickies are a list
+    -- of { index, quest }. Progress is keyed by the host step index.
+    -- Returns follower-local sticky and progress maps (nil when that input was nil).
+    function ns.GuideRemapSyncState(guideId, remoteStep, localStep, stickies, progress, hadIdentity)
+        local guide = findGuide(guideId)
+        local count = guide and #guide.steps or 0
+        local indexMap = {}
+        remoteStep = tonumber(remoteStep)
+        localStep = tonumber(localStep)
+        if remoteStep and localStep then
+            indexMap[math.floor(remoteStep)] = math.floor(localStep)
+        end
+        local stickyOut
+        if type(stickies) == "table" then
+            stickyOut = {}
+            for _, entry in ipairs(stickies) do
+                local remoteIndex = type(entry) == "table" and tonumber(entry.index) or tonumber(entry)
+                local quest = type(entry) == "table" and tonumber(entry.quest) or nil
+                if remoteIndex and remoteIndex > 0 and quest and quest > 0 then
+                    remoteIndex = math.floor(remoteIndex)
+                    local resolved = resolveStickyIndex(guide, remoteIndex, quest)
+                    if resolved then
+                        if not indexMap[remoteIndex] then
+                            indexMap[remoteIndex] = resolved
+                        end
+                        stickyOut[indexMap[remoteIndex]] = true
+                    end
+                end
+            end
+        end
+        local offset, offsetOk, offsetCount
+        offsetOk = true
+        offsetCount = 0
+        for remoteIndex, localIndex in pairs(indexMap) do
+            local delta = localIndex - remoteIndex
+            offsetCount = offsetCount + 1
+            if offset == nil then
+                offset = delta
+            elseif offset ~= delta then
+                offsetOk = false
+            end
+        end
+        local function shift(remoteIndex)
+            if indexMap[remoteIndex] then
+                return indexMap[remoteIndex]
+            end
+            if offsetOk and offsetCount > 0 then
+                local shifted = remoteIndex + offset
+                if count > 0 and shifted >= 1 and shifted <= count then
+                    return shifted
+                end
+                return nil
+            end
+            if not hadIdentity and remoteIndex >= 1 and (count < 1 or remoteIndex <= count) then
+                return remoteIndex
+            end
+            return nil
+        end
+        if stickyOut then
+            for _, entry in ipairs(stickies) do
+                local remoteIndex = type(entry) == "table" and tonumber(entry.index) or tonumber(entry)
+                local quest = type(entry) == "table" and tonumber(entry.quest) or nil
+                if remoteIndex and remoteIndex > 0 and not (quest and quest > 0) then
+                    local resolved = shift(math.floor(remoteIndex))
+                    if resolved then
+                        stickyOut[resolved] = true
+                    end
+                end
+            end
+        end
+        local progressOut
+        if type(progress) == "table" then
+            progressOut = {}
+            for remoteIndex, counts in pairs(progress) do
+                remoteIndex = tonumber(remoteIndex)
+                if remoteIndex and type(counts) == "table" then
+                    local resolved = shift(math.floor(remoteIndex))
+                    if resolved then
+                        progressOut[resolved] = counts
+                    end
+                end
+            end
+        end
+        return stickyOut, progressOut
+    end
+end
+
 -- Quiet guide+step apply for party sync followers (no chat, no catch-up).
 function ns.GuideApplySync(guideId, stepIndex)
     local guide = findGuide(guideId)
@@ -2354,7 +2691,7 @@ function ns.GuideApplySync(guideId, stepIndex)
     return true
 end
 
-local function advanceToNextGuide(fromGuide)
+local function advanceToNextGuide(fromGuide, fromAuto)
     if not fromGuide or type(fromGuide.next) ~= "string" or fromGuide.next == "" then
         return false
     end
@@ -2371,6 +2708,12 @@ local function advanceToNextGuide(fromGuide)
     end
     say("Continuing with " .. nxt.name .. ".")
     ns.GuideCatchUp()
+    -- Level check runs after catch-up so a finished bridge guide does not prompt.
+    -- Manual Next does not ask; only an automatic hop does.
+    if fromAuto and ns.PromptGuideLevelMismatch then
+        local landed = activeGuide() or nxt
+        ns.PromptGuideLevelMismatch(landed, fromGuide.id)
+    end
     return true
 end
 
@@ -2438,7 +2781,9 @@ function ns.GuideCatchUp()
         end
     end
     local moved = entry.step ~= before
-    if auto and atGuideEnd(guide, entry.step) and advanceToNextGuide(guide) then
+    -- While the log still looks empty after a load, stay in this guide.
+    -- Chaining here is what drops a character into the next zone guide.
+    if auto and ns.__questDataReady and not ns.__questDataEmpty and atGuideEnd(guide, entry.step) and advanceToNextGuide(guide, true) then
         partySyncBroadcast()
         return true
     end
@@ -2704,6 +3049,64 @@ function ns.RecommendedGuide()
     return best.guide, best.score
 end
 
+function ns.PlayerZoneName()
+    local name
+    if GetRealZoneText then
+        name = GetRealZoneText()
+    end
+    if (type(name) ~= "string" or name == "") and GetZoneText then
+        name = GetZoneText()
+    end
+    if type(name) ~= "string" then
+        return nil
+    end
+    name = strtrim(name)
+    if name == "" then
+        return nil
+    end
+    return name
+end
+
+-- Route guides are named "12-16 The Barrens". The trailing words are the zone.
+function ns.GuideZoneName(guide)
+    if type(guide) ~= "table" or type(guide.name) ~= "string" then
+        return nil
+    end
+    local zone = guide.name:match("^%d+%s*%-%s*%d+%s+(.+)$") or guide.name:match("^%d+%s+(.+)$")
+    if type(zone) ~= "string" then
+        return nil
+    end
+    zone = strtrim(zone)
+    if zone == "" then
+        return nil
+    end
+    return zone
+end
+
+function ns.RecommendZoneGuides()
+    local zone = ns.PlayerZoneName()
+    if not zone or not ns.ZoneNamesMatch then
+        return nil
+    end
+    local matched = {}
+    for _, guide in ipairs(ns.GuideList()) do
+        -- Class side guides stay in the class list, same as level recommendations.
+        if (not guide.classes or #guide.classes == 0) and not guide.dungeon then
+            local guideZone = ns.GuideZoneName(guide)
+            -- -1000 is a faction, race, or class reject. Keep off-level bands so the
+            -- zone list is the full route for where you are standing.
+            local score = ns.GuideScore(guide)
+            if guideZone and ns.ZoneNamesMatch(guideZone, zone) and score > -1000 then
+                matched[#matched + 1] = guide
+            end
+        end
+    end
+    if #matched == 0 then
+        return nil
+    end
+    return matched, zone
+end
+
 function ns.StarterGuide()
     local best
     local bestScore
@@ -2776,6 +3179,10 @@ function ns.GuideSelect(id)
     guideHold.autoProgress = false
     declinedOffStep = {}
     clearOffStepOffer()
+    if StaticPopup_Hide and not guideHold.acceptingLevelGuide then
+        StaticPopup_Hide("WaynotesLevelGuide")
+    end
+    ns.__questUserMoved = true
     local db = charDB()
     db.guide = guide.id
     local entry = progress(guide.id)
@@ -2876,6 +3283,7 @@ function ns.GuideStep(direction)
         return
     end
     entry.step = nextStep
+    ns.__questUserMoved = true
     if direction < 0 then
         guideHold.autoProgress = true
         rememberReview(guide, entry.step)
@@ -2915,6 +3323,7 @@ function ns.GuideJump(index)
         end
     end
     progress(guide.id).step = index
+    ns.__questUserMoved = true
     rememberReview(guide, index)
     clearOffStepOffer()
     refresh()
@@ -2940,6 +3349,7 @@ function ns.GuideSkip(index)
         return
     end
     markStepSkipped(guide, index)
+    ns.__questUserMoved = true
     local entry = progress(guide.id)
     -- Do not use GuideJump: that sets a review lock on already-complete steps
     -- and never CatchUps, so skip could park on a finished neighbor.
@@ -4455,7 +4865,7 @@ function ns.GuideObjectives()
     end
     if #items == 0 then
         local auto = (not guideHold.autoProgress) and (not ns.db or ns.db.autoProgress ~= false) and not partySyncBlocksAuto()
-        if auto and advanceToNextGuide(guide) then
+        if auto and ns.__questDataReady and not ns.__questDataEmpty and advanceToNextGuide(guide, true) then
             return ns.GuideObjectives()
         end
         local details = { "Right-click the tracker to choose another guide." }
@@ -5323,7 +5733,7 @@ presentMenu = function(keepScroll)
         place(row, MENU_ROW.action)
     end
 
-    local function addGuideRow(guide, indent, recommended)
+    local function addGuideRow(guide, indent, recommended, recommendNote)
         index = index + 1
         local row = acquireRow(index)
         resetRow(row)
@@ -5352,7 +5762,7 @@ presentMenu = function(keepScroll)
         if isCurrent then
             tipBits[#tipBits + 1] = "Currently active"
         elseif isRecommended then
-            tipBits[#tipBits + 1] = "Recommended for your level"
+            tipBits[#tipBits + 1] = recommendNote or "Recommended for your level"
         end
         if #tipBits > 0 then
             row.tipDetail = table.concat(tipBits, "  ·  ")
@@ -5456,9 +5866,21 @@ presentMenu = function(keepScroll)
     end
 
     local recommended = ns.RecommendedGuide and ns.RecommendedGuide() or nil
-    if recommended then
-        addSection("Recommended", 0.45, 0.9, 0.45)
-        addGuideRow(recommended, 14, recommended)
+    local zoneGuides, zoneName
+    if ns.RecommendZoneGuides then
+        zoneGuides, zoneName = ns.RecommendZoneGuides()
+    end
+    if recommended or (zoneGuides and #zoneGuides > 0) then
+        if recommended then
+            addSection("Recommended", 0.45, 0.9, 0.45)
+            addGuideRow(recommended, 14, recommended)
+        end
+        if zoneGuides and zoneName and #zoneGuides > 0 then
+            addSection("In " .. zoneName, 0.45, 0.78, 0.95)
+            for _, guide in ipairs(zoneGuides) do
+                addGuideRow(guide, 14, guide, "Recommended for your current zone")
+            end
+        end
         addSeparator()
         addSection("All guides", detailR, detailG, detailB)
     end
@@ -5646,10 +6068,21 @@ local catchUp = {
     pendingForce = false,
     promptedOffStepAt = 0,
     promptedDungeonAt = 0,
+    levelPromptGuide = nil,
+    declinedLevelGuide = {},
     dungeonAt = 0,
     -- Coalesce QUEST_LOG spam without sliding forever past a turn-in/accept.
     delay = 0.15,
     maxWait = 0.35,
+    seenWorld = false,
+    logSig = nil,
+    logStable = 0,
+    logWaitFrom = 0,
+    logUpdates = 0,
+    pendingLog = false,
+    readyOnEmpty = false,
+    anchorGuide = nil,
+    anchorStep = nil,
 }
 
 catchUp.watcher:RegisterEvent("ADDON_LOADED")
@@ -5754,7 +6187,19 @@ function ns.GuideEncodeSyncStickies()
     if type(lastSyncStickies) ~= "table" or #lastSyncStickies == 0 then
         return ""
     end
-    return table.concat(lastSyncStickies, ",")
+    local guide = activeGuide()
+    local steps = guide and guide.steps
+    local parts = {}
+    for _, index in ipairs(lastSyncStickies) do
+        local step = steps and steps[index]
+        local quest = step and type(step.quests) == "table" and tonumber(step.quests[1]) or nil
+        if quest and quest > 0 then
+            parts[#parts + 1] = string.format("%d:%d", index, math.floor(quest))
+        else
+            parts[#parts + 1] = tostring(index)
+        end
+    end
+    return table.concat(parts, ",")
 end
 
 -- Compact per-step kill/loot progress: step:filled/need,filled/need;...
@@ -6145,6 +6590,158 @@ local function considerDungeonGuide()
     promptDungeonGuide(guide, name)
 end
 
+if not StaticPopupDialogs["WaynotesLevelGuide"] then
+    StaticPopupDialogs["WaynotesLevelGuide"] = {
+        text = "You're %s.|nLoad the recommended guide, %s?",
+        button1 = "Load",
+        button2 = "Stay",
+        OnAccept = function(self, data)
+            local info = data or (self and self.data)
+            local guideId = type(info) == "table" and info.guideId
+            if type(guideId) ~= "string" then
+                return
+            end
+            guideHold.acceptingLevelGuide = true
+            ns.GuideSelect(guideId)
+            guideHold.acceptingLevelGuide = false
+        end,
+        OnCancel = function(self, data)
+            local info = data or (self and self.data)
+            local landedId = type(info) == "table" and info.landedId
+            if type(landedId) == "string" and landedId ~= "" then
+                catchUp.declinedLevelGuide[landedId] = true
+            end
+            if catchUp.levelPromptGuide == landedId then
+                catchUp.levelPromptGuide = nil
+            end
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
+end
+
+-- After an automatic hop into guide.next, offer a better-fit route guide.
+-- Stay keeps the guide we already loaded. Session-only, per landed guide.
+function ns.PromptGuideLevelMismatch(guide, fromId)
+    if type(guide) ~= "table" or type(guide.id) ~= "string" or not StaticPopup_Show then
+        return
+    end
+    if ns.UsingStandalone and not ns.UsingStandalone() then
+        return
+    end
+    if partySyncBlocksAuto() then
+        return
+    end
+    if catchUp.declinedLevelGuide[guide.id] then
+        return
+    end
+    local minLevel = tonumber(guide.minLevel)
+    local maxLevel = tonumber(guide.maxLevel)
+    if not minLevel and not maxLevel then
+        return
+    end
+    minLevel = minLevel or 1
+    maxLevel = maxLevel or 60
+    if minLevel > maxLevel then
+        minLevel, maxLevel = maxLevel, minLevel
+    end
+    local level = playerLevel()
+    if level >= minLevel and level <= maxLevel then
+        return
+    end
+
+    local function covers(candidate)
+        local lo = tonumber(candidate.minLevel)
+        local hi = tonumber(candidate.maxLevel)
+        if not lo and not hi then
+            return false
+        end
+        lo = lo or 1
+        hi = hi or 60
+        if lo > hi then
+            lo, hi = hi, lo
+        end
+        return level >= lo and level <= hi
+    end
+
+    local recommended
+    local ranked = ns.RecommendGuides and ns.RecommendGuides()
+    if type(ranked) == "table" then
+        for _, entry in ipairs(ranked) do
+            local candidate = entry.guide
+            local score = type(entry.score) == "number" and entry.score or 0
+            if candidate and score >= 20 and candidate.id ~= guide.id and candidate.id ~= fromId then
+                local group = candidate.group
+                local route = (group == "Alliance" or group == "Horde") and not candidate.dungeon
+                if route and covers(candidate) and not linkedGuideFinished(candidate.id) then
+                    recommended = candidate
+                    break
+                end
+            end
+        end
+    end
+    if not recommended then
+        return
+    end
+
+    local function label(item)
+        local name = item.name or item.id or "Guide"
+        local band = guideLevelBand(item)
+        if band ~= "" and not name:find(band, 1, true) then
+            name = name .. " (" .. band .. ")"
+        end
+        return "|cffffffff" .. name .. "|r"
+    end
+
+    catchUp.levelPromptPending = {
+        landedId = guide.id,
+        text1 = "level " .. level .. ", outside the range for " .. label(guide),
+        text2 = label(recommended),
+        guideId = recommended.id,
+    }
+    if catchUp.levelPromptQueued then
+        return
+    end
+    catchUp.levelPromptQueued = true
+
+    local function showPending()
+        catchUp.levelPromptQueued = false
+        local pending = catchUp.levelPromptPending
+        catchUp.levelPromptPending = nil
+        if type(pending) ~= "table" then
+            return
+        end
+        if catchUp.declinedLevelGuide[pending.landedId] then
+            return
+        end
+        local active = activeGuide()
+        if not active or active.id ~= pending.landedId then
+            return
+        end
+        if StaticPopup_Visible and StaticPopup_Visible("WaynotesLevelGuide") then
+            if catchUp.levelPromptGuide == pending.landedId then
+                return
+            end
+            if StaticPopup_Hide then
+                StaticPopup_Hide("WaynotesLevelGuide")
+            end
+        end
+        catchUp.levelPromptGuide = pending.landedId
+        StaticPopup_Show("WaynotesLevelGuide", pending.text1, pending.text2, {
+            guideId = pending.guideId,
+            landedId = pending.landedId,
+        })
+    end
+
+    if C_Timer and C_Timer.After then
+        C_Timer.After(0, showPending)
+    else
+        showPending()
+    end
+end
+
 local function promptOffStepJump(index)
     if type(index) ~= "number" then
         return
@@ -6215,13 +6812,220 @@ local function considerOffStepJump(questIds)
     end
 end
 
+-- Login and loading screens report an empty quest log for a bit. Catch-up
+-- must not treat that as "abandoned / already turned in" or it permanently
+-- skips the steps the player is still on. State lives on catchUp so this
+-- file does not gain another chunk local.
+catchUp.resetQuestData = function(seenWorld)
+    ns.__questDataReady = false
+    ns.__questDataEmpty = false
+    ns.__questUserMoved = false
+    ns.__questLogIds = nil
+    catchUp.seenWorld = seenWorld and true or false
+    catchUp.logSig = nil
+    catchUp.logStable = 0
+    catchUp.logWaitFrom = 0
+    catchUp.logUpdates = 0
+    catchUp.pendingLog = false
+    catchUp.readyOnEmpty = false
+    catchUp.sawQuests = false
+    catchUp.emptySince = 0
+    catchUp.anchorGuide = nil
+    catchUp.anchorStep = nil
+    if not seenWorld then
+        return
+    end
+    local guide = activeGuide()
+    if not guide then
+        return
+    end
+    catchUp.anchorGuide = guide.id
+    catchUp.anchorStep = progress(guide.id).step
+end
+
+catchUp.rewindEmptySkip = function()
+    if ns.__questUserMoved then
+        return
+    end
+    if ns.PartySyncFollowing and ns.PartySyncFollowing() then
+        return
+    end
+    local guideId = catchUp.anchorGuide
+    local step = catchUp.anchorStep
+    if type(guideId) ~= "string" or not findGuide(guideId) then
+        return
+    end
+    if charDB().guide ~= guideId then
+        charDB().guide = guideId
+    end
+    if type(step) == "number" and step >= 1 then
+        progress(guideId).step = step
+    end
+end
+
+catchUp.noteQuestData = function()
+    if not catchUp.seenWorld then
+        ns.__questDataReady = false
+        return false
+    end
+    local inWorld = true
+    if IsPlayerInWorld then
+        local ok, value = pcall(IsPlayerInWorld)
+        if ok then
+            inWorld = value and true or false
+        end
+    end
+    if not inWorld then
+        -- Loading screen. The log read is not the player's log.
+        ns.__questDataReady = false
+        ns.__questDataEmpty = false
+        catchUp.readyOnEmpty = false
+        catchUp.emptySince = 0
+        catchUp.logSig = nil
+        catchUp.logStable = 0
+        catchUp.logWaitFrom = 0
+        ns.__questLogIds = nil
+        return false
+    end
+    local now = GetTime()
+    if not catchUp.logWaitFrom or catchUp.logWaitFrom == 0 then
+        catchUp.logWaitFrom = now
+    end
+    local entries, numQuests = 0, 0
+    if GetNumQuestLogEntries then
+        local a, b = GetNumQuestLogEntries()
+        entries = tonumber(a) or 0
+        numQuests = tonumber(b) or 0
+    end
+    -- Same id rules as questOn (a quest id counts even if the row is flagged
+    -- as a header). logQuestIds skips those rows, which would look like an
+    -- empty log and let catch-up skip live steps.
+    local ids = {}
+    if GetNumQuestLogEntries and GetQuestLogTitle then
+        for index = 1, entries do
+            local _, _, _, _, _, _, _, questID = GetQuestLogTitle(index)
+            local qid = questID
+            if C_QuestLog and C_QuestLog.GetQuestIDForLogIndex then
+                local ok, value = pcall(C_QuestLog.GetQuestIDForLogIndex, index)
+                if ok and type(value) == "number" then
+                    qid = value
+                end
+            end
+            if type(qid) == "number" and qid > 0 then
+                ids[#ids + 1] = qid
+            end
+        end
+    end
+    local readable = #ids
+    local firstId = ids[1] or 0
+    local lastId = ids[readable] or 0
+    if catchUp.pendingLog then
+        catchUp.pendingLog = false
+        catchUp.logUpdates = (catchUp.logUpdates or 0) + 1
+    end
+    local sig = string.format("%d:%d:%d:%d:%d", entries, numQuests, readable, firstId, lastId)
+    if sig == catchUp.logSig then
+        catchUp.logStable = (catchUp.logStable or 0) + 1
+    else
+        catchUp.logSig = sig
+        catchUp.logStable = 1
+        ns.__questLogIds = nil
+    end
+    local elapsed = now - catchUp.logWaitFrom
+    local stable = (catchUp.logStable or 0) >= 2
+    local partial = numQuests > readable
+    local empty = readable == 0 and numQuests == 0
+    local populated = readable > 0 and not partial
+    -- numQuests can stay above the ids we can read (header rows). A snapshot
+    -- that has not changed is the log, not a half-loaded one.
+    if partial and readable > 0 and (catchUp.logStable or 0) >= 3 and elapsed >= 2 then
+        partial = false
+        populated = true
+    end
+    if not catchUp.anchorGuide then
+        local guide = activeGuide()
+        if guide then
+            catchUp.anchorGuide = guide.id
+            catchUp.anchorStep = progress(guide.id).step
+        end
+    end
+    if readable == 0 then
+        if not catchUp.emptySince or catchUp.emptySince == 0 then
+            catchUp.emptySince = now
+        end
+    else
+        catchUp.emptySince = 0
+    end
+    local emptyFor = 0
+    if catchUp.emptySince and catchUp.emptySince > 0 then
+        emptyFor = now - catchUp.emptySince
+    end
+    local updates = catchUp.logUpdates or 0
+    local emptyReady = empty and stable and ((elapsed >= 4 and updates >= 1) or elapsed >= 8)
+    if catchUp.readyOnEmpty and readable > 0 then
+        -- Empty-log catch-up already ran, then the real quests arrived.
+        -- Rewind that pass once. If this read is still partial, do not treat
+        -- the log as ready yet: absence must not skip the quests still loading.
+        -- Later samples only move forward.
+        catchUp.rewindEmptySkip()
+        catchUp.readyOnEmpty = false
+        ns.__questDataEmpty = false
+        ns.__questLogIds = nil
+        catchUp.sawQuests = true
+        if partial then
+            ns.__questDataReady = false
+            return false
+        end
+        ns.__questDataReady = true
+        return true
+    end
+    -- Stay ready across a normal accept/turn-in (the signature changes).
+    -- A log that already had quests must sit empty briefly before we trust
+    -- it, or a one-frame blip marks every open step abandoned. The first
+    -- login read is slower: an empty log is not ready until it has sat empty.
+    if populated and stable then
+        ns.__questDataReady = true
+        catchUp.sawQuests = true
+        catchUp.readyOnEmpty = false
+    elseif empty and stable and catchUp.sawQuests and emptyFor >= 1.5 then
+        ns.__questDataReady = true
+        catchUp.readyOnEmpty = false
+    elseif emptyReady and not catchUp.sawQuests then
+        ns.__questDataReady = true
+        catchUp.readyOnEmpty = true
+    elseif readable == 0 and catchUp.sawQuests and emptyFor < 1.5 then
+        ns.__questDataReady = false
+        ns.__questLogIds = nil
+    end
+    if not ns.__questDataReady and not catchUp.sawQuests and elapsed >= 8 then
+        -- First load never produced a settled log. Stop holding catch-up.
+        ns.__questDataReady = true
+    end
+    if catchUp.readyOnEmpty and elapsed >= 8 then
+        catchUp.readyOnEmpty = false
+    end
+    ns.__questDataEmpty = catchUp.readyOnEmpty and true or false
+    if ns.__questDataReady then
+        ns.__questLogIds = nil
+    end
+    return ns.__questDataReady and true or false
+end
+
 local function runCatchUp()
     if not ns.UsingStandalone or not ns.UsingStandalone() then
         catchUp.pendingOffStep = false
         catchUp.pendingForce = false
+        if catchUp.seenWorld and not ns.__questDataReady then
+            catchUp.noteQuestData()
+            if not ns.__questDataReady or catchUp.readyOnEmpty then
+                ns.QueueGuideCatchUp(0.4, false)
+            end
+        end
         return false
     end
     -- Quest accept/turn-in can fire before IsOnQuest updates; rebuild id set.
+    ns.__questLogIds = nil
+    local ready = catchUp.noteQuestData()
     ns.__questLogIds = nil
     local beforeSnap = catchUp.snap
     local checkOffStep = catchUp.pendingOffStep and catchUp.snapReady
@@ -6258,6 +7062,11 @@ local function runCatchUp()
     end
     if checkOffStep and progressed and #progressed > 0 then
         considerOffStepJump(progressed)
+    end
+    if not ready or catchUp.readyOnEmpty then
+        -- Keep sampling until the log settles, and a little longer after an
+        -- empty read so a late-loading log can undo a bad skip.
+        ns.QueueGuideCatchUp(0.4, false)
     end
     return moved
 end
@@ -6329,6 +7138,14 @@ end
 catchUp.watcher:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" then
         if name ~= addonName then
+            -- Questie arriving later turns the multi-quest fallback off.
+            -- Catch up again so class-filtered steps can finish for real.
+            if ns.QuestieReady and ns.QuestieReady() and not catchUp.questieWas then
+                catchUp.questieWas = true
+                if ns.UsingStandalone and ns.UsingStandalone() then
+                    queueCatchUp(0.2, false, true)
+                end
+            end
             return
         end
         charDB()
@@ -6340,6 +7157,7 @@ catchUp.watcher:SetScript("OnEvent", function(_, event, name)
             ns.InitDB()
         end
         catchUp.snapReady = false
+        catchUp.resetQuestData(false)
         declinedOffStep = {}
         declinedDungeon = {}
         lastDungeonPromptKey = nil
@@ -6355,6 +7173,7 @@ catchUp.watcher:SetScript("OnEvent", function(_, event, name)
         charDB()
         if event == "PLAYER_ENTERING_WORLD" then
             catchUp.snapReady = false
+            catchUp.resetQuestData(true)
             declinedOffStep = {}
             clearOffStepOffer()
             if ns.InitDB then
@@ -6423,5 +7242,8 @@ catchUp.watcher:SetScript("OnEvent", function(_, event, name)
         return
     end
     local checkOffStep = event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED"
+    if checkOffStep then
+        catchUp.pendingLog = true
+    end
     queueCatchUp(catchUp.delay, checkOffStep)
 end)

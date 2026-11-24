@@ -1,0 +1,576 @@
+[
+  {
+    "name": "A Luddite's Guide to Caring for Your Demonic Pet",
+    "turnInQuestId": 79953,
+    "faction": "Both",
+    "availability": "reported_unavailable",
+    "positions": [
+      {
+        "zone": "Swamp of Sorrows",
+        "mapId": 1435,
+        "x": 61.6,
+        "y": 22.4
+      }
+    ]
+  },
+  {
+    "name": "A Mind of Metal",
+    "turnInQuestId": 81955,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Searing Gorge",
+        "mapId": 1427,
+        "x": 37.9,
+        "y": 49.6
+      }
+    ]
+  },
+  {
+    "name": "A Study of the Light",
+    "turnInQuestId": 84398,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Eastern Plaguelands",
+        "mapId": 1423,
+        "x": 71.8,
+        "y": 48.3
+      }
+    ]
+  },
+  {
+    "name": "A Web of Lies",
+    "turnInQuestId": 79949,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Arathi Highlands",
+        "mapId": 1417,
+        "x": 73.6,
+        "y": 65.2
+      }
+    ]
+  },
+  {
+    "name": "Arcanic Systems Manual",
+    "turnInQuestId": 78145,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "The Barrens",
+        "mapId": 1413,
+        "x": 56.3,
+        "y": 8.8
+      }
+    ]
+  },
+  {
+    "name": "Archmage Antonidas: The Unabridged Autobiography",
+    "turnInQuestId": 79091,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Ironforge",
+        "mapId": 1455,
+        "x": 75.97,
+        "y": 10.56
+      }
+    ]
+  },
+  {
+    "name": "Archmage Theocritus' Research Journal",
+    "turnInQuestId": 79092,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Elwynn Forest",
+        "mapId": 1429,
+        "x": 65.46,
+        "y": 70.07
+      }
+    ]
+  },
+  {
+    "name": "Ataeric: On Arcane Curiosities",
+    "turnInQuestId": 79096,
+    "faction": "Both",
+    "availability": "location_disputed",
+    "positions": [
+      {
+        "zone": "Silverpine Forest",
+        "mapId": 1421,
+        "x": 43.4,
+        "y": 41.2
+      }
+    ]
+  },
+  {
+    "name": "Basilisks: Should Petrification be Feared?",
+    "turnInQuestId": 79535,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Stranglethorn Vale",
+        "mapId": 1434,
+        "x": 41.5,
+        "y": 50.9
+      }
+    ]
+  },
+  {
+    "name": "Baxtan: On Destructive Magics",
+    "turnInQuestId": 79097,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "The Barrens",
+        "mapId": 1413,
+        "x": 62.7,
+        "y": 36.3
+      }
+    ]
+  },
+  {
+    "name": "Bewitchments and Glamours",
+    "turnInQuestId": 78142,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Westfall",
+        "mapId": 1436,
+        "x": 45.4,
+        "y": 70.5
+      }
+    ]
+  },
+  {
+    "name": "Conjurer's Codex",
+    "turnInQuestId": 81956,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Blasted Lands",
+        "mapId": 1419,
+        "x": 55.3,
+        "y": 32.2
+      }
+    ]
+  },
+  {
+    "name": "Crimes Against Anatomy",
+    "turnInQuestId": 78147,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Duskwood",
+        "mapId": 1431,
+        "x": 16.7,
+        "y": 28.5
+      }
+    ]
+  },
+  {
+    "name": "Defensive Magics 101",
+    "turnInQuestId": 79948,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Alterac Mountains",
+        "mapId": 1416,
+        "x": 48.55,
+        "y": 57.76
+      }
+    ]
+  },
+  {
+    "name": "Demons and You",
+    "turnInQuestId": 79950,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Desolace",
+        "mapId": 1443,
+        "x": 55.07,
+        "y": 26.17
+      }
+    ]
+  },
+  {
+    "name": "Everyday Etiquette",
+    "turnInQuestId": 81952,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Azshara",
+        "mapId": 1447,
+        "x": 20.75,
+        "y": 62.05
+      }
+    ]
+  },
+  {
+    "name": "Fury of the Land",
+    "turnInQuestId": 78149,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Stonetalon Mountains",
+        "mapId": 1442,
+        "x": 74.4,
+        "y": 85.7
+      }
+    ]
+  },
+  {
+    "name": "Geomancy",
+    "turnInQuestId": 79947,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Thousand Needles",
+        "mapId": 1441,
+        "x": 31.0,
+        "y": 36.0
+      },
+      {
+        "zone": "Thousand Needles",
+        "mapId": 1441,
+        "x": 34.43,
+        "y": 40.15
+      }
+    ]
+  },
+  {
+    "name": "Goaz Scrolls",
+    "turnInQuestId": 78146,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Wetlands",
+        "mapId": 1437,
+        "x": 33.63,
+        "y": 47.86
+      }
+    ]
+  },
+  {
+    "name": "Ka-Boom!",
+    "turnInQuestId": 84399,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Winterspring",
+        "mapId": 1452,
+        "x": 60.7,
+        "y": 37.7
+      }
+    ]
+  },
+  {
+    "name": "Legends of the Tidesages",
+    "turnInQuestId": 81949,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Tanaris",
+        "mapId": 1446,
+        "x": 72.7,
+        "y": 47.8
+      }
+    ]
+  },
+  {
+    "name": "Magma or Lava?",
+    "turnInQuestId": 84396,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Burning Steppes",
+        "mapId": 1428,
+        "x": 30.0,
+        "y": 24.0
+      }
+    ]
+  },
+  {
+    "name": "Mummies",
+    "turnInQuestId": 79951,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Badlands",
+        "mapId": 1418,
+        "x": 56.7,
+        "y": 39.9
+      }
+    ]
+  },
+  {
+    "name": "Nar'thalas Almanac, Vol. 74",
+    "turnInQuestId": 78124,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Darkshore",
+        "mapId": 1439,
+        "x": 59.61,
+        "y": 22.13
+      }
+    ]
+  },
+  {
+    "name": "Necromancy 101",
+    "turnInQuestId": 84402,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Western Plaguelands",
+        "mapId": 1422,
+        "x": 69.41,
+        "y": 72.84
+      }
+    ]
+  },
+  {
+    "name": "Northern Kalimdor - A Comprehensive Guide",
+    "turnInQuestId": 84397,
+    "faction": "Both",
+    "availability": "location_disputed",
+    "positions": [
+      {
+        "zone": "Felwood",
+        "mapId": 1448,
+        "x": 65.2,
+        "y": 33.0,
+        "source": "Library Books v4.08"
+      },
+      {
+        "zone": "Felwood",
+        "mapId": 1448,
+        "x": 65.2,
+        "y": 3.3,
+        "source": "WoW Forever Tools"
+      }
+    ]
+  },
+  {
+    "name": "Rumi of Gnomeregan: The Collected Works",
+    "turnInQuestId": 79093,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Loch Modan",
+        "mapId": 1432,
+        "x": 35.6,
+        "y": 48.9
+      }
+    ]
+  },
+  {
+    "name": "Runes of the Sorcerer-Kings",
+    "turnInQuestId": 78148,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Loch Modan",
+        "mapId": 1432,
+        "x": 77.45,
+        "y": 14.16
+      }
+    ]
+  },
+  {
+    "name": "RwlRwlRwlRwl!",
+    "turnInQuestId": 79952,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Dustwallow Marsh",
+        "mapId": 1445,
+        "x": 57.2,
+        "y": 20.8
+      }
+    ]
+  },
+  {
+    "name": "Sanguine Sorcery",
+    "turnInQuestId": 81947,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Swamp of Sorrows",
+        "mapId": 1435,
+        "x": 70.1,
+        "y": 52.9
+      }
+    ]
+  },
+  {
+    "name": "Scourge",
+    "turnInQuestId": 84401,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Eastern Plaguelands",
+        "mapId": 1423,
+        "x": 26.0,
+        "y": 15.0
+      }
+    ]
+  },
+  {
+    "name": "Secrets of the Dreamers",
+    "turnInQuestId": 78143,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "The Barrens",
+        "mapId": 1413,
+        "x": 46.2,
+        "y": 34.4
+      }
+    ]
+  },
+  {
+    "name": "Stonewrought Design",
+    "turnInQuestId": 81953,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Burning Steppes",
+        "mapId": 1428,
+        "x": 28.0,
+        "y": 29.0
+      }
+    ]
+  },
+  {
+    "name": "The Apothecary's Metaphysical Primer",
+    "turnInQuestId": 79095,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Tirisfal Glades",
+        "mapId": 1420,
+        "x": 59.5,
+        "y": 52.3
+      }
+    ]
+  },
+  {
+    "name": "The Dalaran Digest, Vol. 23",
+    "turnInQuestId": 78127,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Silverpine Forest",
+        "mapId": 1421,
+        "x": 63.5,
+        "y": 63.1
+      }
+    ]
+  },
+  {
+    "name": "The Knight and the Lady",
+    "turnInQuestId": 84400,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Eastern Plaguelands",
+        "mapId": 1423,
+        "x": 45.3,
+        "y": 42.5
+      }
+    ]
+  },
+  {
+    "name": "The Lessons of Ta'zo",
+    "turnInQuestId": 79094,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Orgrimmar",
+        "mapId": 1454,
+        "x": 38.65,
+        "y": 78.447
+      }
+    ]
+  },
+  {
+    "name": "The Liminal and the Arcane",
+    "turnInQuestId": 81951,
+    "faction": "Both",
+    "availability": "reported_unavailable",
+    "positions": [
+      {
+        "zone": "Feralas",
+        "mapId": 1444,
+        "x": 50.63,
+        "y": 15.68
+      }
+    ]
+  },
+  {
+    "name": "Undead Potatoes",
+    "turnInQuestId": 84395,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "Western Plaguelands",
+        "mapId": 1422,
+        "x": 38.2,
+        "y": 54.6
+      }
+    ]
+  },
+  {
+    "name": "Venomous Journeys",
+    "turnInQuestId": 81954,
+    "faction": "Both",
+    "availability": "reported",
+    "positions": [
+      {
+        "zone": "The Hinterlands",
+        "mapId": 1425,
+        "x": 36.0,
+        "y": 72.7
+      }
+    ]
+  }
+]

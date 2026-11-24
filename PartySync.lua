@@ -20,6 +20,8 @@ local remoteProgressSig
 local applying
 local lastWarnAt = 0
 local lastWarnGuide
+local lastWarnStepAt = 0
+local lastWarnStepKey
 local registered
 local ticker
 local dropdown
@@ -213,18 +215,47 @@ local function decodeQuests(blob)
     return map
 end
 
+-- index, or index:quest. Quest ids are tagged so a follower can find the same
+-- sticky after steps have been inserted or removed. A bare index has no quest.
 local function decodeStickies(blob)
-    local map = {}
+    local list = {}
     if type(blob) ~= "string" or blob == "" then
-        return map
+        return list
     end
     for piece in string.gmatch(blob, "[^,]+") do
-        local index = tonumber(piece)
+        local indexText, questText = piece:match("^(%d+):(%d+)$")
+        local index = tonumber(indexText) or tonumber(piece)
         if index and index > 0 then
-            map[index] = true
+            local quest = tonumber(questText)
+            list[#list + 1] = {
+                index = math.floor(index),
+                quest = quest and quest > 0 and math.floor(quest) or nil,
+            }
         end
     end
-    return map
+    return list
+end
+
+-- Sticky tags are index:questId. Quest snapshots are id:flags[:objs] and flags
+-- stay in 0..7, so a second number above 7 is a quest id, not a flag.
+local function looksLikeStickyBlob(text)
+    if type(text) ~= "string" or text == "" then
+        return false
+    end
+    local saw = false
+    for piece in string.gmatch(text, "[^,]+") do
+        if piece:match("^%d+$") then
+            saw = true
+        else
+            local _, questText = piece:match("^(%d+):(%d+)$")
+            local quest = tonumber(questText)
+            if not quest or quest <= 7 then
+                return false
+            end
+            saw = true
+        end
+    end
+    return saw
 end
 
 local function decodeProgress(blob)
@@ -314,7 +345,7 @@ local function scheduleBroadcast(delay)
     end
 end
 
-local function rememberPeer(name, guideId, step, questSig, quests, stickySig, stickies, progressSig, progress)
+local function rememberPeer(name, guideId, step, questSig, quests, stickySig, stickies, progressSig, progress, identity)
     name = shortName(name)
     if not name or isSelf(name) then
         return false
@@ -323,6 +354,7 @@ local function rememberPeer(name, guideId, step, questSig, quests, stickySig, st
     peers[name] = {
         guideId = guideId,
         step = tonumber(step) or 1,
+        identity = identity,
         questSig = questSig,
         quests = quests,
         stickySig = stickySig,
@@ -335,7 +367,21 @@ local function rememberPeer(name, guideId, step, questSig, quests, stickySig, st
     return wasNew
 end
 
-local function applyFollowState(guideId, step, fromName, quests, questSig, stickies, stickySig, progress, progressSig)
+local function stickiesToMap(stickies)
+    local map = {}
+    if type(stickies) ~= "table" then
+        return map
+    end
+    for _, entry in ipairs(stickies) do
+        local index = type(entry) == "table" and tonumber(entry.index) or tonumber(entry)
+        if index and index > 0 then
+            map[math.floor(index)] = true
+        end
+    end
+    return map
+end
+
+local function applyFollowState(guideId, step, fromName, quests, questSig, stickies, stickySig, progress, progressSig, identity)
     if not standaloneReady() then
         return
     end
@@ -343,6 +389,7 @@ local function applyFollowState(guideId, step, fromName, quests, questSig, stick
         return
     end
     step = tonumber(step) or 1
+    local hadIdentity = type(identity) == "string" and identity ~= ""
     local questsChanged = questSig ~= remoteQuestSig
     local stickiesChanged = stickySig ~= remoteStickySig
     local progressChanged = progressSig ~= remoteProgressSig
@@ -350,19 +397,63 @@ local function applyFollowState(guideId, step, fromName, quests, questSig, stick
         remoteQuests = quests
         remoteQuestSig = questSig
     end
-    if stickySig ~= nil and type(stickies) == "table" then
-        remoteStickies = stickies
+    local guideReady = ns.GuideExists and ns.GuideExists(guideId)
+    local resolved = step
+    if guideReady and hadIdentity and ns.GuideResolveSyncStep then
+        resolved = ns.GuideResolveSyncStep(guideId, step, identity)
+    end
+    local stickyMap, progressMap
+    if guideReady and ns.GuideRemapSyncState and (stickySig ~= nil or progressSig ~= nil) then
+        local localStep = step
+        if hadIdentity then
+            localStep = resolved
+        end
+        stickyMap, progressMap = ns.GuideRemapSyncState(
+            guideId,
+            step,
+            localStep,
+            stickySig ~= nil and stickies or nil,
+            progressSig ~= nil and progress or nil,
+            hadIdentity
+        )
+    elseif stickySig ~= nil then
+        stickyMap = stickiesToMap(stickies)
+        progressMap = progress
+    end
+    if stickySig ~= nil and type(stickyMap) == "table" then
+        remoteStickies = stickyMap
         remoteStickySig = stickySig
     end
-    if progressSig ~= nil and type(progress) == "table" then
-        remoteProgress = progress
+    if progressSig ~= nil and type(progressMap) == "table" then
+        remoteProgress = progressMap
         remoteProgressSig = progressSig
+    end
+    if not guideReady then
+        local now = GetTime and GetTime() or 0
+        if guideId ~= lastWarnGuide or (now - lastWarnAt) >= WARN_COOLDOWN then
+            lastWarnAt = now
+            lastWarnGuide = guideId
+            say("Synced to " .. (fromName or "party") .. ", but guide \"" .. guideId .. "\" is not installed.")
+        end
+        return
+    end
+    if hadIdentity and not resolved then
+        local now = GetTime and GetTime() or 0
+        if guideId ~= lastWarnStepKey or (now - lastWarnStepAt) >= WARN_COOLDOWN then
+            lastWarnStepAt = now
+            lastWarnStepKey = guideId
+            say("Synced to " .. (fromName or "party") .. ", but their step does not match your copy of \"" .. guideId .. "\".")
+        end
+        if questsChanged or stickiesChanged or progressChanged then
+            markTrackerDirty(stickiesChanged and true or false)
+        end
+        return
     end
     local currentId = ns.GuideId and ns.GuideId()
     local db = WaynotesCharDB
     local entry = db and db.progress and currentId and db.progress[currentId]
     local currentStep = tonumber(entry and entry.step)
-    if currentId == guideId and currentStep == step then
+    if currentId == guideId and currentStep == resolved then
         if questsChanged or stickiesChanged or progressChanged then
             -- Progress/quest text only: never force a full rebuild. Sticky set
             -- changes may add/remove rows, but MarkTrackerDirty(false) still
@@ -372,18 +463,9 @@ local function applyFollowState(guideId, step, fromName, quests, questSig, stick
         end
         return
     end
-    if not ns.GuideExists or not ns.GuideExists(guideId) then
-        local now = GetTime and GetTime() or 0
-        if guideId ~= lastWarnGuide or (now - lastWarnAt) >= WARN_COOLDOWN then
-            lastWarnAt = now
-            lastWarnGuide = guideId
-            say("Synced to " .. (fromName or "party") .. ", but guide \"" .. guideId .. "\" is not installed.")
-        end
-        return
-    end
     applying = true
     if ns.GuideApplySync then
-        ns.GuideApplySync(guideId, step)
+        ns.GuideApplySync(guideId, resolved)
     end
     applying = false
 end
@@ -516,7 +598,8 @@ function ns.PartySyncFollow(name)
         peer.stickies,
         peer.stickySig,
         peer.progress,
-        peer.progressSig
+        peer.progressSig,
+        peer.identity
     )
     notifyUI()
     return true
@@ -541,27 +624,61 @@ function ns.PartySyncBroadcast()
     if not guideId then
         return
     end
+    local identity = ""
+    if ns.GuideSyncIdentity then
+        identity = ns.GuideSyncIdentity() or ""
+    end
+    local head = "S\t" .. guideId .. "\t" .. tostring(step)
+    -- Identity is last and is never trimmed away. Over the 240-byte cap, drop
+    -- quests, then progress, then stickies.
+    local function pack(sticky, progress, quest, ident)
+        local payload = head .. "\t" .. (sticky or "")
+        local includeQuest = type(quest) == "string" and quest ~= ""
+        local includeProgress = includeQuest or (type(progress) == "string" and progress ~= "")
+        if includeProgress then
+            payload = payload .. "\t" .. (progress or "")
+        end
+        if includeQuest then
+            payload = payload .. "\t" .. quest
+        end
+        if type(ident) == "string" and ident ~= "" then
+            payload = payload .. "\t" .. ident
+        end
+        return payload
+    end
     local stickyBlob = ""
     if ns.GuideEncodeSyncStickies then
         stickyBlob = ns.GuideEncodeSyncStickies() or ""
     end
-    local head = "S\t" .. guideId .. "\t" .. tostring(step) .. "\t" .. stickyBlob
+    local identLen = identity ~= "" and (#identity + 1) or 0
+    local sideRoom = MSG_MAX - (#head + 1 + #stickyBlob + identLen)
+    if sideRoom < 0 then
+        sideRoom = 0
+    end
+    local progressBudget = math.max(0, math.floor(sideRoom * 0.45))
     local progressBlob = ""
-    if ns.GuideEncodeSyncProgress then
-        local budget = math.max(20, math.floor((MSG_MAX - #head - 2) * 0.45))
-        progressBlob = ns.GuideEncodeSyncProgress(budget) or ""
+    if progressBudget > 0 and ns.GuideEncodeSyncProgress then
+        progressBlob = ns.GuideEncodeSyncProgress(progressBudget) or ""
     end
-    local mid = head .. "\t" .. progressBlob
+    -- An included quest blob also sends the progress field, so reserve both tabs.
+    local questBudget = sideRoom - 2
+    if progressBlob ~= "" then
+        questBudget = sideRoom - #progressBlob - 2
+    end
     local questBlob = ""
-    if ns.GuideEncodeSyncQuests then
-        local budget = MSG_MAX - #mid - 1
-        if budget > 20 then
-            questBlob = ns.GuideEncodeSyncQuests(budget) or ""
-        end
+    if questBudget > 20 and ns.GuideEncodeSyncQuests then
+        questBlob = ns.GuideEncodeSyncQuests(questBudget) or ""
     end
-    local payload = mid
-    if questBlob ~= "" then
-        payload = mid .. "\t" .. questBlob
+    local payload = pack(stickyBlob, progressBlob, questBlob, identity)
+    if #payload > MSG_MAX then
+        questBlob = ""
+        payload = pack(stickyBlob, progressBlob, "", identity)
+    end
+    if #payload > MSG_MAX then
+        payload = pack(stickyBlob, "", "", identity)
+    end
+    if #payload > MSG_MAX then
+        payload = pack("", "", "", identity)
     end
     if #payload > MSG_MAX then
         payload = head
@@ -587,10 +704,23 @@ local function onAddonMessage(prefix, message, _, sender)
     if type(message) ~= "string" then
         return
     end
-    local kind, guideId, stepText, field4, field5, field6 = strsplit("\t", message)
-    if kind ~= "S" then
+    local fields = { strsplit("\t", message) }
+    if fields[1] ~= "S" then
         return
     end
+    local guideId = fields[2]
+    local stepText = fields[3]
+    local identity
+    local rest = {}
+    for index = 4, #fields do
+        local value = fields[index]
+        if not identity and type(value) == "string" and value:match("^I[^,\t]*,[^,]*,[^,]*,[^,]*,") then
+            identity = value
+        else
+            rest[#rest + 1] = value
+        end
+    end
+    local field4, field5, field6 = rest[1], rest[2], rest[3]
     local step = tonumber(stepText) or 1
     local stickyBlob -- nil when the peer did not send a sticky field
     local progressBlob -- nil when absent
@@ -603,13 +733,15 @@ local function onAddonMessage(prefix, message, _, sender)
         stickyBlob = field4 or ""
         if looksLikeProgressBlob(field5) then
             progressBlob = field5
-        else
+        elseif not looksLikeStickyBlob(field5) then
             questBlob = field5
         end
-    elseif looksLikeQuestBlob(field4) then
-        questBlob = field4
+    elseif looksLikeStickyBlob(field4) then
+        stickyBlob = field4
     elseif looksLikeProgressBlob(field4) then
         progressBlob = field4
+    elseif looksLikeQuestBlob(field4) then
+        questBlob = field4
     elseif type(field4) == "string" then
         stickyBlob = field4
     end
@@ -619,13 +751,13 @@ local function onAddonMessage(prefix, message, _, sender)
     local stickySig = stickyBlob
     local progress = progressBlob ~= nil and decodeProgress(progressBlob) or nil
     local progressSig = progressBlob
-    local wasNew = rememberPeer(sender, guideId, step, questSig, quests, stickySig, stickies, progressSig, progress)
+    local wasNew = rememberPeer(sender, guideId, step, questSig, quests, stickySig, stickies, progressSig, progress, identity)
     if wasNew then
         notifyUI()
     end
     if followName and samePlayer(followName, sender) then
         followName = sender
-        applyFollowState(guideId, step, sender, quests, questSig, stickies, stickySig, progress, progressSig)
+        applyFollowState(guideId, step, sender, quests, questSig, stickies, stickySig, progress, progressSig, identity)
     end
 end
 

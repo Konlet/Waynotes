@@ -382,8 +382,8 @@ ns.RegisterGuide({
             text = "Travel to Ratchet.",
             when = "travel",
             map = 1413,
-            x = 62.7,
-            y = 37.0,
+            x = 61.9,
+            y = 37.9,
         },
         {
             text = "Talk to [FRIENDLY]Bragok[/]. Get the Ratchet flight path.",

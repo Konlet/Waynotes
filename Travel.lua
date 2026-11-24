@@ -983,7 +983,13 @@ local function rememberFlightRec(route)
     if not route.departId or not route.arriveId or route.departId == route.arriveId then
         return
     end
-    if not isNumber(route.savingsYards) or route.savingsYards < flightRecMinYards() then
+    local minYards = flightRecMinYards()
+    if not isNumber(route.savingsYards) or route.savingsYards < minYards then
+        return
+    end
+    -- walkYards on the route: never tip a flight when the objective is already
+    -- nearby on foot (bad arrive-hub matches can invent huge "savings").
+    if isNumber(route.yards) and route.yards < minYards then
         return
     end
     if not activeFlightRec or route.savingsYards > (activeFlightRec.savingsYards or 0) then
@@ -1674,6 +1680,9 @@ local function destinationFromStep(step)
                 wx, wy, instance = hub.wx, hub.wy, hub.instance
             end
         end
+        -- Keep zone for display, but only put an extracted travel name in rawName.
+        -- Using the map zone as name made flightArrivePoint treat "The Barrens"
+        -- as Crossroads and recommend flying away from local pin steps.
         return {
             name = named or zone or "destination",
             map = step.map,
@@ -1685,6 +1694,7 @@ local function destinationFromStep(step)
             instance = instance,
             prefer = prefer,
             rawName = named,
+            pin = true,
         }
     end
 
@@ -1813,7 +1823,25 @@ local function flightArrivePoint(dest)
         local node = nodesById[dest.nodeId]
         return node.wx, node.wy, node.instance, node.nodeId
     end
-    local names = { dest.rawName, dest.name, dest.hub, dest.zone }
+
+    -- Pin steps often set name/zone to the map name ("The Barrens"). That alias
+    -- resolves to whichever hub registered the zone first (Crossroads), which
+    -- invents Ratchet→Crossroads flights for a Gazlowe pin 100 yd away. Only
+    -- trust explicit hub names from travel text when a pin is present.
+    local hasPin = dest.pin
+        or (isNumber(dest.map) and isNumber(dest.x) and isNumber(dest.y))
+        or (isNumber(dest.wx) and isNumber(dest.wy))
+    local names
+    if hasPin then
+        -- rawName / prefer=fly|hearth come from extractDestinationName ("Fly to X").
+        -- Ignore dest.name/zone: those are often just MapName(step.map).
+        names = { dest.rawName, dest.hub }
+        if dest.prefer == "fly" or dest.prefer == "hearth" then
+            names = { dest.rawName, dest.name, dest.hub }
+        end
+    else
+        names = { dest.rawName, dest.name, dest.hub, dest.zone }
+    end
     for index = 1, #names do
         local name = names[index]
         if type(name) == "string" and name ~= "" then
@@ -2346,6 +2374,8 @@ local function travelBestPathInner(dest, opts)
             and route.departId ~= route.arriveId
             and isNumber(route.savingsYards)
             and route.savingsYards >= minFlyYards
+            -- Objective already close: walking wins; do not promote a fly detour.
+            and (not isNumber(route.yards) or route.yards >= minFlyYards)
     end
 
     best = candidates[1]
@@ -2435,6 +2465,7 @@ local function travelFlightRecommendationInner(dest, minYards)
         or fly.departId == fly.arriveId
         or not isNumber(fly.savingsYards)
         or fly.savingsYards < minYards
+        or (isNumber(fly.yards) and fly.yards < minYards)
     then
         return nil
     end
