@@ -3977,10 +3977,21 @@ function ns.GuideStepListData()
                 end
             end
         end
+        local quests
+        if type(step.quests) == "table" then
+            for _, id in ipairs(step.quests) do
+                id = tonumber(id)
+                if id and id > 0 then
+                    quests = quests or {}
+                    quests[#quests + 1] = id
+                end
+            end
+        end
         entries[index] = {
             index = index,
             header = header,
             details = tips,
+            quests = quests,
         }
     end
     return entries, current, guide.id

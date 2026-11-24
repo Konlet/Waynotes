@@ -4,6 +4,7 @@ local _, ns = ...
 -- First pass: Camp Taurajo lead-in, Freewind Post, centaurs, Highperch, Whitereach, Darkcloud.
 -- Second pass: Shimmering Flats race track, Swarm Grows, then Ratchet / Booty Bay hand-offs.
 -- Assumes Calling in the Reserves (Stonetalon) and/or Sacred Flame / Steelsnap leftovers from Thunder Bluff.
+-- A New Ore Sample needs Weapons of Choice from the Barrens guide.
 
 ns.RegisterGuide({
     id = "horde-thousand-needles-28-30",
@@ -23,7 +24,6 @@ ns.RegisterGuide({
             y = 61.2,
             quest = 5881,
             when = "accepted",
-            note = "Skip if already on the quest or starting from Camp Taurajo.",
         },
         {
             text = "At Camp Taurajo, talk to [FRIENDLY]Grunt Logmar[/]. Accept [QUEST]Wrongly Blamed, Justly Corrected[/].",
@@ -52,7 +52,6 @@ ns.RegisterGuide({
                 "[ENEMY]Encroaching Soldier[/] (2)",
                 "Kill [ENEMY]Outraged Pillager[/]",
             },
-            note = "Skip if the camp is too hard.",
         },
         {
             text = "Talk to [FRIENDLY]Grunt Logmar[/]. Turn in [QUEST]Wrongly Blamed, Justly Corrected[/].",
@@ -61,7 +60,6 @@ ns.RegisterGuide({
             y = 59.3,
             quest = 97250,
             when = "complete",
-            note = "Skip.",
         },
         {
             text = "Talk to [FRIENDLY]Grish Longrunner[/] at the Great Lift. Turn in [QUEST]Calling in the Reserves[/].",
@@ -70,7 +68,6 @@ ns.RegisterGuide({
             y = 21.7,
             quest = 5881,
             when = "complete",
-            note = "Skip if you never accepted Calling in the Reserves.",
         },
         {
             text = "Talk to [FRIENDLY]Brave Moonhorn[/]. Accept [QUEST]Message to Freewind Post[/].",
@@ -81,7 +78,16 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Ride the elevator down into Thousand Needles, follow the road to Freewind Post, and ride an elevator up. Talk to [FRIENDLY]Nyse[/]. Get the flight path.",
+            text = "Ride the elevator down into Thousand Needles, follow the road to Freewind Post, and ride an elevator up.",
+            when = "travel",
+            travel = "Freewind Post",
+            map = 1441,
+            x = 45.1,
+            y = 49.1,
+        },
+        {
+            text = "Talk to [FRIENDLY]Nyse[/]. Get the Freewind Post flight path.",
+            fpath = "Freewind Post",
             map = 1441,
             x = 45.1,
             y = 49.1,
@@ -123,7 +129,6 @@ ns.RegisterGuide({
             details = {
                 "Turn in [QUEST]The Sacred Flame[/]",
             },
-            note = "Skip the turn-in if you never finished the Thunder Bluff / Ashenvale chain.",
         },
         {
             text = "Talk to [FRIENDLY]Innkeeper Abeqwa[/]. Set your Hearthstone to Freewind Post.",
@@ -133,7 +138,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "In Splithoof Hold, click the [PICK]Ancient Brazier[/] for the [LOOT]Cloven Hoof[/].",
+            text = "In Splithoof Hold, click the [PICK]Ancient Brazier[/].",
             map = 1441,
             x = 42.0,
             y = 31.5,
@@ -142,7 +147,6 @@ ns.RegisterGuide({
             details = {
                 "[LOOT]Cloven Hoof[/] (1)",
             },
-            note = "Skip if you are not on Sacred Flame.",
         },
         {
             text = "Outside Splithoof Hold, kill [ENEMY]Galak Scouts[/], [ENEMY]Wranglers[/], and [ENEMY]Windchasers[/].",
@@ -187,7 +191,7 @@ ns.RegisterGuide({
             note = "Also check around 52.3, 55.2 if the first nest is empty.",
         },
         {
-            text = "Kill [ENEMY]Gravelsnout Diggers[/] and Surveyors for an [LOOT]Unrefined Ore Sample[/].",
+            text = "Kill [ENEMY]Gravelsnout Diggers[/] and Surveyors.",
             map = 1441,
             x = 65.0,
             y = 54.5,
@@ -196,7 +200,6 @@ ns.RegisterGuide({
             details = {
                 "[LOOT]Unrefined Ore Sample[/] (1)",
             },
-            note = "Abandon A New Ore Sample later if the drop will not come.",
         },
         {
             text = "Return to Freewind Post. Talk to [FRIENDLY]Hagar Lightninghoof[/]. Turn in [QUEST]Alien Egg[/]. Accept [QUEST]Serpent Wild[/].",
@@ -224,7 +227,6 @@ ns.RegisterGuide({
             y = 51.7,
             quest = 1197,
             when = "complete",
-            note = "Skip if you never accepted Sacred Flame.",
         },
         {
             text = "Talk to [FRIENDLY]Jandia[/]. Accept [QUEST]Stolen Freewind Supplies[/] and [QUEST]Stop the Screeching[/].",
@@ -273,10 +275,18 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Pao'ka Swiftmountain[/]. Accept [QUEST]Homeward Bound[/] and escort him to safety.",
+            text = "Talk to [FRIENDLY]Pao'ka Swiftmountain[/]. Accept [QUEST]Homeward Bound[/].",
             map = 1441,
             x = 17.9,
             y = 40.6,
+            quest = 4770,
+            when = "accepted",
+        },
+        {
+            text = "Escort [FRIENDLY]Pao'ka Swiftmountain[/] to safety.",
+            map = 1441,
+            x = 15.15,
+            y = 32.65,
             quest = 4770,
             when = "objectives",
             details = {
@@ -284,7 +294,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Steelsnap[/] for [LOOT]Steelsnap's Rib[/].",
+            text = "Kill [ENEMY]Steelsnap[/].",
             map = 1441,
             x = 17.3,
             y = 22.2,
@@ -294,41 +304,64 @@ ns.RegisterGuide({
                 "[LOOT]Steelsnap's Rib[/] (1)",
                 "Kill [ENEMY]Steelsnap[/]",
             },
-            note = "Skip if you never accepted Steelsnap from Melor in Thunder Bluff.",
         },
         {
-            text = "Talk to [FRIENDLY]Motega Firemane[/] at Whitereach Post. Turn in [QUEST]Homeward Bound[/] and [QUEST]Serpent Wild[/]. Accept [QUEST]Sacred Fire[/].",
+            text = "Talk to [FRIENDLY]Motega Firemane[/] at Whitereach Post. Turn in [QUEST]Homeward Bound[/].",
+            map = 1441,
+            x = 21.6,
+            y = 32.4,
+            quest = 4770,
+            when = "complete",
+        },
+        {
+            text = "Talk to [FRIENDLY]Motega Firemane[/]. Turn in [QUEST]Serpent Wild[/]. Accept [QUEST]Sacred Fire[/].",
             map = 1441,
             x = 21.6,
             y = 32.4,
             quest = 5062,
             when = "accepted",
             details = {
-                "Turn in [QUEST]Homeward Bound[/]",
                 "Turn in [QUEST]Serpent Wild[/]",
             },
         },
         {
-            text = "Kill a [ENEMY]Galak Messenger[/] for the [LOOT]Assassination Note[/]. Use it to accept [QUEST]Assassination Plot[/].",
+            text = "Kill a [ENEMY]Galak Messenger[/]. Use the [LOOT]Assassination Note[/] to accept [QUEST]Assassination Plot[/].",
             map = 1441,
             x = 39.6,
             y = 32.8,
             quest = 4881,
             when = "accepted",
-            note = "Messenger patrols the northern needle roads. Skip if you do not want to search.",
+            note = "Messenger patrols the northern needle roads.",
         },
         {
-            text = "Talk to [FRIENDLY]Kanati Greycloud[/]. Turn in [QUEST]Assassination Plot[/]. Accept [QUEST]Protect Kanati Greycloud[/], kill the ambush, then turn in.",
+            text = "Talk to [FRIENDLY]Kanati Greycloud[/]. Turn in [QUEST]Assassination Plot[/]. Accept [QUEST]Protect Kanati Greycloud[/].",
+            map = 1441,
+            x = 21.2,
+            y = 32.1,
+            quest = 4966,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]Assassination Plot[/]",
+            },
+        },
+        {
+            text = "Kill the [ENEMY]Galak Assassins[/] that ambush Kanati.",
+            map = 1441,
+            x = 21.2,
+            y = 31.7,
+            quest = 4966,
+            when = "objectives",
+            details = {
+                "Protect Kanati Greycloud",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Kanati Greycloud[/]. Turn in [QUEST]Protect Kanati Greycloud[/].",
             map = 1441,
             x = 21.2,
             y = 32.1,
             quest = 4966,
             when = "complete",
-            details = {
-                "Turn in [QUEST]Assassination Plot[/]",
-                "Protect Kanati Greycloud",
-            },
-            note = "Skip if you never got the Assassination Note.",
         },
         {
             text = "Loot [PICK]Incendia Agave[/] around the pools.",
@@ -342,16 +375,12 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Fly or hearth out to Thunder Bluff when convenient. Talk to [FRIENDLY]Melor Stonehoof[/]. Turn in [QUEST]Steelsnap[/]. Accept [QUEST]Frostmaw[/].",
+            text = "Fly to Thunder Bluff. Talk to [FRIENDLY]Melor Stonehoof[/]. Turn in [QUEST]Steelsnap[/].",
             map = 1456,
             x = 61.5,
             y = 80.9,
-            quest = 1136,
-            when = "accepted",
-            details = {
-                "Turn in [QUEST]Steelsnap[/]",
-            },
-            note = "Skip if you are not turning in Steelsnap.",
+            quest = 1131,
+            when = "complete",
         },
         {
             text = "Talk to [FRIENDLY]Magatha Grimtotem[/] on Elder Rise. Turn in [QUEST]Sacred Fire[/]. Accept [QUEST]Arikara[/].",
@@ -365,13 +394,12 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Fly to Camp Taurajo. Turn in [QUEST]A New Ore Sample[/] at [FRIENDLY]Tatternack Steelforge[/], then return to Freewind.",
+            text = "Fly to Camp Taurajo. Talk to [FRIENDLY]Tatternack Steelforge[/]. Turn in [QUEST]A New Ore Sample[/].",
             map = 1413,
             x = 45.1,
             y = 57.7,
             quest = 1153,
             when = "complete",
-            note = "Abandon the quest.",
         },
         {
             text = "Talk to [FRIENDLY]Elu[/]. Turn in [QUEST]Wind Rider[/].",
@@ -390,7 +418,7 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            text = "Click the [PICK]Wanted Poster - Arnak Grimtotem[/]. Accept [QUEST]Wanted - Arnak Grimtotem[/].",
+            text = "Click the [PICK]Wanted Poster - Arnak Grimtotem[/]. Accept [QUEST]WANTED: Arnak Grimtotem[/].",
             map = 1441,
             x = 46.0,
             y = 50.8,
@@ -407,7 +435,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Darkcloud Pinnacle: cross the hanging bridges. Loot the three [PICK]Document Chests[/] for Secret Notes #3, #2, and #1.",
+            text = "At Darkcloud Pinnacle, cross the hanging bridges. Loot the three [PICK]Document Chests[/].",
             map = 1441,
             x = 39.3,
             y = 41.5,
@@ -422,7 +450,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Light the [PICK]Sacred Fire of Life[/], then kill [ENEMY]Arikara[/] for [LOOT]Arikara Serpent Skin[/].",
+            text = "Light the [PICK]Sacred Fire of Life[/], then kill [ENEMY]Arikara[/].",
             map = 1441,
             x = 38.0,
             y = 35.3,
@@ -435,7 +463,7 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Kill [ENEMY]Arnak Grimtotem[/] for [LOOT]Arnak's Hoof[/]. Talk to [FRIENDLY]Lakota Windsong[/]. Accept [QUEST]Free at Last[/] and escort her down.",
+            text = "Kill [ENEMY]Arnak Grimtotem[/].",
             map = 1441,
             x = 38.11,
             y = 26.87,
@@ -444,6 +472,24 @@ ns.RegisterGuide({
             details = {
                 "[LOOT]Arnak's Hoof[/] (1)",
                 "Kill [ENEMY]Arnak Grimtotem[/]",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Lakota Windsong[/]. Accept [QUEST]Free at Last[/].",
+            map = 1441,
+            x = 37.95,
+            y = 26.45,
+            quest = 4904,
+            when = "accepted",
+        },
+        {
+            text = "Escort [FRIENDLY]Lakota Windsong[/] down from Darkcloud Pinnacle.",
+            map = 1441,
+            x = 30.93,
+            y = 37.12,
+            quest = 4904,
+            when = "objectives",
+            details = {
                 "Escort Lakota Windsong",
             },
         },
@@ -456,27 +502,42 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Wizlo Bearingshiner[/]. Accept [QUEST]Hypercapacitor Gizmo[/]. Open the panther cage, kill the [ENEMY]Enraged Panther[/], then turn in.",
+            text = "Talk to [FRIENDLY]Wizlo Bearingshiner[/]. Accept [QUEST]Hypercapacitor Gizmo[/].",
+            map = 1441,
+            x = 21.4,
+            y = 32.6,
+            quest = 5151,
+            when = "accepted",
+        },
+        {
+            text = "Open the panther cage and kill the [ENEMY]Enraged Panther[/].",
+            map = 1441,
+            x = 21.4,
+            y = 32.6,
+            quest = 5151,
+            when = "objectives",
+            details = {
+                "[LOOT]Hypercapacitor Gizmo[/] (1)",
+                "Kill [ENEMY]Enraged Panther[/]",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Wizlo Bearingshiner[/]. Turn in [QUEST]Hypercapacitor Gizmo[/].",
             map = 1441,
             x = 21.4,
             y = 32.6,
             quest = 5151,
             when = "complete",
-            details = {
-                "[LOOT]Hypercapacitor Gizmo[/] (1)",
-                "Kill [ENEMY]Enraged Panther[/]",
-            },
-            note = "Abandon if the panther is too hard.",
         },
         {
-            text = "Optional softcore: follow the road into Feralas and get the Camp Mojache flight path from [FRIENDLY]Shyn[/].",
+            mode = "softcore",
+            text = "Follow the road into Feralas. Talk to [FRIENDLY]Shyn[/]. Get the Camp Mojache flight path.",
             map = 1444,
             x = 75.5,
             y = 44.4,
-            note = "Skip on hardcore or if you prefer to stay in Needles.",
         },
         {
-            text = "Return to Freewind Post. Talk to [FRIENDLY]Cliffwatcher Longhorn[/]. Turn in [QUEST]Grimtotem Spying[/] and [QUEST]Wanted - Arnak Grimtotem[/].",
+            text = "Return to Freewind Post. Talk to [FRIENDLY]Cliffwatcher Longhorn[/]. Turn in [QUEST]Grimtotem Spying[/] and [QUEST]WANTED: Arnak Grimtotem[/].",
             map = 1441,
             x = 45.7,
             y = 50.8,
@@ -498,9 +559,11 @@ ns.RegisterGuide({
             y = 77.3,
             quest = 1111,
             when = "accepted",
+            minLevel = 30,
         },
         {
-            text = "Continue into Tanaris. Talk to [FRIENDLY]Bulkrek Ragefist[/] in Gadgetzan. Get the flight path.",
+            text = "Continue into Tanaris. Talk to [FRIENDLY]Bulkrek Ragefist[/] in Gadgetzan. Get the Gadgetzan flight path.",
+            fpath = "Gadgetzan",
             map = 1446,
             x = 51.6,
             y = 25.4,
@@ -512,6 +575,7 @@ ns.RegisterGuide({
             y = 29.6,
             quest = 1145,
             when = "accepted",
+            minLevel = 29,
         },
         {
             text = "Talk to [FRIENDLY]Wharfmaster Dizzywig[/] in Ratchet. Turn in [QUEST]Wharfmaster Dizzywig[/]. Accept [QUEST]Parts for Kravel[/].",
@@ -520,6 +584,7 @@ ns.RegisterGuide({
             y = 38.5,
             quest = 1112,
             when = "accepted",
+            minLevel = 30,
             details = {
                 "Turn in [QUEST]Wharfmaster Dizzywig[/]",
             },
@@ -531,12 +596,13 @@ ns.RegisterGuide({
             y = 34.2,
             quest = 1146,
             when = "accepted",
+            minLevel = 29,
             details = {
                 "Turn in [QUEST]The Swarm Grows[/]",
             },
         },
         {
-            text = "Bank or keep [LOOT]Kravel's Parts[/]. Return to Thousand Needles for the Shimmering Flats pass when you are around level 33.",
+            text = "Return to the Shimmering Flats in Thousand Needles around level 33.",
             map = 1441,
             x = 77.8,
             y = 77.3,
@@ -566,13 +632,12 @@ ns.RegisterGuide({
         },
         {
             classes = { "Shaman" },
-            text = "Optional: talk to [FRIENDLY]Prate Cloudseer[/] in The Weathered Nook. Turn in [QUEST]Call of Air[/].",
+            text = "Talk to [FRIENDLY]Prate Cloudseer[/] in The Weathered Nook. Turn in [QUEST]Call of Air[/].",
             map = 1441,
             x = 53.5,
             y = 42.7,
             quest = 1531,
             when = "complete",
-            note = "Skip if you are not on Call of Air.",
         },
         {
             text = "Talk to [FRIENDLY]Moktar Krin[/]. Turn in [QUEST]The Swarm Grows[/]. Accept [QUEST]The Swarm Grows[/].",
@@ -654,7 +719,15 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Loot a [LOOT]Cracked Silithid Carapace[/] and use it to accept [QUEST]Parts of the Swarm[/], then gather the parts.",
+            text = "Loot a [LOOT]Cracked Silithid Carapace[/] from the silithids. Use it to accept [QUEST]Parts of the Swarm[/].",
+            map = 1441,
+            x = 70.2,
+            y = 82.6,
+            quest = 1148,
+            when = "accepted",
+        },
+        {
+            text = "Loot the parts from the silithids.",
             map = 1441,
             x = 70.2,
             y = 82.6,
@@ -704,7 +777,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill vultures for [LOOT]Hollow Vulture Bones[/].",
+            text = "Kill vultures.",
             map = 1441,
             x = 82.8,
             y = 55.2,
@@ -716,7 +789,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill tortoises for [LOOT]Hardened Tortoise Shells[/].",
+            text = "Kill tortoises.",
             map = 1441,
             x = 82.8,
             y = 55.2,
@@ -728,7 +801,7 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Kill scorpids for [LOOT]Salty Scorpid Venom[/].",
+            text = "Kill scorpids.",
             map = 1441,
             x = 82.8,
             y = 55.2,
@@ -758,7 +831,7 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]Kravel Koalbeard[/]. Turn in [QUEST]Rocket Car Parts[/]. Accept [QUEST]Hemet Nesingwary Jr.[/].",
+            text = "Talk to [FRIENDLY]Kravel Koalbeard[/]. Turn in [QUEST]Rocket Car Parts[/]. Accept [QUEST]Hemet Nesingwary[/].",
             map = 1441,
             x = 77.8,
             y = 77.3,
@@ -767,6 +840,14 @@ ns.RegisterGuide({
             details = {
                 "Turn in [QUEST]Rocket Car Parts[/]",
             },
+        },
+        {
+            text = "Talk to [FRIENDLY]Wizzle Brassbolts[/]. Turn in [QUEST]Hardened Shells[/].",
+            map = 1441,
+            x = 78.1,
+            y = 77.1,
+            quest = 1105,
+            when = "complete",
         },
         {
             text = "Talk to [FRIENDLY]Fizzle Brassbolts[/]. Turn in [QUEST]Salt Flat Venom[/]. Accept [QUEST]Martek the Exiled[/].",
@@ -778,14 +859,6 @@ ns.RegisterGuide({
             details = {
                 "Turn in [QUEST]Salt Flat Venom[/]",
             },
-        },
-        {
-            text = "Talk to [FRIENDLY]Wizzle Brassbolts[/]. Turn in [QUEST]Hardened Shells[/].",
-            map = 1441,
-            x = 78.1,
-            y = 77.1,
-            quest = 1105,
-            when = "complete",
         },
         {
             text = "Talk to [FRIENDLY]Pozzik[/]. Turn in [QUEST]Load Lightening[/]. Accept [QUEST]Goblin Sponsorship[/].",
@@ -824,7 +897,6 @@ ns.RegisterGuide({
             details = {
                 "Turn in [QUEST]Parts of the Swarm[/]",
             },
-            note = "Skip if you never started Parts of the Swarm.",
         },
         {
             text = "In Ratchet, talk to [FRIENDLY]Gazlowe[/]. Turn in [QUEST]Goblin Sponsorship[/]. Accept [QUEST]Goblin Sponsorship[/].",
@@ -849,15 +921,20 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Krazek[/]. Turn in [QUEST]The Rumormonger[/]. Accept [QUEST]Investigate the Camp[/].",
+            text = "Talk to [FRIENDLY]Krazek[/]. Turn in [QUEST]The Rumormonger[/].",
+            map = 1434,
+            x = 27.0,
+            y = 77.2,
+            quest = 1115,
+            when = "complete",
+        },
+        {
+            text = "Talk to [FRIENDLY]Krazek[/]. Accept [QUEST]Investigate the Camp[/].",
             map = 1434,
             x = 27.0,
             y = 77.2,
             quest = 201,
             when = "accepted",
-            details = {
-                "Turn in [QUEST]The Rumormonger[/]",
-            },
         },
         {
             text = "Talk to [FRIENDLY]Baron Revilgaz[/]. Turn in [QUEST]Goblin Sponsorship[/]. Accept [QUEST]Goblin Sponsorship[/].",

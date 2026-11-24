@@ -5284,6 +5284,123 @@ local function questIdForRow(row)
     return row.questId
 end
 
+-- Shift-click a guide step to drop its quest link into chat. Not a chunk
+-- local: this file is already at Lua's 200-local limit.
+function ns.PutQuestsInChat(quests, fallbackId)
+    local list = {}
+    local seen = {}
+    local function add(id, name)
+        id = tonumber(id)
+        if not id or id <= 0 or seen[id] then
+            return
+        end
+        seen[id] = true
+        list[#list + 1] = { id = id, name = name }
+    end
+    if type(quests) == "number" then
+        add(quests)
+    elseif type(quests) == "table" then
+        for _, quest in ipairs(quests) do
+            if type(quest) == "number" then
+                add(quest)
+            elseif type(quest) == "table" then
+                add(quest.id or quest.questId, quest.name)
+            end
+        end
+    end
+    add(fallbackId)
+    if #list < 1 then
+        return false
+    end
+
+    local function questLink(id, name)
+        local function matches(link)
+            if type(link) ~= "string" or link == "" then
+                return false
+            end
+            local needle = "|Hquest:" .. id
+            local at = link:find(needle, 1, true)
+            if not at then
+                return false
+            end
+            local after = link:sub(at + #needle, at + #needle)
+            return after == ":" or after == "|"
+        end
+        if C_QuestLog and C_QuestLog.GetQuestHyperlink then
+            local ok, value = pcall(C_QuestLog.GetQuestHyperlink, id)
+            if ok and matches(value) then
+                return value
+            end
+        end
+        if GetQuestLink then
+            local ok, value = pcall(GetQuestLink, id)
+            if ok and matches(value) then
+                return value
+            end
+            local index
+            if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+                local indexOk, logIndex = pcall(C_QuestLog.GetLogIndexForQuestID, id)
+                if indexOk and type(logIndex) == "number" and logIndex > 0 then
+                    index = logIndex
+                end
+            end
+            if not index and GetQuestLogIndexByID then
+                local indexOk, logIndex = pcall(GetQuestLogIndexByID, id)
+                if indexOk and type(logIndex) == "number" and logIndex > 0 then
+                    index = logIndex
+                end
+            end
+            if type(index) == "number" and index > 0 then
+                ok, value = pcall(GetQuestLink, index)
+                if ok and type(value) == "string" and value:find("|Hquest:", 1, true) then
+                    return value
+                end
+            end
+        end
+        local facts = ns.QuestFacts and ns.QuestFacts(id)
+        if type(name) ~= "string" or name == "" then
+            name = facts and facts.name
+        end
+        if type(name) ~= "string" or name == "" then
+            name = "Quest " .. id
+        end
+        name = name:gsub("|", ""):gsub("%]", "")
+        local level = 1
+        if facts and type(facts.level) == "number" and facts.level > 0 then
+            level = math.floor(facts.level)
+        end
+        return string.format("|cffffff00|Hquest:%d:%d|h[%s]|h|r", id, level, name)
+    end
+
+    local parts = {}
+    for _, quest in ipairs(list) do
+        parts[#parts + 1] = questLink(quest.id, quest.name)
+    end
+    local text = table.concat(parts, " ")
+    if ChatEdit_InsertLink and ChatEdit_InsertLink(text) then
+        return true
+    end
+    if ChatFrame_OpenChat then
+        ChatFrame_OpenChat(text)
+        return true
+    end
+    local box = ChatFrame1EditBox or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
+    if box then
+        if ChatEdit_ActivateChat then
+            ChatEdit_ActivateChat(box)
+        elseif box.Show then
+            box:Show()
+        end
+        if box.SetText then
+            box:SetText(text)
+        elseif box.Insert then
+            box:Insert(text)
+        end
+        return true
+    end
+    return false
+end
+
 local function showStepTooltip(row)
     if not row or not row.stepIndex then
         return
@@ -5346,6 +5463,20 @@ local function showStepTooltip(row)
     end
     if shownQuest then
         GameTooltip:AddLine("Click to open this quest.", 0.9, 0.82, 0.45, true)
+    end
+    local linkCount = 0
+    for _, quest in ipairs(row.stepQuests or {}) do
+        if quest and type(quest.id) == "number" then
+            linkCount = linkCount + 1
+        end
+    end
+    if linkCount == 0 and type(row.questId) == "number" then
+        linkCount = 1
+    end
+    if linkCount > 1 then
+        GameTooltip:AddLine("Shift-click to link these quests in chat.", 0.9, 0.82, 0.45, true)
+    elseif linkCount == 1 then
+        GameTooltip:AddLine("Shift-click to link this quest in chat.", 0.9, 0.82, 0.45, true)
     end
     ns.FinishTooltip()
     placeCursorTooltip(row)
@@ -5758,6 +5889,9 @@ local function acquireRow(index)
                 if ns.ToggleMoreStepsExpanded then
                     ns.ToggleMoreStepsExpanded()
                 end
+                return
+            end
+            if IsShiftKeyDown and IsShiftKeyDown() and ns.PutQuestsInChat(self.stepQuests, self.questId) then
                 return
             end
             openStepQuest(questIdForRow(self))

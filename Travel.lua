@@ -27,6 +27,7 @@ local aliasIndex
 local graphBuilt = false
 local innsNeedCoords = false
 local ensureGraph
+local nearestFlightNode
 -- Poll-scoped caches: GuideObjectives calls TravelApplyToItem once per shown
 -- step, and without these each sticky re-ran full flight/boat routing.
 local unlockedCache
@@ -1352,7 +1353,7 @@ end
 -- EK/Kalimdor share overlapping numeric UnitPosition ranges (e.g. Sen'jin
 -- Village sits ~40 yd from Revantusk Village's XY). Always prefer same
 -- instance; when sameContinentOnly, never fall back across continents.
-local function nearestFlightNode(wx, wy, instance, unlockedOnly, unlearnedOnly, sameContinentOnly)
+nearestFlightNode = function(wx, wy, instance, unlockedOnly, unlearnedOnly, sameContinentOnly)
     ensureGraph()
     if not isNumber(wx) or not isNumber(wy) then
         return nil

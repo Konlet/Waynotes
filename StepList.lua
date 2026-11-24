@@ -89,7 +89,42 @@ local function rxpEntries()
         end
         header = header or ("Step " .. index)
         local details = {}
+        local quests
+        local seenQuest
+        local function addQuest(id)
+            id = tonumber(id)
+            if not id or id <= 0 then
+                return
+            end
+            if not quests then
+                quests = {}
+                seenQuest = {}
+            end
+            if seenQuest[id] then
+                return
+            end
+            seenQuest[id] = true
+            quests[#quests + 1] = id
+        end
+        if step and type(step.quests) == "table" then
+            for _, id in ipairs(step.quests) do
+                addQuest(id)
+            end
+        end
+        if step then
+            addQuest(step.quest)
+        end
         if step and type(step.elements) == "table" then
+            for _, element in ipairs(step.elements) do
+                if element then
+                    addQuest(element.questId)
+                    if type(element.ids) == "table" then
+                        for _, id in ipairs(element.ids) do
+                            addQuest(id)
+                        end
+                    end
+                end
+            end
             for _, element in ipairs(step.elements) do
                 local line = plainText(element and element.text)
                 if line and line ~= header then
@@ -104,6 +139,7 @@ local function rxpEntries()
             index = index,
             header = header,
             details = details,
+            quests = quests,
         }
     end
     local guideId = guide.name or guide.key or guide.group or tostring(guide)
@@ -217,6 +253,13 @@ local function showRowTip(row)
         end
     end
     GameTooltip:AddLine("Click to jump to this step.", 0.9, 0.82, 0.45, true)
+    if type(row.quests) == "table" and #row.quests > 0 then
+        if #row.quests > 1 then
+            GameTooltip:AddLine("Shift-click to link these quests in chat.", 0.9, 0.82, 0.45, true)
+        else
+            GameTooltip:AddLine("Shift-click to link this quest in chat.", 0.9, 0.82, 0.45, true)
+        end
+    end
     if ns.FinishTooltip then
         ns.FinishTooltip()
     else
@@ -279,6 +322,9 @@ local function acquireRow(index)
             if ns.OpenGuideMenu then
                 ns.OpenGuideMenu()
             end
+            return
+        end
+        if IsShiftKeyDown and IsShiftKeyDown() and ns.PutQuestsInChat and ns.PutQuestsInChat(self.quests) then
             return
         end
         if type(self.stepIndex) ~= "number" then
@@ -534,6 +580,7 @@ function ns.RefreshStepList(force)
             row.stepIndex = entry.index
             row.tipHeader = entry.header
             row.tipDetails = entry.details
+            row.quests = entry.quests
             row.number:SetText(tostring(entry.index))
             row.header:SetText(entry.header or "")
         end
