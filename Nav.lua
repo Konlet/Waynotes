@@ -278,6 +278,67 @@ local function libraryBookCompleted(entry)
     return type(entry) == "table" and questFlaggedCompleted(entry.quest)
 end
 
+-- Names of every item the player is carrying, lowercased. Used to tell when a
+-- library book has already been picked up (before its quest is turned in).
+local function bagItemNames()
+    local names = {}
+    local getSlots = (C_Container and C_Container.GetContainerNumSlots) or GetContainerNumSlots
+    local getLink = (C_Container and C_Container.GetContainerItemLink) or GetContainerItemLink
+    if not getSlots or not getLink then
+        return names
+    end
+    for bag = 0, 5 do
+        local ok, slots = pcall(getSlots, bag)
+        if ok and type(slots) == "number" then
+            for slot = 1, slots do
+                local okLink, link = pcall(getLink, bag, slot)
+                if okLink and type(link) == "string" then
+                    local itemName = link:match("%[(.-)%]")
+                    if itemName then
+                        names[itemName:lower()] = true
+                    end
+                end
+            end
+        end
+    end
+    return names
+end
+
+local function questInLog(questId)
+    if type(questId) ~= "number" then
+        return false
+    end
+    if C_QuestLog and C_QuestLog.IsOnQuest then
+        local ok, onQuest = pcall(C_QuestLog.IsOnQuest, questId)
+        if ok and onQuest then
+            return true
+        end
+    end
+    local getIndex = (C_QuestLog and C_QuestLog.GetLogIndexForQuestID) or GetQuestLogIndexByID
+    if getIndex then
+        local ok, index = pcall(getIndex, questId)
+        if ok and type(index) == "number" and index > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+-- The player already has this book: quest done, quest in the log, or the book
+-- item sitting in their bags.
+local function libraryBookObtained(entry, bagNames)
+    if type(entry) ~= "table" then
+        return false
+    end
+    if questFlaggedCompleted(entry.quest) or questInLog(entry.quest) then
+        return true
+    end
+    if type(entry.name) == "string" and bagNames and bagNames[entry.name:lower()] then
+        return true
+    end
+    return false
+end
+
 local hbdCache
 
 local function getHBD()
@@ -481,6 +542,15 @@ local function zonePercentYards(pzx, pzy, dx, dy, scale)
     local ex = (pzx - dx) * SCALE
     local ey = (pzy - dy) * SCALE
     return (ex * ex + ey * ey) ^ 0.5
+end
+
+-- Straight-line distance between two points (nil if any coordinate is missing).
+local function euclidean(ax, ay, bx, by)
+    if not isNumber(ax) or not isNumber(ay) or not isNumber(bx) or not isNumber(by) then
+        return nil
+    end
+    local dx, dy = ax - bx, ay - by
+    return (dx * dx + dy * dy) ^ 0.5
 end
 
 -- Same convention as tracker step arrows: use the player's instance id.
@@ -1532,6 +1602,7 @@ function ns.NavNearbyBooks(radius)
     local pzone = playerZoneName()
     local hbd = getHBD()
     local faction = playerFaction()
+    local bagNames
 
     for _, entry in ipairs(PRESETS) do
         if entry.kind == "book"
@@ -1540,7 +1611,10 @@ function ns.NavNearbyBooks(radius)
         then
             local sameZone = (isNumber(entry.map) and isNumber(pmap) and entry.map == pmap)
                 or zonesMatch(pzone, entry.zone)
-            if sameZone and not libraryBookCompleted(entry) then
+            if sameZone and not bagNames then
+                bagNames = bagItemNames()
+            end
+            if sameZone and not libraryBookObtained(entry, bagNames) then
                 local pin = candidatePins(entry, pinstance)[1]
                 local dist, wx, wy, instance = pinDistance(hbd, pzx, pzy, pmap, pzone, pin, px, py, pinstance)
                 if isNumber(dist) and dist <= radius then

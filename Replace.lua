@@ -3851,6 +3851,7 @@ do
     State.books.detail = detail
     State.books.dist = distText
     State.books.dest = nil
+    State.books.dismissed = {}
 
     State.books.layout = function()
         local lift = (State.flight.chrome or 0)
@@ -3960,7 +3961,14 @@ do
         end
         State.books.nextScan = now + UI.BOOK_SCAN_SECONDS
 
-        local list = ns.NavNearbyBooks and ns.NavNearbyBooks(UI.BOOK_NEAR_YARDS) or {}
+        local found = ns.NavNearbyBooks and ns.NavNearbyBooks(UI.BOOK_NEAR_YARDS) or {}
+        local list = {}
+        for index = 1, #found do
+            local key = found[index].quest or found[index].name
+            if not State.books.dismissed[key] then
+                list[#list + 1] = found[index]
+            end
+        end
         local seen = {}
         local fresh = false
         for index = 1, #list do
@@ -4028,6 +4036,46 @@ do
     end
 
     State.books.update = updateBookStrip
+
+    -- Right-click the note to dismiss every book currently listed. A dismissed
+    -- book stays hidden for the session.
+    local function dismissBooks()
+        local list = State.books.list
+        if list then
+            for index = 1, #list do
+                local key = list[index].quest or list[index].name
+                if key then
+                    State.books.dismissed[key] = true
+                end
+            end
+        end
+        State.books.list = nil
+        State.books.seen = {}
+        State.books.nextScan = 0
+        updateBookStrip()
+    end
+    State.books.dismiss = dismissBooks
+
+    strip:EnableMouse(true)
+    strip:SetScript("OnMouseUp", function(_, button)
+        if button == "RightButton" then
+            dismissBooks()
+        end
+    end)
+    strip:SetScript("OnEnter", function(self)
+        local r, g, b = ns.Color("accent")
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetText("Library book nearby", r, g, b)
+        GameTooltip:AddLine("Right-click to dismiss.", 0.75, 0.75, 0.75, true)
+        ns.FinishTooltip()
+        if State.placeCursorTooltip then
+            State.placeCursorTooltip(self)
+        end
+    end)
+    strip:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+
     State.books._arrow = arrow
     State.books._distText = distText
     State.books._getLastDist = function()
