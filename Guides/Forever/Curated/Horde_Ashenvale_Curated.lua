@@ -334,9 +334,9 @@ ns.RegisterGuide({
             x = 66.98,
             y = 54.97,
             details = {
-                "[LOOT]Satyr Horn[/] (16)",
-                "[ENEMY]Felmusk Felsworn[/], [ENEMY]Rogue[/], [ENEMY]Satyr[/], [ENEMY]Shadowstalker[/]",
+                "[LOOT]Satyr Horns[/] (16)",
             },
+            note = "Targets include [ENEMY]Felmusk Felsworn[/], [ENEMY]Felmusk Rogues[/], [ENEMY]Felmusk Satyrs[/], and [ENEMY]Felmusk Shadowstalkers[/].",
         },
         {
             text = "Keep killing [ENEMY]Felmusk[/] satyrs at Night Run until you are close to level 27.",

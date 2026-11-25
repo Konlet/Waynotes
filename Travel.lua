@@ -2588,6 +2588,18 @@ function ns.TravelDebugFlight()
             fmt(step.y)
         ))
         say("text: " .. text)
+        if isNumber(step.map) and isNumber(step.x) and isNumber(step.y) and ns.PinDebugInfo then
+            local info = ns.PinDebugInfo(step.map, step.x, step.y)
+            say(string.format(
+                "pin zone=%s pmap=%s playerZone=(%s,%s) pctYards=%s hbdYards=%s",
+                tostring(info.zone),
+                fmt(info.pmap),
+                fmt(info.pzx),
+                fmt(info.pzy),
+                fmt(info.pctYards),
+                fmt(info.hbdYards)
+            ))
+        end
         local named, prefer = extractDestinationName(step.text)
         say(string.format("extract named=%s prefer=%s", tostring(named), tostring(prefer)))
     else

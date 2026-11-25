@@ -18,6 +18,9 @@ local UI = {
     NAV_STRIP = 28,
     TRAIN_NOTICE = 22,
     CORPSE_STRIP = 28,
+    BOOK_STRIP = 28,
+    BOOK_NEAR_YARDS = 500,
+    BOOK_SCAN_SECONDS = 1,
     GLOW_MAX_SPREAD = 16,
     PI2 = math.pi * 2,
     ARROW_TEXTURE = nil,
@@ -67,6 +70,7 @@ State.nav = { chrome = 0 }
 State.train = { chrome = 0 }
 State.offStep = { chrome = 0 }
 State.corpse = { chrome = 0 }
+State.books = { chrome = 0, seen = {}, nextScan = 0 }
 State.mapPins = { frames = {}, signature = nil }
 State.stickyShown = {}
 State.completing = {}
@@ -1428,6 +1432,7 @@ do
             + (State.train.chrome or 0)
             + (State.offStep.chrome or 0)
             + (State.corpse.chrome or 0)
+            + (State.books.chrome or 0)
         placeScroller(bottom)
         if State.flyRec.layout then
             State.flyRec.layout()
@@ -1437,6 +1442,9 @@ do
         end
         if State.nav.layout then
             State.nav.layout()
+        end
+        if State.books.layout then
+            State.books.layout()
         end
         if State.train.layout then
             State.train.layout()
@@ -2954,6 +2962,7 @@ do
             + (State.flyRec.chrome or 0)
             + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
+            + (State.books.chrome or 0)
             + (State.corpse.chrome or 0)
         local offset = -4
         if State.offStep.strip and State.offStep.strip:IsShown() then
@@ -3296,6 +3305,7 @@ do
             + (State.flyRec.chrome or 0)
             + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
+            + (State.books.chrome or 0)
             + (State.corpse.chrome or 0)
         strip:ClearAllPoints()
         strip:SetPoint("BOTTOMRIGHT", -4, 4 + lift)
@@ -3536,6 +3546,7 @@ do
             + (State.flyRec.chrome or 0)
             + (State.hearthRec.chrome or 0)
             + (State.nav.chrome or 0)
+            + (State.books.chrome or 0)
             + (State.train.chrome or 0)
         strip:ClearAllPoints()
         strip:SetPoint("BOTTOMLEFT", 1, 1 + lift)
@@ -3778,6 +3789,255 @@ do
     end)
 end
 
+-- Nearby library book note. Sits above the nav strip and alerts (sound plus a
+-- strip like the nav destination) when an undiscovered book is within range.
+do
+    local strip = CreateFrame("Frame", nil, tracker)
+    strip:SetHeight(UI.BOOK_STRIP)
+    strip:SetPoint("BOTTOMLEFT", 1, 1)
+    strip:SetPoint("BOTTOMRIGHT", -1, 1)
+    strip:Hide()
+
+    local bookRule = strip:CreateTexture(nil, "ARTWORK")
+    bookRule:SetPoint("TOPLEFT", 8, 0)
+    bookRule:SetPoint("TOPRIGHT", -8, 0)
+    bookRule:SetHeight(1)
+    useSolid(bookRule)
+    paintTexture(bookRule, 1, 0.82, 0, 0.45)
+
+    local arrow = strip:CreateTexture(nil, "OVERLAY")
+    arrow:SetSize(UI.GPS_ARROW_NAV, UI.GPS_ARROW_NAV)
+    arrow:SetPoint("RIGHT", strip, "RIGHT", -10, -1)
+    arrow:SetTexture(UI.GPS_ARROW)
+    arrow:SetDrawLayer("OVERLAY", 2)
+
+    local title = strip:CreateFontString(nil, "OVERLAY")
+    title:SetPoint("TOPLEFT", 8, -3)
+    title:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
+    title:SetHeight(12)
+    title:SetJustifyH("LEFT")
+    title:SetJustifyV("MIDDLE")
+    if title.SetWordWrap then
+        title:SetWordWrap(false)
+    end
+    RG.applyFont(title, 11, "")
+    title:SetTextColor(0.9, 0.9, 0.86)
+
+    local detail = strip:CreateFontString(nil, "OVERLAY")
+    detail:SetPoint("TOPLEFT", 8, -14)
+    detail:SetPoint("RIGHT", strip, "RIGHT", -102, 0)
+    detail:SetHeight(11)
+    detail:SetJustifyH("LEFT")
+    detail:SetJustifyV("MIDDLE")
+    if detail.SetWordWrap then
+        detail:SetWordWrap(false)
+    end
+    RG.applyFont(detail, 10, "")
+    detail:SetTextColor(0.82, 0.82, 0.82)
+
+    local distText = strip:CreateFontString(nil, "OVERLAY")
+    distText:SetPoint("TOPRIGHT", -28, -4)
+    distText:SetWidth(72)
+    distText:SetHeight(12)
+    distText:SetJustifyH("RIGHT")
+    distText:SetJustifyV("MIDDLE")
+    RG.applyFont(distText, 11, "OUTLINE")
+    distText:SetTextColor(1, 0.82, 0)
+
+    State.books.strip = strip
+    State.books.rule = bookRule
+    State.books.arrow = arrow
+    State.books.title = title
+    State.books.detail = detail
+    State.books.dist = distText
+    State.books.dest = nil
+
+    State.books.layout = function()
+        local lift = (State.flight.chrome or 0)
+            + (State.flyRec.chrome or 0)
+            + (State.hearthRec.chrome or 0)
+            + (State.nav.chrome or 0)
+        strip:ClearAllPoints()
+        strip:SetPoint("BOTTOMLEFT", 1, 1 + lift)
+        strip:SetPoint("BOTTOMRIGHT", -1, 1 + lift)
+    end
+
+    local function setBookChrome(want)
+        want = want or 0
+        if State.books.chrome == want then
+            return
+        end
+        State.books.chrome = want
+        if placeBottomChrome then
+            placeBottomChrome()
+        end
+        State.remeasure = true
+        State.lastSignature = nil
+        if tracker:IsShown() then
+            ns.MarkTrackerDirty(false)
+        end
+    end
+
+    local function showBook(on)
+        if on then
+            strip:Show()
+            setBookChrome(UI.BOOK_STRIP)
+        else
+            strip:Hide()
+            setBookChrome(0)
+        end
+    end
+
+    local painted = false
+    local lastTitle, lastDetail, lastDist
+
+    local function paintBook(force)
+        if not ns.db then
+            return
+        end
+        if painted and not force then
+            return
+        end
+        painted = true
+        local edgeR, edgeG, edgeB = ns.Color("accent")
+        local textR, textG, textB = ns.Color("secondary")
+        local detailR, detailG, detailB = ns.Color("detail")
+        paintTexture(bookRule, edgeR, edgeG, edgeB, 0.45)
+        RG.applyFont(title, 11, "")
+        RG.applyFont(detail, 10, "")
+        RG.applyFont(distText, 11, "OUTLINE")
+        title:SetTextColor(textR, textG, textB)
+        detail:SetTextColor(detailR, detailG, detailB)
+        distText:SetTextColor(edgeR, edgeG, edgeB)
+        if arrow.SetDesaturated then
+            arrow:SetDesaturated(true)
+        end
+        arrow:SetVertexColor(edgeR, edgeG, edgeB, 1)
+    end
+
+    State.books.paint = function()
+        painted = false
+        paintBook(true)
+    end
+
+    local function playBookAlert()
+        if not PlaySound then
+            return
+        end
+        local kit = SOUNDKIT or {}
+        local candidates = { kit.MAP_PING, kit.READY_CHECK, 3175, 8960 }
+        for index = 1, 4 do
+            local id = candidates[index]
+            if type(id) == "number" then
+                local ok, willPlay = pcall(PlaySound, id, "Master")
+                if ok and willPlay then
+                    return
+                end
+            end
+        end
+    end
+
+    local function ensureBookWaypoint(dest)
+        if type(dest) ~= "table" or type(dest.x) ~= "number" or type(dest.y) ~= "number" then
+            return nil
+        end
+        if ns.PinToPlayerWorld then
+            local wx, wy, instance = ns.PinToPlayerWorld(dest.map, dest.x, dest.y, dest.zone)
+            if type(wx) == "number" and type(wy) == "number" then
+                dest.waypoint = { wx = wx, wy = wy, instance = instance }
+                return dest.waypoint
+            end
+        end
+        return dest.waypoint
+    end
+
+    -- Scan for books on a slow cadence, alert on new arrivals, then keep the
+    -- strip arrow fed from the nearest result on every strip tick.
+    local function scanBooks()
+        local now = GetTime and GetTime() or 0
+        if now < State.books.nextScan then
+            return
+        end
+        State.books.nextScan = now + UI.BOOK_SCAN_SECONDS
+
+        local list = ns.NavNearbyBooks and ns.NavNearbyBooks(UI.BOOK_NEAR_YARDS) or {}
+        local seen = {}
+        local fresh = false
+        for index = 1, #list do
+            local key = list[index].quest or list[index].name
+            seen[key] = true
+            if not State.books.seen[key] then
+                fresh = true
+            end
+        end
+        State.books.seen = seen
+        State.books.list = list
+        if fresh then
+            playBookAlert()
+        end
+    end
+
+    local function updateBookStrip()
+        local enabled = not ns.db or ns.db.showNearbyBooks ~= false
+        local shown = enabled and tracker:IsShown()
+        if shown then
+            scanBooks()
+        else
+            State.books.seen = {}
+            State.books.list = nil
+            State.books.nextScan = 0
+        end
+
+        local list = shown and State.books.list or nil
+        local dest = list and list[1] or nil
+        State.books.dest = dest
+        if not dest then
+            arrow.__rxpbWp = nil
+            if State.books.chrome > 0 then
+                showBook(false)
+            end
+            lastTitle, lastDetail, lastDist = nil, nil, nil
+            return
+        end
+
+        if State.books.chrome == 0 then
+            showBook(true)
+            paintBook(true)
+        elseif not strip:IsShown() then
+            strip:Show()
+        end
+
+        local count = #list
+        local titleText = count > 1 and (count .. " library books nearby") or "Library book nearby"
+        if titleText ~= lastTitle then
+            lastTitle = titleText
+            title:SetText(titleText)
+        end
+
+        local coords = ns.NavFormatCoords and ns.NavFormatCoords(dest) or ""
+        local detailText = dest.name or "Library book"
+        if coords ~= "" then
+            detailText = detailText .. "  " .. coords
+        end
+        if detailText ~= lastDetail then
+            lastDetail = detailText
+            detail:SetText(detailText)
+        end
+
+        arrow.__rxpbWp = ensureBookWaypoint(dest)
+    end
+
+    State.books.update = updateBookStrip
+    State.books._arrow = arrow
+    State.books._distText = distText
+    State.books._getLastDist = function()
+        return lastDist
+    end
+    State.books._setLastDist = function(value)
+        lastDist = value
+    end
+end
+
 local function lowerStrata(strata)
     if strata == "HIGH" then
         return "MEDIUM"
@@ -3882,6 +4142,9 @@ local function styleTracker()
     end
     if State.corpse.paint then
         State.corpse.paint()
+    end
+    if State.books.paint then
+        State.books.paint()
     end
 
     if rounded then
@@ -5089,6 +5352,10 @@ State.corpse.syncArrow = function(facing, hbd, px, py, instance, canAim, resolve
     State.syncStripArrow(State.corpse, facing, hbd, px, py, instance, resolve, State.corpse.dest)
 end
 
+State.books.syncArrow = function(facing, hbd, px, py, instance, canAim, resolve)
+    State.syncStripArrow(State.books, facing, hbd, px, py, instance, resolve, State.books.dest)
+end
+
 local function waypointDistance(wp)
     if not wp or type(wp.wx) ~= "number" or type(wp.wy) ~= "number" then
         return nil
@@ -5659,6 +5926,9 @@ local function updateArrows()
     end
     if State.corpse.syncArrow then
         State.corpse.syncArrow(facing, hbd, x, y, instance, canAim, resolve)
+    end
+    if State.books.syncArrow and State.books.chrome > 0 then
+        State.books.syncArrow(facing, hbd, x, y, instance, canAim, resolve)
     end
 end
 
@@ -6934,6 +7204,7 @@ local function scrollRange()
         + (State.flyRec.chrome or 0)
         + (State.hearthRec.chrome or 0)
         + (State.nav.chrome or 0)
+        + (State.books.chrome or 0)
         + (State.train.chrome or 0)
         + (State.corpse.chrome or 0)
     local view = (tracker:GetHeight() or 0) - chrome
@@ -6984,6 +7255,7 @@ local function applyTrackerBox(contentHeight, resetScroll)
         + (State.flyRec.chrome or 0)
         + (State.hearthRec.chrome or 0)
         + (State.nav.chrome or 0)
+        + (State.books.chrome or 0)
         + (State.train.chrome or 0)
         + (State.corpse.chrome or 0)
     local limit = readTrackerHeight()
@@ -8717,6 +8989,9 @@ State.trackerOnUpdate = function(self, delta)
         if State.corpse.update then
             State.timed("corpse", State.corpse.update)
         end
+        if State.books.update then
+            State.timed("books", State.books.update)
+        end
     end
     State.trainElapsed = (State.trainElapsed or 0) + delta
     if State.trainElapsed >= UI.TRAIN_UPDATE_SECONDS then
@@ -8784,6 +9059,9 @@ tracker:SetScript("OnShow", function()
     if State.corpse.update then
         pcall(State.corpse.update)
     end
+    if State.books.update then
+        pcall(State.books.update)
+    end
 end)
 
 tracker:SetScript("OnHide", function()
@@ -8819,6 +9097,12 @@ tracker:SetScript("OnHide", function()
     if State.corpse.strip then
         State.corpse.strip:Hide()
     end
+    if State.books.strip then
+        State.books.strip:Hide()
+    end
+    State.books.seen = {}
+    State.books.list = nil
+    State.books.nextScan = 0
     if State.clearStepMapPins then
         State.clearStepMapPins()
     end

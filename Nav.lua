@@ -908,6 +908,20 @@ local function pinWorldFromZoneDelta(map, pinX, pinY, pzx, pzy, px, py, pinstanc
     if not playerMx or not pinMx then
         return nil
     end
+    -- Sanity check: HBD's zone delta can be thousands of yards off on Forever
+    -- (an Ashenvale pin 469 yd away read as ~4100 yd, which made travel and
+    -- hearth tips chase a fake distance). Magnitude is unchanged by axis swaps,
+    -- so compare it to the zone-percent gap. The percent gap is rough, but not
+    -- 3x rough. Returning nil lets callers use their percent fallback.
+    local fx, fy = toFraction(pinX), toFraction(pinY)
+    local fzx, fzy = toFraction(pzx), toFraction(pzy)
+    local deltaYards = euclidean(pinMx, pinMy, playerMx, playerMy)
+    if deltaYards and isNumber(fx) and isNumber(fy) and isNumber(fzx) and isNumber(fzy) then
+        local pctYards = zonePercentYards(fzx, fzy, fx, fy, mapPercentScale(map))
+        if deltaYards > math.max(pctYards * 3, pctYards + 600) then
+            return nil
+        end
+    end
     if crossed == nil then
         playerMx, playerMy = alignMapWorld(playerMx, playerMy, map, pzx, pzy, px, py)
         pinMx, pinMy = alignMapWorld(pinMx, pinMy, map, pzx, pzy, px, py)
@@ -930,6 +944,33 @@ local function pinWorldFromPercent(pzx, pzy, pinX, pinY, px, py, pinstance, map)
     end
     local SCALE = mapPercentScale(map)
     return px + (dx - pzx) * SCALE, py + (dy - pzy) * SCALE, pinstance
+end
+
+-- /wn fly debug: raw inputs behind a pin's destination (zone %, map id, HBD gap).
+function ns.PinDebugInfo(map, x, y)
+    local px, py, pinstance = playerPoint()
+    local pzx, pzy, pmap = playerZonePos()
+    local info = {
+        zone = playerZoneName(),
+        pmap = pmap,
+        pzx = pzx,
+        pzy = pzy,
+        px = px,
+        py = py,
+        pinstance = pinstance,
+        pinMap = map,
+    }
+    local fx, fy = toFraction(x), toFraction(y)
+    local fzx, fzy = toFraction(pzx), toFraction(pzy)
+    if isNumber(pmap) and isNumber(fx) and isNumber(fy) and isNumber(fzx) and isNumber(fzy) then
+        info.pctYards = zonePercentYards(fzx, fzy, fx, fy, mapPercentScale(pmap))
+        local playerMx, playerMy = pinWorld(pmap, pzx, pzy)
+        local pinMx, pinMy = pinWorld(pmap, x, y)
+        if playerMx and pinMx then
+            info.hbdYards = euclidean(pinMx, pinMy, playerMx, playerMy)
+        end
+    end
+    return info
 end
 
 -- Convert a zone pin into UnitPosition-space world coords for arrow aiming.
@@ -1473,6 +1514,58 @@ function ns.NavFindNearest(kind, filter)
         return bestIncomplete
     end
     return best
+end
+
+-- Undiscovered library books within `radius` yards of the player, nearest
+-- first. Only books in the player's current zone are measured, one result per
+-- turn-in quest (the nearest spawn). Books marked unavailable are skipped.
+function ns.NavNearbyBooks(radius)
+    local results = {}
+    if not isNumber(radius) then
+        return results
+    end
+    local px, py, pinstance = playerPoint()
+    local pzx, pzy, pmap = playerZonePos()
+    if not px and not pzx then
+        return results
+    end
+    local pzone = playerZoneName()
+    local hbd = getHBD()
+    local faction = playerFaction()
+
+    for _, entry in ipairs(PRESETS) do
+        if entry.kind == "book"
+            and entry.availability ~= "reported_unavailable"
+            and not (faction and entry.faction and entry.faction ~= "Both" and entry.faction ~= faction)
+        then
+            local sameZone = (isNumber(entry.map) and isNumber(pmap) and entry.map == pmap)
+                or zonesMatch(pzone, entry.zone)
+            if sameZone and not libraryBookCompleted(entry) then
+                local pin = candidatePins(entry, pinstance)[1]
+                local dist, wx, wy, instance = pinDistance(hbd, pzx, pzy, pmap, pzone, pin, px, py, pinstance)
+                if isNumber(dist) and dist <= radius then
+                    local dest = copyResolved(entry, pin, wx, wy, instance or pinstance)
+                    dest.dist = dist
+                    results[#results + 1] = dest
+                end
+            end
+        end
+    end
+
+    table.sort(results, function(a, b)
+        return a.dist < b.dist
+    end)
+
+    local unique = {}
+    local taken = {}
+    for index = 1, #results do
+        local key = results[index].quest or results[index].name
+        if not taken[key] then
+            taken[key] = true
+            unique[#unique + 1] = results[index]
+        end
+    end
+    return unique
 end
 
 function ns.NavChoose(kind, filter)

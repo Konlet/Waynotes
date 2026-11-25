@@ -1081,6 +1081,10 @@ local function build(parent)
     local corpseTracker = createCheck(body, "Corpse tracker", "While you are dead, shows distance and a direction arrow to your corpse at the bottom of the guide.", "showCorpseTracker")
     placeCheck(corpseTracker, body, y)
     y = y - 30
+
+    local nearbyBooks = createCheck(body, "Nearby library books", "When an undiscovered library book is within 500 yards, plays a sound and shows a note with distance and a direction arrow at the bottom of the guide.", "showNearbyBooks")
+    placeCheck(nearbyBooks, body, y)
+    y = y - 30
     finishSection(noticeSection, y)
 
     local nearSection = createSection(parent, "near", "Near distance", true)
