@@ -1074,7 +1074,7 @@ local function build(parent)
     placeIn(flyMin, body, y)
     y = y - 52
 
-    local trainReminders = createCheck(body, "Train spell reminders", "When you are missing class spells you can train now, shows a notice at the bottom-right of the guide. Click it to navigate to your nearest class trainer, or right-click (or the x) to dismiss. Uses What's Training when installed.", "showTrainReminders")
+    local trainReminders = createCheck(body, "Train spell reminders", "When you are missing class spells you can train now, shows a notice just outside the top-right of the guide. Click it to navigate to your nearest class trainer, or right-click (or the x) to dismiss. Uses What's Training when installed.", "showTrainReminders")
     placeCheck(trainReminders, body, y)
     y = y - 30
 

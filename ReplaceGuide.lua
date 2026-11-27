@@ -819,13 +819,44 @@ local function visibleLines(step, activeIndex)
     return lines, wantsTargets, targetNames, questNames
 end
 
-local function hereBeDragons()
-    if not LibStub then
-        return nil
+-- Questie 12.12+ no longer registers HereBeDragons-2.0 with LibStub. It keeps
+-- its copy as a QuestieLoader module named "HBD". Step arrows and distances
+-- need a working HBD, so try LibStub first (RXP, older Questie, standalone
+-- HBD) and then Questie's module. The result is cached once it is usable.
+local hereBeDragons
+do
+    local cached
+
+    local function usable(lib)
+        return type(lib) == "table"
+            and type(lib.GetPlayerWorldPosition) == "function"
+            and type(lib.GetWorldVector) == "function"
     end
-    local ok, lib = pcall(LibStub, "HereBeDragons-2.0")
-    if ok then
-        return lib
+
+    hereBeDragons = function()
+        if cached then
+            return cached
+        end
+        if type(LibStub) == "table" or type(LibStub) == "function" then
+            -- Silent lookup: the plain call raises an error when the lib is absent.
+            local ok, lib = pcall(function()
+                return LibStub:GetLibrary("HereBeDragons-2.0", true)
+            end)
+            if ok and usable(lib) then
+                cached = lib
+                return lib
+            end
+        end
+        -- Only import when Questie is present. ImportModule creates an empty
+        -- stub for unknown names, so verify the methods before trusting it.
+        if type(QuestieLoader) == "table" and type(QuestieLoader.ImportModule) == "function" then
+            local ok, lib = pcall(QuestieLoader.ImportModule, QuestieLoader, "HBD")
+            if ok and usable(lib) then
+                cached = lib
+                return lib
+            end
+        end
+        return nil
     end
 end
 

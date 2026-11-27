@@ -2709,15 +2709,15 @@ end
 do
     local size = UI.TRAIN_NOTICE
     local strip = CreateFrame("Frame", nil, tracker)
-    strip:SetSize(size + 12, size + 10)
-    strip:SetPoint("BOTTOMRIGHT", -4, 4)
+    strip:SetSize(size, size)
+    strip:SetPoint("TOPLEFT", tracker, "TOPRIGHT", 4, -4)
     strip:Hide()
     strip:SetFrameLevel((tracker:GetFrameLevel() or 0) + 20)
     strip:EnableMouse(false)
 
     local notice = CreateFrame("Button", nil, strip)
     notice:SetSize(size, size)
-    notice:SetPoint("BOTTOMRIGHT", strip, "BOTTOMRIGHT", 0, 0)
+    notice:SetPoint("TOPLEFT", strip, "TOPLEFT", 0, 0)
     notice:RegisterForClicks("LeftButtonUp")
     notice:EnableMouse(true)
 
@@ -2957,55 +2957,21 @@ do
         end)
     end
 
+    -- Sits just outside the guide, lined up with the header. It no longer
+    -- reserves space in the step list.
     State.train.layout = function()
-        local lift = (State.flight.chrome or 0)
-            + (State.flyRec.chrome or 0)
-            + (State.hearthRec.chrome or 0)
-            + (State.nav.chrome or 0)
-            + (State.books.chrome or 0)
-            + (State.corpse.chrome or 0)
-        local offset = -4
-        if State.offStep.strip and State.offStep.strip:IsShown() then
-            offset = offset - (size + 10)
-        end
         strip:ClearAllPoints()
-        strip:SetPoint("BOTTOMRIGHT", offset, 4 + lift)
-        if State.offStep.layout then
-            State.offStep.layout()
-        end
-    end
-
-    -- Corner notice. Reserve the icon plus 8px so the last step's yardage
-    -- sits just above it. The scroller already keeps 10px, and the icon
-    -- starts 4px off the tracker bottom, so size + 2 lands on an 8px gap.
-    local TRAIN_PAD = size + 2
-
-    local function setTrainChrome(want)
-        want = want or 0
-        if State.train.chrome == want then
-            return
-        end
-        State.train.chrome = want
-        if placeBottomChrome then
-            placeBottomChrome()
-        end
-        State.remeasure = true
-        State.lastSignature = nil
-        if tracker:IsShown() then
-            ns.MarkTrackerDirty(false)
-        end
+        strip:SetPoint("TOPLEFT", tracker, "TOPRIGHT", 4, -4)
     end
 
     local function showTrain(on)
         if on then
             strip:Show()
-            setTrainChrome(TRAIN_PAD)
             if State.train.layout then
                 State.train.layout()
             end
         else
             strip:Hide()
-            setTrainChrome(0)
         end
     end
 
@@ -3309,13 +3275,6 @@ do
             + (State.corpse.chrome or 0)
         strip:ClearAllPoints()
         strip:SetPoint("BOTTOMRIGHT", -4, 4 + lift)
-        if State.train.layout and State.train.strip and State.train.strip:IsShown() then
-            -- Train shifts left when this notice is shown; refresh its anchor.
-            local trainLift = lift
-            local trainOffset = -4 - (size + 10)
-            State.train.strip:ClearAllPoints()
-            State.train.strip:SetPoint("BOTTOMRIGHT", trainOffset, 4 + trainLift)
-        end
     end
 
     local function showOffStep(on)
@@ -3324,14 +3283,8 @@ do
             if State.offStep.layout then
                 State.offStep.layout()
             end
-            if State.train.layout then
-                State.train.layout()
-            end
         else
             strip:Hide()
-            if State.train.layout then
-                State.train.layout()
-            end
         end
     end
 
