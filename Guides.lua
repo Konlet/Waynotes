@@ -1803,8 +1803,9 @@ end
 
 local function relevantQuests(step)
     local ids = {}
+    local offered = step.when == "accepted" and ns.GuideQuestOffered
     for _, id in ipairs(step.quests or {}) do
-        if questApplies(id) then
+        if questApplies(id) and (not offered or offered(id)) then
             ids[#ids + 1] = id
         end
     end
@@ -2177,6 +2178,93 @@ local function nextQuest(id)
     end
     nextCache[id] = value
     return value
+end
+
+-- An accept step for a quest the character cannot be offered would park the
+-- guide forever. Unreachable means a Questie prerequisite that is neither
+-- turned in nor in the log (optional breadcrumb branches), or a profession the
+-- character lacks (Soothing Turtle Bisque without Cooking).
+do
+    local PROFESSION_SPELL = {
+        [129] = 3273, -- First Aid
+        [164] = 2018, -- Blacksmithing
+        [165] = 2108, -- Leatherworking
+        [171] = 2259, -- Alchemy
+        [182] = 2366, -- Herbalism
+        [185] = 2550, -- Cooking
+        [186] = 2575, -- Mining
+        [197] = 3908, -- Tailoring
+        [202] = 4036, -- Engineering
+        [333] = 7411, -- Enchanting
+        [356] = 7620, -- Fishing
+        [393] = 8613, -- Skinning
+    }
+
+    -- Rank in a profession, 0 when untrained, nil when it cannot be read.
+    local function professionRank(skillId)
+        local spell = PROFESSION_SPELL[skillId]
+        if not spell or not GetSpellInfo or not GetNumSkillLines or not GetSkillLineInfo then
+            return nil
+        end
+        local wanted = GetSpellInfo(spell)
+        if type(wanted) ~= "string" or wanted == "" then
+            return nil
+        end
+        local okCount, count = pcall(GetNumSkillLines)
+        if not okCount or type(count) ~= "number" or count < 1 then
+            return nil
+        end
+        for index = 1, count do
+            local ok, name, isHeader, _, rank = pcall(GetSkillLineInfo, index)
+            if ok and not isHeader and name == wanted then
+                return tonumber(rank) or 0
+            end
+        end
+        return 0
+    end
+
+    local function reached(id)
+        return questCompleted(id) or questOn(id)
+    end
+
+    ns.GuideQuestOffered = function(id)
+        if questOn(id) or questCompleted(id) then
+            return true
+        end
+        if not ns.__questDataReady or not ns.QuestieReady or not ns.QuestieReady() then
+            return true
+        end
+        local info = questPrereqs(id)
+        if info then
+            if info.group then
+                for _, pre in ipairs(info.group) do
+                    if not reached(pre) then
+                        return false
+                    end
+                end
+            end
+            if info.single then
+                local any = false
+                for _, pre in ipairs(info.single) do
+                    if reached(pre) then
+                        any = true
+                        break
+                    end
+                end
+                if not any then
+                    return false
+                end
+            end
+        end
+        local skill = questField(id, "requiredSkill")
+        if type(skill) == "table" and tonumber(skill[1]) then
+            local rank = professionRank(tonumber(skill[1]))
+            if rank and rank < (tonumber(skill[2]) or 1) then
+                return false
+            end
+        end
+        return true
+    end
 end
 
 local function laterNeedsEarlierQuest(laterId, earlierId)

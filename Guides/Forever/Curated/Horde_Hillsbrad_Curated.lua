@@ -3,7 +3,7 @@ local _, ns = ...
 -- Curated Horde Hillsbrad Foothills.
 -- First pass (22-24): Tarren Mill opener, Durnholde, farms, and Battle of Hillsbrad through the forge.
 -- Pick up Dangerous! early; finish its named kills on the 30-32 return.
--- Second pass (30-32): Dangerous! field targets, town hall, yetis, Alterac Syndicate/Dalaran, then Azurelode mine (level 30), then Arathi / Undercity hand-offs.
+-- Second pass (30-32): Dangerous! field targets, town hall, yetis, Alterac Syndicate/Dalaran, then Azurelode mine (level 30), Southshore side trip and Dun Garok, then Arathi / Undercity hand-offs.
 -- Assumes Journey to Hillsbrad Foothills (Silverpine) and/or Journey to Tarren Mill (Thunder Bluff).
 
 ns.RegisterGuide({
@@ -46,17 +46,17 @@ ns.RegisterGuide({
             y = 19.0,
         },
         {
-            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Journey to Hillsbrad Foothills[/] and [QUEST]Journey to Tarren Mill[/]. Accept [QUEST]Elixir of Suffering[/] and [QUEST]Elixir of Pain[/].",
+            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Journey to Hillsbrad Foothills[/] and [QUEST]Journey to Tarren Mill[/]. Accept [QUEST]Elixir of Suffering[/], [QUEST]Elixir of Pain[/], and [QUEST]Blood of Innocents[/].",
             map = 1424,
             x = 61.4,
             y = 19.1,
-            quests = { 496, 501 },
+            quests = { 496, 501, 1066 },
             when = "accepted",
             details = {
                 "Turn in [QUEST]Journey to Hillsbrad Foothills[/]",
                 "Turn in [QUEST]Journey to Tarren Mill[/]",
             },
-            note = "Journey to Tarren Mill (Thunder Bluff / Zamah) also unlocks Blood of Innocents here. Elixir of Agony opens at 24 for the 30-32 return.",
+            note = "Blood of Innocents is only offered after Journey to Tarren Mill (Thunder Bluff / Zamah). Elixir of Agony opens at 24 for the 30-32 return.",
         },
         {
             classes = { "Rogue" },
@@ -178,16 +178,17 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Elixir of Suffering[/]. Accept [QUEST]Elixir of Suffering[/].",
+            text = "Talk to [FRIENDLY]Apothecary Lydon[/]. Turn in [QUEST]Elixir of Suffering[/] and [QUEST]Blood of Innocents[/]. Accept [QUEST]Elixir of Suffering[/] and [QUEST]Return to Thunder Bluff[/].",
             map = 1424,
             x = 61.4,
             y = 19.1,
-            quest = 499,
+            quests = { 499, 1067 },
             when = "accepted",
             details = {
                 "Turn in [QUEST]Elixir of Suffering[/]",
+                "Turn in [QUEST]Blood of Innocents[/]",
             },
-            note = "Blood of Innocents turn-in unlocks Return to Thunder Bluff for Zamah.",
+            note = "Blood of Innocents and Return to Thunder Bluff only apply if you came with Journey to Tarren Mill.",
         },
         {
             text = "Talk to [FRIENDLY]Umpi[/]. Turn in [QUEST]Elixir of Suffering[/].",
@@ -279,15 +280,24 @@ ns.RegisterGuide({
         },
         {
             sticky = true,
-            text = "Back at the fields, feed [LOOT]Elixir of Pain[/] to [FRIENDLY]Stanley[/].",
+            text = "Kill [ENEMY]Hillsbrad Humans[/] for [LOOT]Hillsbrad Human Skulls[/] while you quest in the fields.",
             map = 1424,
-            x = 32.7,
-            y = 35.3,
-            quest = 502,
+            x = 35.0,
+            y = 42.0,
+            quest = 546,
             when = "objectives",
             details = {
-                "Turn in [QUEST]Elixir of Pain[/] at Stanley",
+                "[LOOT]Hillsbrad Human Skull[/] (30)",
             },
+            note = "Unfinished skulls can wait for the 30-32 return.",
+        },
+        {
+            text = "Back at the fields, talk to [FRIENDLY]Stanley[/]. Turn in [QUEST]Elixir of Pain[/].",
+            map = 1424,
+            x = 32.66,
+            y = 35.32,
+            quest = 502,
+            when = "complete",
         },
         {
             text = "Kill [ENEMY]Hillsbrad Peasants[/].",
@@ -317,7 +327,6 @@ ns.RegisterGuide({
             when = "accepted",
         },
         {
-            sticky = true,
             text = "At the Hillsbrad forge, kill [ENEMY]Blacksmith Verringtan[/] and [ENEMY]Hillsbrad Apprentice Blacksmiths[/]. Loot the [PICK]Shipment of Iron[/].",
             map = 1424,
             x = 32.0,
@@ -329,18 +338,6 @@ ns.RegisterGuide({
                 "[ENEMY]Hillsbrad Apprentice Blacksmith[/] (4)",
                 "[LOOT]Shipment of Iron[/] (1)",
             },
-        },
-        {
-            text = "Kill [ENEMY]Hillsbrad Humans[/].",
-            map = 1424,
-            x = 35.0,
-            y = 42.0,
-            quest = 546,
-            when = "objectives",
-            details = {
-                "[LOOT]Hillsbrad Human Skull[/] (30)",
-            },
-            note = "Keep grinding for skulls until you have 30, or bank unfinished skulls and the Shipment of Iron for the 30-32 return.",
         },
         {
             text = "First Hillsbrad pass done. Leave with [QUEST]Battle of Hillsbrad[/] (forge) and [QUEST]Dangerous![/] ready for the 30-32 return, and [QUEST]Return to Thunder Bluff[/] for Zamah when convenient. Open 30-32 Hillsbrad when you return.",
@@ -653,7 +650,19 @@ ns.RegisterGuide({
             },
         },
         {
-            text = "Return to Tarren Mill. Talk to [FRIENDLY]Magus Wordeen Voidglare[/]. Turn in [QUEST]Prison Break In[/].",
+            text = "Return to Tarren Mill. Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (mine) and [QUEST]Dangerous![/]. Accept [QUEST]Battle of Hillsbrad[/] (Dun Garok).",
+            map = 1424,
+            x = 62.3,
+            y = 20.5,
+            quest = 541,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]Battle of Hillsbrad[/] (mine)",
+                "Turn in [QUEST]Dangerous![/]",
+            },
+        },
+        {
+            text = "Talk to [FRIENDLY]Magus Wordeen Voidglare[/]. Turn in [QUEST]Prison Break In[/].",
             map = 1424,
             x = 61.6,
             y = 20.8,
@@ -685,18 +694,6 @@ ns.RegisterGuide({
             when = "complete",
         },
         {
-            text = "Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (Dun Garok) and [QUEST]Dangerous![/]. Accept [QUEST]Battle of Hillsbrad[/] (report to Undercity).",
-            map = 1424,
-            x = 62.3,
-            y = 20.5,
-            quest = 550,
-            when = "accepted",
-            details = {
-                "Turn in [QUEST]Battle of Hillsbrad[/] (Dun Garok)",
-                "Turn in [QUEST]Dangerous![/]",
-            },
-        },
-        {
             text = "Talk to [FRIENDLY]Krusk[/]. Turn in [QUEST]Infiltration[/].",
             map = 1424,
             x = 63.2,
@@ -722,6 +719,31 @@ ns.RegisterGuide({
             when = "objectives",
             details = {
                 "[LOOT]Mudsnout Blossom[/] (6)",
+            },
+        },
+        {
+            text = "At Dun Garok, kill [ENEMY]Dun Garok Mountaineers[/], [ENEMY]Dun Garok Riflemen[/], [ENEMY]Dun Garok Priests[/], and [ENEMY]Captain Ironhill[/].",
+            map = 1424,
+            x = 71.5,
+            y = 79.5,
+            quest = 541,
+            when = "objectives",
+            details = {
+                "[ENEMY]Dun Garok Mountaineer[/] (8)",
+                "[ENEMY]Dun Garok Rifleman[/] (4)",
+                "[ENEMY]Dun Garok Priest[/] (2)",
+                "Kill [ENEMY]Captain Ironhill[/]",
+            },
+        },
+        {
+            text = "Return to Tarren Mill. Talk to [FRIENDLY]High Executor Darthalia[/]. Turn in [QUEST]Battle of Hillsbrad[/] (Dun Garok). Accept [QUEST]Battle of Hillsbrad[/] (report to Undercity).",
+            map = 1424,
+            x = 62.3,
+            y = 20.5,
+            quest = 550,
+            when = "accepted",
+            details = {
+                "Turn in [QUEST]Battle of Hillsbrad[/] (Dun Garok)",
             },
         },
         {
