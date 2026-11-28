@@ -2,7 +2,7 @@
 ## Title: Waynotes
 ## Notes: A WoW-style tracker and options menu for RestedXP Guides.
 ## Author: Waynotes
-## Version: 1.4.14
+## Version: 1.4.15
 ## Category: Quests
 ## IconTexture: Interface\AddOns\Waynotes\logo
 ## Dependencies: RXPGuides
