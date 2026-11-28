@@ -530,6 +530,10 @@ function ns.PartySyncHasPeers()
     return #peerList() > 0
 end
 
+function ns.PartySyncInGroup()
+    return inGroup() and true or false
+end
+
 function ns.PartySyncPeerNames()
     local names = {}
     for _, peer in ipairs(peerList()) do

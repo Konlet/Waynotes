@@ -320,7 +320,7 @@ local function acquireRow(index)
     row:SetScript("OnClick", function(self, button)
         if button == "RightButton" then
             if ns.OpenGuideMenu then
-                ns.OpenGuideMenu()
+                ns.OpenGuideMenu("stepList")
             end
             return
         end
@@ -430,7 +430,7 @@ local function ensurePanel()
     panel:SetScript("OnMouseWheel", onWheel)
     panel:SetScript("OnMouseUp", function(_, button)
         if button == "RightButton" and ns.OpenGuideMenu then
-            ns.OpenGuideMenu()
+            ns.OpenGuideMenu("stepList")
         end
     end)
     panel:SetScript("OnShow", function()

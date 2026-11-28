@@ -3914,11 +3914,25 @@ do
         end
         State.books.nextScan = now + UI.BOOK_SCAN_SECONDS
 
-        local found = ns.NavNearbyBooks and ns.NavNearbyBooks(UI.BOOK_NEAR_YARDS) or {}
+        -- Books already showing stay until the player passes the clear
+        -- distance; new books only trigger within BOOK_NEAR_YARDS and never
+        -- while flying.
+        local clearYards = tonumber(ns.db and ns.db.nearbyBookClearYards) or 750
+        local triggerYards = math.min(UI.BOOK_NEAR_YARDS, clearYards)
+        local flying = (IsFlying and IsFlying()) or (UnitOnTaxi and UnitOnTaxi("player"))
+        local found = ns.NavNearbyBooks and ns.NavNearbyBooks(math.max(triggerYards, clearYards)) or {}
         local list = {}
         for index = 1, #found do
             local key = found[index].quest or found[index].name
-            if not State.books.dismissed[key] then
+            local dist = found[index].dist or 0
+            local wasShown = State.books.seen[key]
+            local qualifies
+            if wasShown then
+                qualifies = dist <= clearYards
+            else
+                qualifies = (not flying) and dist <= triggerYards
+            end
+            if qualifies and not State.books.dismissed[key] then
                 list[#list + 1] = found[index]
             end
         end
@@ -4332,7 +4346,12 @@ function ns.StylePopupFrame(frame, opts)
         edgeA = edgeA * math.max(0, math.min(1, borderAlpha))
     end
     local rounded = ns.db.roundedEdges and true or false
-    local borderOn = ns.db.trackerBorder and true or false
+    local borderOn
+    if matchTracker then
+        borderOn = ns.db.trackerBorder and true or false
+    else
+        borderOn = ns.db.menuBorder ~= false
+    end
     local radius = 0
     if rounded then
         radius = clampCornerRadius(ns.db.cornerRadius or 8)
@@ -4434,12 +4453,14 @@ local function restorePoint()
     tracker:SetPoint(saved.point, UIParent, saved.relativePoint or saved.point, saved.x, saved.y)
 end
 
-function ns.OpenGuideMenu()
+-- context: optional "stepList" or "damageMeter". Adds a section for that
+-- panel at the top of the menu and points Options at its settings.
+function ns.OpenGuideMenu(context)
     if ns.HideNavMenu then
         ns.HideNavMenu()
     end
     if ns.db and (ns.db.standaloneGuide or ns.db.restedXPGuides) and ns.ToggleGuideMenu then
-        ns.ToggleGuideMenu()
+        ns.ToggleGuideMenu(context)
         return
     end
     local rxp = _G.RXPFrame
@@ -8211,9 +8232,50 @@ State.pulsePrimaryRoute = function()
     if not (ns.db.standaloneGuide or ns.db.replaceGuide) then
         return
     end
+    -- Remember where/when this route was computed so a long walk (or a late
+    -- flight path unlock) can trigger a fresh pulse; see State.repulseIfMoved.
+    local hbd = RG.hereBeDragons and RG.hereBeDragons()
+    if hbd and hbd.GetPlayerWorldPosition then
+        local x, y, instance = hbd:GetPlayerWorldPosition()
+        if type(x) == "number" and type(y) == "number" then
+            State.routePulseX, State.routePulseY, State.routePulseInstance = x, y, instance
+        end
+    end
+    State.routePulseAt = GetTime and GetTime() or 0
     if ns.TravelPulsePrimaryRoute then
         ns.TravelPulsePrimaryRoute()
     end
+end
+
+-- The primary route is only computed on step/zone change. Without this, a fly
+-- tip computed before the player reached a flight master (or before a path was
+-- learned) stayed nil until the next zone change. Cheap check, throttled.
+State.REPULSE_YARDS = 200
+State.REPULSE_MIN_SECONDS = 3
+State.repulseIfMoved = function()
+    if State.routeNeeded then
+        return
+    end
+    local now = GetTime and GetTime() or 0
+    if now - (State.routePulseAt or 0) < State.REPULSE_MIN_SECONDS then
+        return
+    end
+    local hbd = RG.hereBeDragons and RG.hereBeDragons()
+    if not hbd or not hbd.GetPlayerWorldPosition then
+        return
+    end
+    local x, y, instance = hbd:GetPlayerWorldPosition()
+    if type(x) ~= "number" or type(y) ~= "number" then
+        return
+    end
+    local px, py = State.routePulseX, State.routePulseY
+    if type(px) == "number" and type(py) == "number" and instance == State.routePulseInstance then
+        local dx, dy = x - px, y - py
+        if dx * dx + dy * dy < State.REPULSE_YARDS * State.REPULSE_YARDS then
+            return
+        end
+    end
+    State.routeNeeded = true
 end
 
 State.notePrimaryRouteStep = function()
@@ -8259,6 +8321,9 @@ State.refreshTracker = function(force)
         end
         if ns.RefreshStepList then
             ns.RefreshStepList(true)
+        end
+        if ns.RefreshDamageMeter then
+            ns.RefreshDamageMeter(true)
         end
         return
     end
@@ -8345,6 +8410,9 @@ State.refreshTracker = function(force)
         if force and ns.RefreshStepList then
             ns.RefreshStepList(true)
         end
+        if force and ns.RefreshDamageMeter then
+            ns.RefreshDamageMeter(true)
+        end
         if ns.RefreshUseItemButtons then
             ns.RefreshUseItemButtons()
         end
@@ -8390,6 +8458,9 @@ State.refreshTracker = function(force)
     -- Objective text changes must not force a step-list restyle/rebuild.
     if ns.RefreshStepList then
         ns.RefreshStepList(force)
+    end
+    if force and ns.RefreshDamageMeter then
+        ns.RefreshDamageMeter(true)
     end
     if ns.RefreshUseItemButtons then
         ns.RefreshUseItemButtons()
@@ -8789,6 +8860,9 @@ function ns.SyncReplacement()
         if not State.pointRestored then
             restorePoint()
             State.pointRestored = true
+            if ns.ApplyTrackerLayout then
+                ns.ApplyTrackerLayout()
+            end
         end
         tracker:SetScale(ns.db.trackerScale or 1.2)
         tracker:Show()
@@ -8796,11 +8870,19 @@ function ns.SyncReplacement()
         if ns.RefreshStepList then
             ns.RefreshStepList(true)
         end
+        if ns.RefreshDamageMeter then
+            ns.RefreshDamageMeter(true)
+        end
     else
-        tracker:Hide()
+        if not State.editMode then
+            tracker:Hide()
+        end
         State.lastSignature = nil
         if ns.RefreshStepList then
             ns.RefreshStepList(true)
+        end
+        if ns.RefreshDamageMeter then
+            ns.RefreshDamageMeter(true)
         end
         if rxp and not ns.db.hideTracker then
             revealGuide(rxp)
@@ -9010,6 +9092,7 @@ State.trackerOnUpdate = function(self, delta)
     if State.travelElapsed >= UI.TRAVEL_PULSE_SECONDS then
         State.travelElapsed = 0
         State.timed("travel", State.pulseTravelCatchUp)
+        State.repulseIfMoved()
     end
     -- Refresh and BestPath never share a frame. Route only when the primary
     -- step changes or the player changes zones (see requestPrimaryRoute).

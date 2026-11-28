@@ -171,6 +171,7 @@ local HEADER_HEIGHT = 58
 local SECTION_PAD = 10
 local BODY_INSET = 10
 local sectionCollapse = {}
+local optionTargets = {}
 local layoutSections = {}
 local layoutParent
 local layoutFooter
@@ -370,6 +371,66 @@ local function createLayers(parent)
         for _, radio in ipairs(buttons) do
             radio:SetChecked(buttons[radio] == ns.db.strata)
         end
+    end
+
+    addRefresher(holder)
+    return holder
+end
+
+local DAMAGE_VIEW_ROW = 22
+
+local function createDamageView(parent)
+    local views = ns.DamageMeterViews or {}
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(18 + #views * DAMAGE_VIEW_ROW)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("TOPLEFT", 0, 0)
+    label:SetText("Damage meter view")
+
+    local buttons = {}
+    for index, info in ipairs(views) do
+        local name = "WaynotesDamageView" .. index
+        local radio = CreateFrame("CheckButton", name, holder, "UIRadioButtonTemplate")
+        radio:SetPoint("TOPLEFT", 0, -(16 + (index - 1) * DAMAGE_VIEW_ROW))
+        local fs = _G[name .. "Text"]
+        if fs then
+            fs:SetFontObject(GameFontHighlightSmall)
+            fs:SetText(info.label)
+        end
+
+        radio:SetScript("OnClick", function()
+            ns.db.damageMeterView = info.id
+            if ns.ResetDamageMeterView then
+                ns.ResetDamageMeterView()
+            end
+            ns.Apply()
+            holder:Refresh()
+        end)
+        radio:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(info.label, 1, 1, 1)
+            GameTooltip:AddLine(info.tip, 0.9, 0.9, 0.9, true)
+            GameTooltip:AddLine("Clicking the meter title still switches views until combat starts or ends.", 0.7, 0.7, 0.7, true)
+            ns.FinishTooltip()
+        end)
+        radio:SetScript("OnLeave", GameTooltip_Hide)
+        buttons[#buttons + 1] = radio
+        buttons[radio] = info.id
+    end
+
+    function holder:Refresh()
+        local on = ns.db and ns.db.showDamageMeter and true or false
+        local selected = ns.db and ns.db.damageMeterView or "auto"
+        for _, radio in ipairs(buttons) do
+            radio:SetChecked(buttons[radio] == selected)
+            if on then
+                radio:Enable()
+            else
+                radio:Disable()
+            end
+        end
+        label:SetAlpha(on and 1 or 0.45)
     end
 
     addRefresher(holder)
@@ -962,6 +1023,10 @@ local function build(parent)
     end
     addRefresher(guideStatus)
 
+    local stepList = createCheck(body, "Show step list", "Shows a slim scrollable list of every step under the guide. The current step stays highlighted at the top. Hover a row for details.", "showStepList")
+    optionTargets.stepList = { section = guideSection, anchor = stepList }
+    local damageMeter = createCheck(body, "Show damage meter", "Shows a damage meter in a separate window attached beneath the guide (and beneath the step list when it is shown). Tracks you, your group, and pets, with class icons and class colors. Click the title to switch between current and overall, hover a row for a spell breakdown. More damage meter options are in the Tracker section.", "showDamageMeter")
+
     local autoProgress = createCheck(body, "Auto-progress", "Advances the guide when you finish a step. Turn this off to stay on a step until you press Next.", "autoProgress")
     local hardcore = createCheck(body, "Hardcore steps", "Follows the hardcore branch of a guide and hides the softcore branch.", "hardcoreGuide")
     local offStep = createCheck(body, "Suggest jump on other-step progress", "When you kill or advance an objective that belongs to another step in the active guide, shows a notice at the bottom-right of the guide. Click it to jump there, or right-click (or the x) to dismiss. Shift-right-click disables suggestions.", "promptOffStepJump")
@@ -989,6 +1054,10 @@ local function build(parent)
         guideStatus:Show()
         placeIn(guideStatus, body, y)
         y = y - 40
+        placeCheck(stepList, body, y)
+        y = y - 28
+        placeCheck(damageMeter, body, y)
+        y = y - 28
         placeCheck(autoProgress, body, y)
         y = y - 28
         placeCheck(hardcore, body, y)
@@ -1028,9 +1097,27 @@ local function build(parent)
     placeCheck(guidePercent, body, y)
     y = y - 30
 
-    local stepList = createCheck(body, "Show step list", "Shows a slim scrollable list of every step under the guide. The current step stays highlighted at the top. Hover a row for details.", "showStepList")
-    placeCheck(stepList, body, y)
+    -- "Show step list" and "Show damage meter" live at the top of the Guide section.
+    local damageView = createDamageView(body)
+    optionTargets.damageMeter = { section = trackerSection, anchor = damageView }
+    placeIn(damageView, body, y)
+    y = y - (damageView:GetHeight() + 10)
+
+    local damageGroup = createCheck(body, "Damage meter only in a group", "Hides the damage meter while you are not in a party or raid, and shows it when you join one.", "damageMeterGroupOnly")
+    placeCheck(damageGroup, body, y)
     y = y - 30
+
+    local damageRow = createSlider(body, "Damage meter row height", "Height of each damage meter row.", "damageMeterRowHeight", function()
+        return ns.db and ns.db.showDamageMeter
+    end, { min = 14, max = 32, step = 1, percent = false, decimals = 0, suffix = " px" })
+    placeIn(damageRow, body, y)
+    y = y - 52
+
+    local damageFont = createSlider(body, "Damage meter font size", "Size of the damage meter text.", "damageMeterFontSize", function()
+        return ns.db and ns.db.showDamageMeter
+    end, { min = 8, max = 20, step = 1, percent = false, decimals = 0, suffix = " pt" })
+    placeIn(damageFont, body, y)
+    y = y - 52
 
     local trackerScale = createSlider(body, "Tracker scale", "Zooms the whole tracker, including the text. 120% is a bit larger than a standard quest tracker.", "trackerScale", function()
         return trackerOn()
@@ -1082,9 +1169,16 @@ local function build(parent)
     placeCheck(corpseTracker, body, y)
     y = y - 30
 
-    local nearbyBooks = createCheck(body, "Nearby library books", "When an undiscovered library book is within 500 yards, plays a sound and shows a note with distance and a direction arrow at the bottom of the guide.", "showNearbyBooks")
+    local nearbyBooks = createCheck(body, "Nearby library books", "When an undiscovered library book is within 500 yards, plays a sound and shows a note with distance and a direction arrow at the bottom of the guide. Not triggered while you are flying.", "showNearbyBooks")
     placeCheck(nearbyBooks, body, y)
-    y = y - 30
+    y = y - 36
+
+    local bookClearRange = { min = 100, max = 5000, step = 50, percent = false, decimals = 0, suffix = " yd" }
+    local bookClear = createSlider(body, "Library book notice range", "Once the library book note is showing, it is removed when you move farther than this from the book. Default 750 yards.", "nearbyBookClearYards", function()
+        return ns.db and ns.db.showNearbyBooks ~= false
+    end, bookClearRange)
+    placeIn(bookClear, body, y)
+    y = y - 52
     finishSection(noticeSection, y)
 
     local nearSection = createSection(parent, "near", "Near distance", true)
@@ -1170,6 +1264,10 @@ local function build(parent)
 
     local trackerBorder = createCheck(body, "Tracker border", "Draws an accent line around the tracker.", "trackerBorder")
     placeCheck(trackerBorder, body, y)
+    y = y - 30
+
+    local menuBorder = createCheck(body, "Context Menu border", "Draws an accent line around the guide and travel context menus.", "menuBorder")
+    placeCheck(menuBorder, body, y)
     y = y - 30
 
     local trackerShadow = createCheck(body, "Drop shadow", "Draws a shadow behind the tracker so it stands out from the world.", "trackerShadow")
@@ -1332,9 +1430,60 @@ local function registerSettings()
     end
 end
 
-function ns.OpenOptions()
+-- Scrolls the options page to a section. Targets are registered while the
+-- page is built: { section = <section frame>, anchor = <frame to bring into view> }.
+local scrollWatcher = CreateFrame("Frame")
+scrollWatcher:Hide()
+
+local function scrollToTarget(targetKey)
+    local target = optionTargets[targetKey]
+    if not target then
+        return
+    end
+    if target.section and target.section.collapsed then
+        target.section:SetCollapsed(false)
+    end
+    local anchor = target.anchor or target.section
+    local waited = 0
+    local settled = 0
+    scrollWatcher:SetScript("OnUpdate", function(self, elapsed)
+        waited = waited + elapsed
+        if waited > 2 then
+            self:Hide()
+            return
+        end
+        local top = anchor and anchor.GetTop and anchor:GetTop()
+        local childTop = child:GetTop()
+        if not (canvas:IsVisible() and top and childTop) then
+            return
+        end
+        -- Let the page lay out for a couple of frames after it opens.
+        settled = settled + 1
+        if settled < 3 then
+            return
+        end
+        local maxScroll = scroll:GetVerticalScrollRange() or 0
+        local offset = childTop - top - 12
+        if offset < 0 then
+            offset = 0
+        elseif offset > maxScroll then
+            offset = maxScroll
+        end
+        scroll:SetVerticalScroll(offset)
+        self:Hide()
+    end)
+    scrollWatcher:Show()
+end
+
+-- target: optional key ("stepList", "damageMeter") to scroll to once opened.
+function ns.OpenOptions(target)
     ns.InitDB()
     ns.db.acknowledged = true
+    if type(target) == "string" and optionTargets[target] then
+        scrollToTarget(target)
+    else
+        scrollWatcher:Hide()
+    end
     if optionsCategory and Settings and Settings.OpenToCategory and optionsCategory.GetID then
         Settings.OpenToCategory(optionsCategory:GetID())
         return

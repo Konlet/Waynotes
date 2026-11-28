@@ -91,16 +91,23 @@ ns.defaults = {
     roundBadges = false,
     trackerBorder = false,
     trackerShadow = false,
+    menuBorder = true,
     menuBorderGlow = true,
     menuGlowRadius = 8,
     showGuidePercent = true,
     showStepList = false,
+    showDamageMeter = true,
+    damageMeterView = "auto",
+    damageMeterRowHeight = 18,
+    damageMeterFontSize = 12,
+    damageMeterGroupOnly = true,
     showFlightTimer = true,
     showFlightRecommend = true,
     flightRecommendMinYards = 500,
     showTrainReminders = true,
     showCorpseTracker = true,
     showNearbyBooks = true,
+    nearbyBookClearYards = 750,
     nearYardsEnemy = 100,
     nearYardsLoot = 100,
     nearYardsPick = 100,
@@ -221,8 +228,8 @@ ns.themeList = {
         },
     },
     {
-        id = "questplain",
-        name = "Quest Plain",
+        id = "minimal",
+        name = "Minimal",
         backgroundAlpha = 0.45,
         darkHeader = true,
         headerShade = 0.6,
@@ -231,7 +238,7 @@ ns.themeList = {
         roundBadges = false,
         trackerBorder = false,
         trackerShadow = false,
-        menuBorderGlow = true,
+        menuBorderGlow = false,
         menuGlowRadius = 5,
         accent = rgb(1.00, 0.82, 0.00),
         glow = rgb(1.00, 0.78, 0.20),
@@ -843,9 +850,12 @@ local boolKeys = {
     roundBadges = true,
     trackerBorder = true,
     trackerShadow = true,
+    menuBorder = true,
     menuBorderGlow = true,
     showGuidePercent = true,
     showStepList = true,
+    showDamageMeter = true,
+    damageMeterGroupOnly = true,
     showFlightTimer = true,
     showFlightRecommend = true,
     showTrainReminders = true,
@@ -987,6 +997,19 @@ local function sanitizeOptionValue(key, value, default)
         end
         return value
     end
+    if key == "nearbyBookClearYards" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        if value < 100 then
+            return 100
+        end
+        if value > 5000 then
+            return 5000
+        end
+        return value
+    end
     if key == "minimapPos" then
         if type(value) ~= "number" then
             return default
@@ -996,6 +1019,23 @@ local function sanitizeOptionValue(key, value, default)
             value = value + 360
         end
         return value
+    end
+    if key == "damageMeterRowHeight" or key == "damageMeterFontSize" then
+        if type(value) ~= "number" then
+            return default
+        end
+        value = math.floor(value + 0.5)
+        local low, high = 14, 32
+        if key == "damageMeterFontSize" then
+            low, high = 8, 20
+        end
+        return math.max(low, math.min(high, value))
+    end
+    if key == "damageMeterView" then
+        if value == "auto" or value == "hold" or value == "overall" or value == "current" then
+            return value
+        end
+        return default
     end
     if key == "theme" then
         if value ~= "custom" and not ns.themesById[value] then
@@ -1235,6 +1275,7 @@ ns.visualKeys = {
     "roundBadges",
     "trackerBorder",
     "trackerShadow",
+    "menuBorder",
     "menuBorderGlow",
     "menuGlowRadius",
     "nearYardsEnemy",
@@ -1243,6 +1284,7 @@ ns.visualKeys = {
     "nearYardsSingle",
     "nearYardsTravel",
     "flightRecommendMinYards",
+    "nearbyBookClearYards",
     "standaloneGuide",
     "hardcoreGuide",
     "autoProgress",
@@ -1673,6 +1715,9 @@ function ns.MouseOverGuide()
     if overFrame(_G.WaynotesStepList) then
         return true
     end
+    if overFrame(_G.WaynotesDamageMeter) then
+        return true
+    end
 
     -- While the Waynotes tracker replaces RXP, ignore concealed RXP chrome.
     if ns.ReplacingGuide() or (ns.db and ns.db.standaloneGuide) then
@@ -1846,6 +1891,9 @@ function ns.Apply()
         if fadeFrame == _G.WaynotesTracker and ns.SetStepListAlpha then
             ns.SetStepListAlpha(fadeCurrent)
         end
+        if fadeFrame == _G.WaynotesTracker and ns.SetDamageMeterAlpha then
+            ns.SetDamageMeterAlpha(fadeCurrent)
+        end
     end
 end
 
@@ -1896,6 +1944,9 @@ local function updateFade(dt)
     end
     if frame == _G.WaynotesTracker and ns.SetStepListAlpha then
         ns.SetStepListAlpha(fadeCurrent)
+    end
+    if frame == _G.WaynotesTracker and ns.SetDamageMeterAlpha then
+        ns.SetDamageMeterAlpha(fadeCurrent)
     end
 end
 

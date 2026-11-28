@@ -603,6 +603,11 @@ local function bumpFlightUnlockGen()
     routeCacheGen = 0
     nearbyHintCache = nil
     nearbyHintChecked = false
+    -- A newly learned path changes the best route; recompute the fly tip now
+    -- instead of waiting for the next step or zone change.
+    if ns.RequestPrimaryRoute then
+        ns.RequestPrimaryRoute()
+    end
 end
 
 function ns.TravelInvalidateRoutes()
@@ -2754,6 +2759,18 @@ function ns.TravelDebugFlight()
 
     local active = ns.TravelActiveFlightRecommendation and ns.TravelActiveFlightRecommendation()
     say("activeFlightRec: " .. (active and (active.summary .. " savings=" .. fmt(active.savingsYards)) or "nil"))
+
+    do
+        local rs = ns.ReplaceState
+        local now = GetTime and GetTime() or 0
+        say(string.format(
+            "last route pulse %ss ago at wx=%s wy=%s routeNeeded=%s",
+            rs and rs.routePulseAt and fmt(now - rs.routePulseAt) or "never",
+            fmt(rs and rs.routePulseX),
+            fmt(rs and rs.routePulseY),
+            tostring(rs and rs.routeNeeded)
+        ))
+    end
 
     local state = ns.ReplaceState and ns.ReplaceState.flyRec
     if state then

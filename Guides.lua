@@ -3139,7 +3139,28 @@ end
 
 function ns.PlayerZoneName()
     local name
-    if GetRealZoneText then
+    -- The map the player is standing on is the most reliable source. Forever can
+    -- report the neighbouring zone through GetRealZoneText (Orgrimmar read as
+    -- The Barrens), so only fall back to the text APIs when there is no map.
+    if C_Map and C_Map.GetBestMapForUnit and C_Map.GetMapInfo then
+        local map = C_Map.GetBestMapForUnit("player")
+        local seen = {}
+        while type(map) == "number" and not seen[map] do
+            seen[map] = true
+            local ok, info = pcall(C_Map.GetMapInfo, map)
+            if not ok or type(info) ~= "table" then
+                break
+            end
+            -- mapType 3 is a zone or city. Climb out of micro and dungeon maps.
+            if type(info.name) == "string" and info.name ~= ""
+                and (type(info.mapType) ~= "number" or info.mapType <= 3) then
+                name = info.name
+                break
+            end
+            map = info.parentMapID
+        end
+    end
+    if (type(name) ~= "string" or name == "") and GetRealZoneText then
         name = GetRealZoneText()
     end
     if (type(name) ~= "string" or name == "") and GetZoneText then
@@ -5000,9 +5021,9 @@ local MENU_MAX_HEIGHT = 420
 local MENU_SCROLL_STEP = 28
 local MENU_ROW = {
     action = 26,
-    section = 18,
-    group = 24,
-    subgroup = 22,
+    section = 24,
+    group = 28,
+    subgroup = 24,
     guide = 22,
     tip = 28,
     separator = 8,
@@ -5364,6 +5385,11 @@ local function acquireRow(index)
     row.rule:SetPoint("RIGHT", -10, 0)
     row.rule:SetTexture("Interface\\BUTTONS\\WHITE8X8")
     row.rule:Hide()
+    row.icon = row:CreateTexture(nil, "OVERLAY")
+    row.icon:SetSize(14, 14)
+    row.icon:SetPoint("LEFT", 12, 0)
+    row.icon:SetTexture("Interface\\Buttons\\UI-OptionsButton")
+    row.icon:Hide()
     row:SetScript("OnEnter", function(self)
         if self:IsMouseEnabled() then
             setRowHover(self, true)
@@ -5399,11 +5425,32 @@ local function acquireRow(index)
     end)
     row:SetScript("OnClick", function(self)
         if self.action == "options" then
+            local context = menu and menu.waynotesContext
             if menu then
                 menu:Hide()
             end
             if ns.OpenOptions then
-                ns.OpenOptions()
+                ns.OpenOptions(context)
+            end
+            return
+        end
+        if self.action == "disableSection" then
+            local context = menu and menu.waynotesContext
+            if menu then
+                menu:Hide()
+            end
+            if ns.db then
+                if context == "stepList" then
+                    ns.db.showStepList = false
+                elseif context == "damageMeter" then
+                    ns.db.showDamageMeter = false
+                end
+                if ns.Apply then
+                    ns.Apply()
+                end
+                if ns.RefreshOptions then
+                    ns.RefreshOptions()
+                end
             end
             return
         end
@@ -5706,6 +5753,35 @@ presentMenu = function(keepScroll)
     local secondaryR, secondaryG, secondaryB = menuColors.secondary[1], menuColors.secondary[2], menuColors.secondary[3]
     local priorScroll = keepScroll and scroll and (scroll:GetVerticalScroll() or 0) or 0
     local currentId = ns.GuideId and ns.GuideId() or nil
+    local bodySize = 10
+    local bodyFace
+    if GameFontHighlightSmall and GameFontHighlightSmall.GetFont then
+        bodyFace, bodySize = GameFontHighlightSmall:GetFont()
+    end
+    if type(bodySize) ~= "number" or bodySize < 8 then
+        bodySize = 10
+    end
+    if type(bodyFace) ~= "string" or bodyFace == "" then
+        bodyFace = "Fonts\\FRIZQT__.TTF"
+    end
+    local bodyFlags = (ns.db and ns.db.textOutline) and "OUTLINE" or ""
+    local headerFlags = "OUTLINE"
+    local headerSize = bodySize + 3
+    local subHeaderSize = bodySize + 1
+
+    local function paintFace(fs, size, flags)
+        if fs and fs.SetFont then
+            fs:SetFont(bodyFace, size, flags or "")
+        end
+    end
+
+    local function styleHeaderRow(row, size)
+        paintFace(row.label, size, headerFlags)
+        if row.chevron and row.chevron:IsShown() then
+            paintFace(row.chevron, size, headerFlags)
+            row.chevron:SetWidth(math.max(14, size + 2))
+        end
+    end
 
     local function place(row, height)
         row:Show()
@@ -5724,6 +5800,9 @@ presentMenu = function(keepScroll)
         row.rxpName = nil
         row.tipTitle = nil
         row.tipDetail = nil
+        -- Rows are recycled, and the context section shifts which index is a
+        -- separator, so stale label text would otherwise show through.
+        row.label:SetText("")
         row:Enable()
         row:EnableMouse(false)
         row.chevron:SetText("")
@@ -5738,6 +5817,12 @@ presentMenu = function(keepScroll)
         row.meta:SetText("")
         row.meta:Show()
         row.rule:Hide()
+        if row.icon then
+            row.icon:Hide()
+        end
+        paintFace(row.label, bodySize, bodyFlags)
+        paintFace(row.meta, bodySize, bodyFlags)
+        paintFace(row.chevron, bodySize, bodyFlags)
         setRowMark(row, nil)
         setRowWash(row, nil)
         setRowHover(row, false)
@@ -5806,6 +5891,7 @@ presentMenu = function(keepScroll)
         layoutLabel(row, 12, false)
         row.label:SetText(text)
         paintMenuLabel(row.label, r or detailR, g or detailG, b or detailB)
+        styleHeaderRow(row, headerSize)
         place(row, MENU_ROW.section)
     end
 
@@ -5828,6 +5914,17 @@ presentMenu = function(keepScroll)
         end
         if active then
             setRowWash(row, "current")
+        end
+        if action == "options" and row.icon then
+            row.icon:ClearAllPoints()
+            row.icon:SetSize(14, 14)
+            row.icon:SetPoint("LEFT", 12, 0)
+            row.icon:SetTexture("Interface\\Buttons\\UI-OptionsButton")
+            row.icon:SetVertexColor(accentR, accentG, accentB)
+            row.icon:Show()
+            row.label:ClearAllPoints()
+            row.label:SetPoint("LEFT", row.icon, "RIGHT", 6, 0)
+            row.label:SetPoint("RIGHT", -52, 0)
         end
         place(row, MENU_ROW.action)
     end
@@ -5880,18 +5977,31 @@ presentMenu = function(keepScroll)
         place(row, MENU_ROW.guide)
     end
 
-    addAction("options", "Options", true, "Options", "Open Waynotes settings.")
-    local syncTarget = ns.PartySyncFollowTarget and ns.PartySyncFollowTarget()
-    local hasPeers = ns.PartySyncHasPeers and ns.PartySyncHasPeers()
-    local standalone = ns.UsingStandalone and ns.UsingStandalone()
-    if syncTarget then
-        addAction("sync", "Synced with " .. syncTarget, true, "Party sync", "Click to change or clear party sync.", true)
-    elseif standalone and hasPeers then
-        addAction("sync", "Sync with party", true, "Party sync", "Follow a party member's guide progress.")
-    elseif standalone then
-        addAction("sync", "Sync with party", true, "Party sync", "No party members available right now.")
-    else
-        addAction("sync", "Sync with party", false, "Party sync", "Turn on Replace RestedXP to sync guides with your party.")
+    local sectionContext = menu.waynotesContext
+    if sectionContext == "stepList" then
+        addSection("Step list", accentR, accentG, accentB)
+        addAction("disableSection", "Disable step list", true, "Disable step list", "Hides the step list. Turn it back on under Show step list in Options.")
+        addSeparator()
+    elseif sectionContext == "damageMeter" then
+        addSection("Damage meter", accentR, accentG, accentB)
+        addAction("disableSection", "Disable damage meter", true, "Disable damage meter", "Hides the damage meter. Turn it back on under Show damage meter in Options.")
+        addSeparator()
+    end
+
+    addAction("options", "Options", true, "Options", sectionContext and "Open Waynotes settings at this section." or "Open Waynotes settings.")
+    if ns.PartySyncInGroup and ns.PartySyncInGroup() then
+        local syncTarget = ns.PartySyncFollowTarget and ns.PartySyncFollowTarget()
+        local hasPeers = ns.PartySyncHasPeers and ns.PartySyncHasPeers()
+        local standalone = ns.UsingStandalone and ns.UsingStandalone()
+        if syncTarget then
+            addAction("sync", "Synced with " .. syncTarget, true, "Party sync", "Click to change or clear party sync.", true)
+        elseif standalone and hasPeers then
+            addAction("sync", "Sync with party", true, "Party sync", "Follow a party member's guide progress.")
+        elseif standalone then
+            addAction("sync", "Sync with party", true, "Party sync", "No party members available right now.")
+        else
+            addAction("sync", "Sync with party", false, "Party sync", "Turn on Replace RestedXP to sync guides with your party.")
+        end
     end
     addSeparator()
 
@@ -5938,6 +6048,7 @@ presentMenu = function(keepScroll)
                     layoutLabel(row, 12, false)
                     row.label:SetText(strtrim(entry.text or ""))
                     paintMenuLabel(row.label, accentR, accentG, accentB)
+                    styleHeaderRow(row, headerSize)
                     setRowWash(row, "group")
                     place(row, MENU_ROW.group)
                 else
@@ -5945,6 +6056,7 @@ presentMenu = function(keepScroll)
                     layoutLabel(row, 18, false)
                     row.label:SetText(strtrim(entry.text or ""))
                     paintMenuLabel(row.label, secondaryR, secondaryG, secondaryB)
+                    styleHeaderRow(row, subHeaderSize)
                     place(row, MENU_ROW.subgroup)
                 end
             end
@@ -6005,6 +6117,7 @@ presentMenu = function(keepScroll)
             paintMenuLabel(row.chevron, accentR, accentG, accentB)
             row.label:SetText(guide.group)
             paintMenuLabel(row.label, accentR, accentG, accentB)
+            styleHeaderRow(row, headerSize)
             setRowWash(row, "group")
             row.tipTitle = guide.group
             row.tipDetail = groupCollapsed and "Click to expand." or "Click to collapse."
@@ -6029,6 +6142,7 @@ presentMenu = function(keepScroll)
                     paintMenuLabel(row.chevron, secondaryR, secondaryG, secondaryB)
                     row.label:SetText(subgroup)
                     paintMenuLabel(row.label, secondaryR, secondaryG, secondaryB)
+                    styleHeaderRow(row, subHeaderSize)
                     row.tipTitle = subgroup
                     row.tipDetail = subgroupCollapsed and "Click to expand." or "Click to collapse."
                     place(row, MENU_ROW.subgroup)
@@ -6119,11 +6233,12 @@ function ns.HideGuideMenu()
     end
 end
 
-function ns.ToggleGuideMenu()
+function ns.ToggleGuideMenu(context)
     if menu:IsShown() then
         menu:Hide()
         return
     end
+    menu.waynotesContext = context
     if ns.HideNavMenu then
         ns.HideNavMenu()
     end

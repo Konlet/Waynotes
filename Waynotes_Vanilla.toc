@@ -46,6 +46,8 @@ Guides/Forever/Curated/Professions_Secondary_Curated.lua
 ReplaceGuide.lua
 UseItems.lua
 Replace.lua
+EditMode.lua
 StepList.lua
+DamageMeter.lua
 Minimap.lua
 Options.lua
